@@ -85,6 +85,15 @@
             </div>
           </div>
 
+          <!-- Dynamic Form Fields Container -->
+          <div id='dynamicFormFields' class='mb-4' style='display: none;'>
+            <hr class='my-4' />
+            <h6 class='mb-3'>
+              <i class='fas fa-list-ul me-2'></i>Thông tin chi tiết theo quy trình
+            </h6>
+            <div id='formFieldsContainer'></div>
+          </div>
+
           <!-- Issue Type -->
           <div class='mb-4'>
             <label for='issueType' class='form-label'>Loại vấn đề</label>
@@ -230,76 +239,395 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() { const form =
-  document.getElementById('createRequestForm'); const titleInput =
-  document.getElementById('title'); const descriptionInput =
-  document.getElementById('description'); const attachmentInput =
-  document.getElementById('attachment'); const prioritySelect =
-  document.getElementById('priorityId'); // Form validation
-  form.addEventListener('submit', function(e) { e.preventDefault(); // Validate
-  title const title = titleInput.value.trim(); if (title.length < 3) {
-  showError('Tiêu đề phải có ít nhất 3 ký tự'); titleInput.focus(); return; } //
-  Validate description const description = descriptionInput.value.trim(); if
-  (description.length < 10) { showError('Mô tả phải có ít nhất 10 ký tự');
-  descriptionInput.focus(); return; } // Show loading showLoading(); // Submit
-  form const formData = new FormData(form); fetch(form.action, { method: 'POST',
-  body: formData, headers: { 'Accept': 'application/json' } }) .then(response =>
-  response.json()) .then(data => { hideLoading(); if (data.success) {
-  showSuccess(data.message); setTimeout(() => { window.location.href =
-  `/requests/${data.requestId}`; }, 1500); } else { showError(data.message ||
-  'Có lỗi xảy ra khi tạo yêu cầu'); } }) .catch(error => { hideLoading();
-  console.error('Error:', error); showError('Có lỗi xảy ra khi gửi yêu cầu');
-  }); }); // File upload preview attachmentInput.addEventListener('change',
-  function(e) { const file = e.target.files[0]; const preview =
-  document.getElementById('filePreview'); const fileName =
-  document.getElementById('fileName'); const fileSize =
-  document.getElementById('fileSize'); if (file) { // Check file size (10MB) if
-  (file.size > 10 * 1024 * 1024) { showError('File quá lớn. Vui lòng chọn file
-  nhỏ hơn 10MB'); this.value = ''; return; } fileName.textContent = file.name;
-  fileSize.textContent = `(${formatFileSize(file.size)})`; preview.style.display
-  = 'block'; } else { preview.style.display = 'none'; } }); // Priority color
-  indicator prioritySelect.addEventListener('change', function() { const
-  selectedOption = this.options[this.selectedIndex]; const color =
-  selectedOption.getAttribute('data-color'); // Update select background color
-  if (color) { this.style.borderLeftColor = color; this.style.borderLeftWidth =
-  '4px'; } else { this.style.borderLeftColor = ''; this.style.borderLeftWidth =
-  ''; } }); // Auto-save draft functionality let draftTimeout; const draftInputs
-  = [titleInput, descriptionInput, prioritySelect]; draftInputs.forEach(input =>
-  { input.addEventListener('input', function() { clearTimeout(draftTimeout);
-  draftTimeout = setTimeout(saveDraftAuto, 30000); // Auto-save after 30 seconds
-  }); }); }); function removeFile() {
-  document.getElementById('attachment').value = '';
-  document.getElementById('filePreview').style.display = 'none'; } function
-  formatFileSize(bytes) { if (bytes === 0) return '0 Bytes'; const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']; const i =
-  Math.floor(Math.log(bytes) / Math.log(k)); return parseFloat((bytes /
-  Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]; } function saveDraft() { const
-  formData = new FormData(document.getElementById('createRequestForm'));
-  formData.append('isDraft', 'true'); fetch('/requests/draft', { method: 'POST',
-  body: formData }) .then(response => response.json()) .then(data => { if
-  (data.success) { showSuccess('Đã lưu nháp thành công'); } else {
-  showError('Không thể lưu nháp'); } }) .catch(error => { console.error('Draft
-  save error:', error); }); } function saveDraftAuto() { const title =
-  document.getElementById('title').value.trim(); const description =
-  document.getElementById('description').value.trim(); if (title || description)
-  { saveDraft(); } } function showLoading() {
-  document.getElementById('loadingOverlay').style.display = 'flex'; } function
-  hideLoading() { document.getElementById('loadingOverlay').style.display =
-  'none'; } function showSuccess(message) { // Create toast notification const
-  toast = document.createElement('div'); toast.className = 'alert alert-success
-  alert-dismissible fade show position-fixed'; toast.style.top = '20px';
-  toast.style.right = '20px'; toast.style.zIndex = '9999'; toast.innerHTML = `
-  <i class="fas fa-check-circle me-2"></i>${message} <button type="button"
-  class="btn-close" data-bs-dismiss="alert"></button> `;
-  document.body.appendChild(toast); // Auto remove after 5 seconds setTimeout(()
-  => { if (toast.parentNode) { toast.parentNode.removeChild(toast); } }, 5000);
-  } function showError(message) { // Create toast notification const toast =
-  document.createElement('div'); toast.className = 'alert alert-danger
-  alert-dismissible fade show position-fixed'; toast.style.top = '20px';
-  toast.style.right = '20px'; toast.style.zIndex = '9999'; toast.innerHTML = `
-  <i class="fas fa-exclamation-circle me-2"></i>${message} <button type="button"
-  class="btn-close" data-bs-dismiss="alert"></button> `;
-  document.body.appendChild(toast); // Auto remove after 5 seconds setTimeout(()
-  => { if (toast.parentNode) { toast.parentNode.removeChild(toast); } }, 5000);
+  // Workflow form schemas data
+  const workflowSchemas = {{{workflowsJSON}}};
+
+  document.addEventListener('DOMContentLoaded', function() { 
+    const form = document.getElementById('createRequestForm'); 
+    const titleInput = document.getElementById('title'); 
+    const descriptionInput = document.getElementById('description'); 
+    const attachmentInput = document.getElementById('attachment'); 
+    const prioritySelect = document.getElementById('priorityId'); 
+    const workflowSelect = document.getElementById('workflowId');
+    
+    // Workflow change handler - Load dynamic form fields
+    workflowSelect.addEventListener('change', function() {
+      const workflowId = this.value;
+      const dynamicContainer = document.getElementById('dynamicFormFields');
+      const fieldsContainer = document.getElementById('formFieldsContainer');
+      
+      // Clear previous fields
+      fieldsContainer.innerHTML = '';
+      
+      if (workflowId) {
+        // Find workflow schema
+        const workflow = workflowSchemas.find(w => w.WorkflowID == workflowId);
+        
+        if (workflow && workflow.formFields && workflow.formFields.length > 0) {
+          // Show container
+          dynamicContainer.style.display = 'block';
+          
+          // Render fields
+          workflow.formFields.forEach(field => {
+            const fieldHTML = renderFormField(field);
+            fieldsContainer.insertAdjacentHTML('beforeend', fieldHTML);
+          });
+          
+          // Initialize file inputs
+          initializeFileInputs();
+        } else {
+          dynamicContainer.style.display = 'none';
+        }
+      } else {
+        dynamicContainer.style.display = 'none';
+      }
+    });
+    
+    // Form validation
+    form.addEventListener('submit', function(e) { 
+      e.preventDefault(); 
+      
+      // Validate title 
+      const title = titleInput.value.trim(); 
+      if (title.length < 3) {
+        showError('Tiêu đề phải có ít nhất 3 ký tự'); 
+        titleInput.focus(); 
+        return; 
+      } 
+      
+      // Validate description 
+      const description = descriptionInput.value.trim(); 
+      if (description.length < 10) { 
+        showError('Mô tả phải có ít nhất 10 ký tự');
+        descriptionInput.focus(); 
+        return; 
+      } 
+      
+      // Validate dynamic required fields
+      const requiredFields = fieldsContainer.querySelectorAll('[required]');
+      for (let field of requiredFields) {
+        if (!field.value || field.value.trim() === '') {
+          const label = field.previousElementSibling?.textContent || 'Trường bắt buộc';
+          showError(`${label} không được để trống`);
+          field.focus();
+          return;
+        }
+      }
+      
+      // Show loading 
+      showLoading(); 
+      
+      // Collect form data including dynamic fields
+      const formData = new FormData(form);
+      
+      // Collect dynamic form data as JSON
+      const dynamicData = {};
+      const dynamicInputs = fieldsContainer.querySelectorAll('input, select, textarea');
+      dynamicInputs.forEach(input => {
+        if (input.type === 'checkbox') {
+          dynamicData[input.name] = input.checked;
+        } else if (input.type === 'file') {
+          // File handled separately
+          if (input.files && input.files.length > 0) {
+            dynamicData[input.name] = input.files[0].name;
+          }
+        } else {
+          dynamicData[input.name] = input.value;
+        }
+      });
+      
+      // Add dynamic data to formData
+      formData.append('formData', JSON.stringify(dynamicData));
+      
+      // Submit form
+      fetch(form.action, { 
+        method: 'POST',
+        body: formData,
+      }) 
+      .then(response => response.json()) 
+      .then(data => { 
+        hideLoading(); 
+        if (data.success) {
+          showSuccess(data.message); 
+          setTimeout(() => { 
+            window.location.href = `/requests/${data.requestId}`; 
+          }, 1500); 
+        } else { 
+          showError(data.message || 'Có lỗi xảy ra khi tạo yêu cầu'); 
+        } 
+      }) 
+      .catch(error => { 
+        hideLoading();
+        console.error('Error:', error); 
+        showError('Có lỗi xảy ra khi gửi yêu cầu');
+      }); 
+    }); 
+    
+    // File upload preview 
+    attachmentInput.addEventListener('change', function(e) { 
+      const file = e.target.files[0]; 
+      const preview = document.getElementById('filePreview'); 
+      const fileName = document.getElementById('fileName'); 
+      const fileSize = document.getElementById('fileSize'); 
+      
+      if (file) { 
+        // Check file size (10MB) 
+        if (file.size > 10 * 1024 * 1024) { 
+          showError('File quá lớn. Vui lòng chọn file nhỏ hơn 10MB'); 
+          this.value = ''; 
+          return; 
+        } 
+        fileName.textContent = file.name;
+        fileSize.textContent = `(${formatFileSize(file.size)})`; 
+        preview.style.display = 'block'; 
+      } else { 
+        preview.style.display = 'none'; 
+      } 
+    }); 
+    
+    // Priority color indicator 
+    prioritySelect.addEventListener('change', function() { 
+      const selectedOption = this.options[this.selectedIndex]; 
+      const color = selectedOption.getAttribute('data-color'); 
+      // Update select background color
+      if (color) { 
+        this.style.borderLeftColor = color; 
+        this.style.borderLeftWidth = '4px'; 
+      } else { 
+        this.style.borderLeftColor = ''; 
+        this.style.borderLeftWidth = ''; 
+      } 
+    }); 
+    
+    // Auto-save draft functionality 
+    let draftTimeout; 
+    const draftInputs = [titleInput, descriptionInput, prioritySelect]; 
+    draftInputs.forEach(input => { 
+      input.addEventListener('input', function() { 
+        clearTimeout(draftTimeout);
+        draftTimeout = setTimeout(saveDraftAuto, 30000); // Auto-save after 30 seconds
+      }); 
+    }); 
+  }); 
+  
+  // Render form field based on type
+  function renderFormField(field) {
+    const required = field.required ? 'required' : '';
+    const requiredLabel = field.required ? '<span class="text-danger">*</span>' : '';
+    const helpText = field.helpText ? `<div class="form-text">${field.helpText}</div>` : '';
+    const fieldName = `field_${field.name}`;
+    
+    let fieldHTML = `<div class="mb-3 dynamic-field">`;
+    
+    switch(field.type) {
+      case 'text':
+      case 'email':
+      case 'number':
+      case 'date':
+        fieldHTML += `
+          <label for="${fieldName}" class="form-label">${field.label} ${requiredLabel}</label>
+          <input 
+            type="${field.type}" 
+            class="form-control" 
+            id="${fieldName}" 
+            name="${fieldName}" 
+            placeholder="${field.placeholder || ''}"
+            ${required}
+            ${field.min !== undefined ? `min="${field.min}"` : ''}
+            ${field.max !== undefined ? `max="${field.max}"` : ''}
+            ${field.step !== undefined ? `step="${field.step}"` : ''}
+          />
+          ${helpText}
+        `;
+        break;
+        
+      case 'textarea':
+        fieldHTML += `
+          <label for="${fieldName}" class="form-label">${field.label} ${requiredLabel}</label>
+          <textarea 
+            class="form-control" 
+            id="${fieldName}" 
+            name="${fieldName}" 
+            rows="${field.rows || 3}"
+            placeholder="${field.placeholder || ''}"
+            ${required}
+          ></textarea>
+          ${helpText}
+        `;
+        break;
+        
+      case 'select':
+        fieldHTML += `
+          <label for="${fieldName}" class="form-label">${field.label} ${requiredLabel}</label>
+          <select class="form-select" id="${fieldName}" name="${fieldName}" ${required}>
+            <option value="">${field.placeholder || 'Chọn...'}</option>
+            ${field.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
+          </select>
+          ${helpText}
+        `;
+        break;
+        
+      case 'radio':
+        fieldHTML += `
+          <label class="form-label">${field.label} ${requiredLabel}</label>
+          <div>
+            ${field.options.map((opt, idx) => `
+              <div class="form-check">
+                <input 
+                  class="form-check-input" 
+                  type="radio" 
+                  name="${fieldName}" 
+                  id="${fieldName}_${idx}" 
+                  value="${opt.value}"
+                  ${required && idx === 0 ? 'required' : ''}
+                />
+                <label class="form-check-label" for="${fieldName}_${idx}">
+                  ${opt.label}
+                </label>
+              </div>
+            `).join('')}
+          </div>
+          ${helpText}
+        `;
+        break;
+        
+      case 'checkbox':
+        fieldHTML += `
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              id="${fieldName}" 
+              name="${fieldName}" 
+              ${required}
+            />
+            <label class="form-check-label" for="${fieldName}">
+              ${field.label} ${requiredLabel}
+            </label>
+          </div>
+          ${helpText}
+        `;
+        break;
+        
+      case 'file':
+        fieldHTML += `
+          <label for="${fieldName}" class="form-label">${field.label} ${requiredLabel}</label>
+          <input 
+            type="file" 
+            class="form-control dynamic-file-input" 
+            id="${fieldName}" 
+            name="${fieldName}" 
+            ${field.accept ? `accept="${field.accept}"` : ''}
+            ${required}
+          />
+          ${helpText}
+        `;
+        break;
+    }
+    
+    fieldHTML += `</div>`;
+    return fieldHTML;
+  }
+  
+  function initializeFileInputs() {
+    const fileInputs = document.querySelectorAll('.dynamic-file-input');
+    fileInputs.forEach(input => {
+      input.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.size > 10 * 1024 * 1024) {
+          showError('File quá lớn. Vui lòng chọn file nhỏ hơn 10MB');
+          this.value = '';
+        }
+      });
+    });
+  }
+  
+  function removeFile() {
+    document.getElementById('attachment').value = '';
+    document.getElementById('filePreview').style.display = 'none'; 
+  } 
+  
+  function formatFileSize(bytes) { 
+    if (bytes === 0) return '0 Bytes'; 
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']; 
+    const i = Math.floor(Math.log(bytes) / Math.log(k)); 
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]; 
+  } 
+  
+  function saveDraft() { 
+    const formData = new FormData(document.getElementById('createRequestForm'));
+    formData.append('isDraft', 'true'); 
+    fetch('/requests/draft', { 
+      method: 'POST',
+      body: formData 
+    }) 
+    .then(response => response.json()) 
+    .then(data => { 
+      if (data.success) { 
+        showSuccess('Đã lưu nháp thành công'); 
+      } else {
+        showError('Không thể lưu nháp'); 
+      } 
+    }) 
+    .catch(error => { 
+      console.error('Draft save error:', error); 
+    }); 
+  } 
+  
+  function saveDraftAuto() { 
+    const title = document.getElementById('title').value.trim(); 
+    const description = document.getElementById('description').value.trim(); 
+    if (title || description) { 
+      saveDraft(); 
+    } 
+  } 
+  
+  function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex'; 
+  } 
+  
+  function hideLoading() { 
+    document.getElementById('loadingOverlay').style.display = 'none'; 
+  } 
+  
+  function showSuccess(message) { 
+    // Create toast notification 
+    const toast = document.createElement('div'); 
+    toast.className = 'alert alert-success alert-dismissible fade show position-fixed'; 
+    toast.style.top = '20px';
+    toast.style.right = '20px'; 
+    toast.style.zIndex = '9999'; 
+    toast.innerHTML = `
+      <i class="fas fa-check-circle me-2"></i>${message} 
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button> 
+    `;
+    document.body.appendChild(toast); 
+    // Auto remove after 5 seconds 
+    setTimeout(() => { 
+      if (toast.parentNode) { 
+        toast.parentNode.removeChild(toast); 
+      } 
+    }, 5000);
+  } 
+  
+  function showError(message) { 
+    // Create toast notification 
+    const toast = document.createElement('div'); 
+    toast.className = 'alert alert-danger alert-dismissible fade show position-fixed'; 
+    toast.style.top = '20px';
+    toast.style.right = '20px'; 
+    toast.style.zIndex = '9999'; 
+    toast.innerHTML = `
+      <i class="fas fa-exclamation-circle me-2"></i>${message} 
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button> 
+    `;
+    document.body.appendChild(toast); 
+    // Auto remove after 5 seconds 
+    setTimeout(() => { 
+      if (toast.parentNode) { 
+        toast.parentNode.removeChild(toast); 
+      } 
+    }, 5000);
   }
 </script>

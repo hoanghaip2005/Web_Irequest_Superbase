@@ -1,0 +1,91 @@
+<!-- Add this snippet to views/requests/detail.hbs after Description section -->
+
+{{#if request.FormData}}
+<div class="row mb-3">
+    <div class="col-sm-3">
+        <strong>Thông tin bổ sung:</strong>
+    </div>
+    <div class="col-sm-9">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-list-ul me-2"></i>Chi tiết theo quy trình
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="formDataDisplay" class="form-data-container">
+                    <!-- Will be rendered by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Parse and display FormData
+    try {
+        const formDataStr = '{{{request.FormData}}}';
+        if (formDataStr) {
+            const formData = JSON.parse(formDataStr);
+            const container = document.getElementById('formDataDisplay');
+            
+            if (Object.keys(formData).length > 0) {
+                let html = '<dl class="row mb-0">';
+                
+                for (const [key, value] of Object.entries(formData)) {
+                    if (value !== null && value !== undefined && value !== '') {
+                        // Format field name (remove field_ prefix and capitalize)
+                        const fieldName = key.replace('field_', '').split('_').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                        ).join(' ');
+                        
+                        // Format value
+                        let displayValue = value;
+                        if (typeof value === 'boolean') {
+                            displayValue = value ? '<i class="fas fa-check-circle text-success"></i> Có' : '<i class="fas fa-times-circle text-danger"></i> Không';
+                        } else if (typeof value === 'object') {
+                            displayValue = JSON.stringify(value);
+                        }
+                        
+                        html += `
+                            <dt class="col-sm-4 text-muted">${fieldName}:</dt>
+                            <dd class="col-sm-8">${displayValue}</dd>
+                        `;
+                    }
+                }
+                
+                html += '</dl>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<p class="text-muted mb-0">Không có thông tin bổ sung</p>';
+            }
+        }
+    } catch (e) {
+        console.error('Error parsing FormData:', e);
+        document.getElementById('formDataDisplay').innerHTML = '<p class="text-danger mb-0">Lỗi hiển thị dữ liệu</p>';
+    }
+</script>
+
+<style>
+    .form-data-container dl {
+        margin-bottom: 0;
+    }
+    
+    .form-data-container dt {
+        font-weight: 600;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .form-data-container dd {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 0;
+    }
+    
+    .form-data-container dd:last-of-type,
+    .form-data-container dt:nth-last-of-type(2) {
+        border-bottom: none;
+    }
+</style>
+{{/if}}

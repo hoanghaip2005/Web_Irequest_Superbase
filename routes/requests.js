@@ -429,10 +429,31 @@ router.get('/create', authenticateToken, async (req, res) => {
       Request.getWorkflows(),
     ]);
 
+    // Get FormSchema for each workflow
+    const workflowsWithSchema = await Promise.all(
+      workflows.map(async (workflow) => {
+        try {
+          const formSchema = workflow.FormSchema
+            ? typeof workflow.FormSchema === 'string'
+              ? JSON.parse(workflow.FormSchema)
+              : workflow.FormSchema
+            : [];
+          return { ...workflow, formFields: formSchema };
+        } catch (e) {
+          console.error(
+            `Error parsing FormSchema for workflow ${workflow.WorkflowID}:`,
+            e
+          );
+          return { ...workflow, formFields: [] };
+        }
+      })
+    );
+
     res.render('requests/create', {
       title: 'Tạo yêu cầu mới',
       priorities: priorities,
-      workflows: workflows,
+      workflows: workflowsWithSchema,
+      workflowsJSON: JSON.stringify(workflowsWithSchema),
     });
   } catch (error) {
     console.error('Error loading create form data:', error);
@@ -441,6 +462,7 @@ router.get('/create', authenticateToken, async (req, res) => {
       error: 'Không thể tải dữ liệu form',
       priorities: [],
       workflows: [],
+      workflowsJSON: '[]',
     });
   }
 });
@@ -452,7 +474,14 @@ router.post(
   upload.single('attachment'),
   async (req, res) => {
     try {
-      const { title, description, priorityId, issueType } = req.body;
+      const {
+        title,
+        description,
+        priorityId,
+        workflowId,
+        issueType,
+        formData,
+      } = req.body;
 
       if (!title || title.trim().length === 0) {
         const [priorities, workflows] = await Promise.all([
@@ -460,25 +489,23 @@ router.post(
           Request.getWorkflows(),
         ]);
 
-        return res.render('requests/create', {
-          title: 'Tạo yêu cầu mới',
-          error: 'Tiêu đề không được để trống',
-          formData: req.body,
-          priorities: priorities,
-          workflows: workflows,
+        return res.status(400).json({
+          success: false,
+          message: 'Tiêu đề không được để trống',
         });
       }
 
-      // Lấy status mặc định và workflow dựa trên priority
+      // Lấy status mặc định
       const defaultStatus = await query(
         'SELECT "StatusID" FROM "Status" WHERE "StatusName" = $1 LIMIT 1',
         ['Mới']
       );
       const statusId = defaultStatus.rows[0]?.StatusID || 1;
 
-      // Xác định workflow dựa trên priority (có thể customize logic này)
-      let workflowId = 1; // Default workflow
-      if (priorityId) {
+      // Xác định workflow
+      let finalWorkflowId = workflowId;
+      if (!finalWorkflowId && priorityId) {
+        // Auto-select workflow based on priority if not provided
         const priority = await query(
           'SELECT "PriorityName", "SortOrder" FROM "Priority" WHERE "PriorityID" = $1',
           [priorityId]
@@ -490,7 +517,9 @@ router.post(
           priorityName &&
           (priorityName.includes('Cao') || priorityName.includes('Khẩn cấp'))
         ) {
-          workflowId = 2; // Urgent workflow nếu có
+          finalWorkflowId = 2; // Urgent workflow nếu có
+        } else {
+          finalWorkflowId = 1; // Default workflow
         }
       }
 
@@ -500,43 +529,29 @@ router.post(
         userId: req.user.Id,
         priorityId: priorityId || 2, // Default to medium priority (PriorityID = 2)
         statusId: statusId,
-        workflowId: workflowId,
+        workflowId: finalWorkflowId || 1,
         issueType: issueType || 'General',
         attachmentURL: req.file ? `/uploads/${req.file.filename}` : null,
         attachmentFileName: req.file ? req.file.originalname : null,
         attachmentFileSize: req.file ? req.file.size : null,
         attachmentFileType: req.file ? req.file.mimetype : null,
+        formData: formData || null, // Store dynamic form data as JSON
       };
 
       const newRequest = await Request.create(requestData);
 
-      res.redirect(`/requests/${newRequest.RequestID}?created=true`);
+      // Return JSON response for AJAX submission
+      res.json({
+        success: true,
+        message: 'Tạo yêu cầu thành công',
+        requestId: newRequest.RequestID,
+      });
     } catch (error) {
       console.error('Create request error:', error);
-
-      try {
-        const [priorities, workflows] = await Promise.all([
-          Request.getPriorities(),
-          Request.getWorkflows(),
-        ]);
-
-        res.render('requests/create', {
-          title: 'Tạo yêu cầu mới',
-          error: 'Không thể tạo yêu cầu. Vui lòng thử lại.',
-          formData: req.body,
-          priorities: priorities,
-          workflows: workflows,
-        });
-      } catch (dbError) {
-        console.error('Error loading form data:', dbError);
-        res.render('requests/create', {
-          title: 'Tạo yêu cầu mới',
-          error: 'Đã có lỗi xảy ra. Vui lòng thử lại.',
-          formData: req.body,
-          priorities: [],
-          workflows: [],
-        });
-      }
+      res.status(500).json({
+        success: false,
+        message: 'Không thể tạo yêu cầu. Vui lòng thử lại.',
+      });
     }
   }
 );

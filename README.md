@@ -24,8 +24,10 @@ Một ứng dụng web quản lý yêu cầu được xây dựng với Node.js,
 - 🆕 **Tin nhắn**: Chat 1-1 và nhóm, gửi file
 - 🆕 **Cài đặt hệ thống**: Email, bảo mật, backup
 - 🆕 **Trang cá nhân**: Thống kê, lịch sử hoạt động
+- ⭐ **Dynamic Form Builder**: Form động dựa trên workflow (NEW!)
 
-👉 **[Xem chi tiết tính năng mới](FEATURES.md)**
+👉 **[Xem chi tiết tính năng mới](FEATURES.md)**  
+👉 **[Hướng dẫn Dynamic Form Builder](QUICKSTART.md)**
 
 ## 🛠 Công nghệ sử dụng
 
