@@ -10,11 +10,12 @@ router.get('/', authenticateToken, async (req, res) => {
     const statsQuery = `
       SELECT 
         COUNT(*) as "totalRequests",
-        COUNT(*) FILTER (WHERE "Status" = 'Completed') as "completedRequests",
-        COUNT(*) FILTER (WHERE "Status" = 'In Progress') as "inProgressRequests",
-        AVG(EXTRACT(EPOCH FROM ("CompletedAt" - "CreatedAt"))/3600) as "avgCompletionHours"
-      FROM "Requests"
-      WHERE "CreatedAt" >= NOW() - INTERVAL '30 days'
+        COUNT(*) FILTER (WHERE s."StatusName" = 'Completed') as "completedRequests",
+        COUNT(*) FILTER (WHERE s."StatusName" IN ('In Progress', 'Pending', 'Open')) as "inProgressRequests",
+        AVG(EXTRACT(EPOCH FROM (r."ClosedAt" - r."CreatedAt"))/3600) FILTER (WHERE r."ClosedAt" IS NOT NULL) as "avgCompletionHours"
+      FROM "Requests" r
+      LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+      WHERE r."CreatedAt" >= NOW() - INTERVAL '30 days'
     `;
 
     const statsResult = await query(statsQuery);
@@ -33,13 +34,15 @@ router.get('/', authenticateToken, async (req, res) => {
         u."Id",
         u."UserName",
         u."Avatar",
-        COUNT(r."Id") as "completedCount",
+        COUNT(r."RequestID") as "completedCount",
         COALESCE(AVG(rr."Rating"), 0) as "rating"
       FROM "Users" u
-      LEFT JOIN "Requests" r ON r."AssignedTo" = u."Id" AND r."Status" = 'Completed'
-      LEFT JOIN "RequestRatings" rr ON rr."RequestId" = r."Id"
-      WHERE r."CreatedAt" >= NOW() - INTERVAL '30 days'
+      LEFT JOIN "Requests" r ON r."AssignedUserId" = u."Id"
+      LEFT JOIN "Status" s ON r."StatusID" = s."StatusID" AND s."StatusName" = 'Completed'
+      LEFT JOIN "RequestRatings" rr ON rr."RequestID" = r."RequestID"
+      WHERE r."CreatedAt" >= NOW() - INTERVAL '30 days' OR r."CreatedAt" IS NULL
       GROUP BY u."Id", u."UserName", u."Avatar"
+      HAVING COUNT(r."RequestID") > 0
       ORDER BY "completedCount" DESC
       LIMIT 10
     `;
@@ -75,12 +78,13 @@ router.get('/api/chart-data', authenticateToken, async (req, res) => {
     if (type === 'trend') {
       const trendQuery = `
         SELECT 
-          DATE("CreatedAt") as date,
+          DATE(r."CreatedAt") as date,
           COUNT(*) as total,
-          COUNT(*) FILTER (WHERE "Status" = 'Completed') as completed
-        FROM "Requests"
-        WHERE "CreatedAt" >= ${dateFilter}
-        GROUP BY DATE("CreatedAt")
+          COUNT(*) FILTER (WHERE s."StatusName" = 'Completed') as completed
+        FROM "Requests" r
+        LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+        WHERE r."CreatedAt" >= ${dateFilter}
+        GROUP BY DATE(r."CreatedAt")
         ORDER BY date
       `;
 
@@ -91,11 +95,12 @@ router.get('/api/chart-data', authenticateToken, async (req, res) => {
     if (type === 'status') {
       const statusQuery = `
         SELECT 
-          "Status" as status,
+          s."StatusName" as status,
           COUNT(*) as count
-        FROM "Requests"
-        WHERE "CreatedAt" >= ${dateFilter}
-        GROUP BY "Status"
+        FROM "Requests" r
+        LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+        WHERE r."CreatedAt" >= ${dateFilter}
+        GROUP BY s."StatusName"
       `;
 
       const result = await query(statusQuery);

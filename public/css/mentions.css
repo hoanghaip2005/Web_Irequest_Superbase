@@ -1,0 +1,316 @@
+/* ==================== Mentions Autocomplete Styles ==================== */
+
+/* Dropdown Container */
+.mentions-dropdown {
+  position: absolute;
+  z-index: 10000;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 280px;
+  max-width: 360px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* List Container */
+.mentions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Mention Item */
+.mentions-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.mentions-item:last-child {
+  border-bottom: none;
+}
+
+.mentions-item:hover,
+.mentions-item.selected {
+  background-color: #f3f4f6;
+}
+
+.mentions-item.selected {
+  background-color: #e0e7ff;
+}
+
+/* Avatar */
+.mentions-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 12px;
+  flex-shrink: 0;
+  border: 2px solid #e5e7eb;
+}
+
+/* User Info */
+.mentions-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mentions-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.mentions-email {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mention Highlights in Editor */
+.ql-editor .mention,
+.ql-editor span[data-mention] {
+  color: #0066cc;
+  font-weight: 600;
+  background-color: #e6f2ff;
+  padding: 2px 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.ql-editor .mention:hover,
+.ql-editor span[data-mention]:hover {
+  background-color: #cce5ff;
+  text-decoration: underline;
+}
+
+/* Loading State */
+.mentions-dropdown.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.mentions-dropdown.loading::after {
+  content: '';
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: mentions-spin 0.8s linear infinite;
+}
+
+@keyframes mentions-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.mentions-empty {
+  padding: 20px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* Scrollbar Styling */
+.mentions-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mentions-dropdown::-webkit-scrollbar-track {
+  background: #f9fafb;
+  border-radius: 0 8px 8px 0;
+}
+
+.mentions-dropdown::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.mentions-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .mentions-dropdown {
+    background: #1f2937;
+    border-color: #374151;
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.3),
+      0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  }
+
+  .mentions-item {
+    border-bottom-color: #374151;
+  }
+
+  .mentions-item:hover {
+    background-color: #374151;
+  }
+
+  .mentions-item.selected {
+    background-color: #3730a3;
+  }
+
+  .mentions-avatar {
+    border-color: #4b5563;
+  }
+
+  .mentions-name {
+    color: #f9fafb;
+  }
+
+  .mentions-email {
+    color: #9ca3af;
+  }
+
+  .ql-editor .mention,
+  .ql-editor span[data-mention] {
+    color: #60a5fa;
+    background-color: #1e3a5f;
+  }
+
+  .ql-editor .mention:hover,
+  .ql-editor span[data-mention]:hover {
+    background-color: #2d5082;
+  }
+
+  .mentions-dropdown::-webkit-scrollbar-track {
+    background: #111827;
+  }
+
+  .mentions-dropdown::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  .mentions-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mentions-dropdown {
+    min-width: 240px;
+    max-width: calc(100vw - 40px);
+  }
+
+  .mentions-item {
+    padding: 8px 10px;
+  }
+
+  .mentions-avatar {
+    width: 32px;
+    height: 32px;
+    margin-right: 10px;
+  }
+
+  .mentions-name {
+    font-size: 13px;
+  }
+
+  .mentions-email {
+    font-size: 11px;
+  }
+}
+
+/* Accessibility */
+.mentions-item:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+}
+
+/* Animation for dropdown appearance */
+@keyframes mentions-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mentions-dropdown {
+  animation: mentions-fade-in 0.2s ease-out;
+}
+
+/* Highlight mentioned users in comments */
+.comment-content .mention,
+.comment-content span[data-mention] {
+  color: #0066cc;
+  font-weight: 600;
+  background-color: #e6f2ff;
+  padding: 2px 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.comment-content .mention:hover,
+.comment-content span[data-mention]:hover {
+  background-color: #cce5ff;
+  text-decoration: underline;
+}
+
+/* Mention badge/chip style (alternative) */
+.mention-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 2px;
+}
+
+.mention-chip img {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+/* Department badge in dropdown */
+.mentions-department {
+  display: inline-block;
+  font-size: 10px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mentions-department {
+    color: #9ca3af;
+    background: #374151;
+  }
+}

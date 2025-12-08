@@ -1,0 +1,764 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-th me-2"></i>
+            {{#if user.isAdmin}}Kanban Board - Tất cả yêu cầu{{else}}Kanban Board - Yêu cầu của tôi{{/if}}
+        </h1>
+        <p class="page-subtitle">
+            Kéo thả để thay đổi trạng thái yêu cầu
+            {{#if user.isAdmin}}
+            <span class="badge bg-danger ms-2">
+                <i class="fas fa-shield-alt me-1"></i>Admin - Toàn quyền xử lý
+            </span>
+            {{/if}}
+        </p>
+    </div>
+    <div class="content-actions">
+        <a href="/requests/my/list" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-list me-2"></i>Chế độ danh sách
+        </a>
+        <a href="/requests/create" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Tổng số</div>
+                        <div class="fs-5 fw-bold text-primary">{{stats.total}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-warning bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Chờ xử lý</div>
+                        <div class="fs-5 fw-bold text-warning">{{stats.pending}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-info bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-spinner"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Đang xử lý</div>
+                        <div class="fs-5 fw-bold text-info">{{stats.inProgress}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Hoàn thành</div>
+                        <div class="fs-5 fw-bold text-success">{{stats.completed}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kanban Board -->
+<div class="kanban-board">
+    <div class="kanban-container">
+        {{#each statuses}}
+        <div class="kanban-column" data-status-id="{{StatusID}}">
+            <div class="kanban-column-header {{#ifEquals StatusName 'Pending'}}bg-warning{{/ifEquals}}{{#ifEquals StatusName 'In Progress'}}bg-info{{/ifEquals}}{{#ifEquals StatusName 'Completed'}}bg-success{{/ifEquals}}{{#ifEquals StatusName 'Rejected'}}bg-danger{{/ifEquals}}">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-{{#ifEquals StatusName 'Pending'}}clock{{/ifEquals}}{{#ifEquals StatusName 'In Progress'}}spinner{{/ifEquals}}{{#ifEquals StatusName 'Completed'}}check-circle{{/ifEquals}}{{#ifEquals StatusName 'Rejected'}}times-circle{{/ifEquals}} me-2"></i>
+                    {{StatusName}}
+                    <span class="badge bg-white text-dark ms-2">{{requests.length}}</span>
+                </h5>
+            </div>
+            <div class="kanban-column-body" id="column-{{StatusID}}" data-status-id="{{StatusID}}">
+                {{#if requests.length}}
+                    {{#each requests}}
+                    <div class="kanban-card" data-request-id="{{RequestID}}" draggable="true">
+                        <div class="kanban-card-header">
+                            <div>
+                                <span class="badge bg-secondary">#{{RequestID}}</span>
+                                {{#if ../user.isAdmin}}
+                                    {{#if CreatorEmail}}
+                                    <span class="badge bg-danger" title="Bạn có quyền xử lý yêu cầu này">
+                                        <i class="fas fa-user-shield"></i>
+                                    </span>
+                                    {{/if}}
+                                {{/if}}
+                            </div>
+                            <span class="badge bg-{{#ifEquals PriorityName 'Cao'}}danger{{/ifEquals}}{{#ifEquals PriorityName 'Trung bình'}}warning{{/ifEquals}}{{#ifEquals PriorityName 'Thấp'}}info{{/ifEquals}}">
+                                {{PriorityName}}
+                            </span>
+                        </div>
+                        <div class="kanban-card-body">
+                            <h6 class="kanban-card-title">
+                                <a href="/requests/{{RequestID}}" class="text-decoration-none text-dark">
+                                    {{Title}}
+                                </a>
+                            </h6>
+                            {{#if Description}}
+                            <p class="kanban-card-description">
+                                {{substring Description 0 100}}{{#if (gt (length Description) 100)}}...{{/if}}
+                            </p>
+                            {{/if}}
+                        </div>
+                        <div class="kanban-card-footer">
+                            <div class="d-flex justify-content-between align-items-start w-100">
+                                <div>
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-calendar me-1"></i>{{formatDate CreatedAt}}
+                                    </small>
+                                    {{#if ../user.isAdmin}}
+                                        {{#if CreatorEmail}}
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-user me-1"></i>{{CreatorEmail}}
+                                        </small>
+                                        {{/if}}
+                                    {{/if}}
+                                    {{#if AssignedToEmail}}
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-user-check me-1"></i>{{AssignedToEmail}}
+                                    </small>
+                                    {{/if}}
+                                </div>
+                                <div class="kanban-card-actions">
+                                    <button class="btn btn-sm btn-outline-primary view-detail-btn" 
+                                            data-request-id="{{RequestID}}"
+                                            title="Xem chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{/each}}
+                {{else}}
+                <div class="kanban-empty">
+                    <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">Không có yêu cầu</p>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</div>
+
+<!-- Modal: Confirmation for Status Change -->
+<div class="modal fade" id="statusChangeModal" tabindex="-1" aria-labelledby="statusChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusChangeModalLabel">
+                    <i class="fas fa-exchange-alt me-2"></i>Xác nhận thay đổi trạng thái
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Bạn đang chuyển yêu cầu <strong id="modalRequestTitle"></strong> 
+                    từ trạng thái <strong id="modalOldStatus"></strong> 
+                    sang <strong id="modalNewStatus"></strong>
+                </div>
+                
+                {{#if user.isAdmin}}
+                <div class="alert alert-danger mb-3">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    <strong>Quyền Admin:</strong> Bạn có toàn quyền xử lý mọi yêu cầu trong hệ thống.
+                </div>
+                {{/if}}
+                
+                <div class="mb-3">
+                    <label for="statusChangeNote" class="form-label">
+                        <i class="fas fa-comment-dots me-2"></i>Ghi chú / Lý do thay đổi <span class="text-danger">*</span>
+                    </label>
+                    <textarea 
+                        class="form-control" 
+                        id="statusChangeNote" 
+                        rows="4" 
+                        placeholder="Nhập lý do thay đổi trạng thái, ghi chú hoặc yêu cầu bổ sung..."
+                        required></textarea>
+                    <div class="form-text">Vui lòng mô tả rõ lý do thay đổi trạng thái</div>
+                </div>
+
+                <div id="approvalSection" class="mb-3" style="display: none;">
+                    <label class="form-label">
+                        <i class="fas fa-check-circle me-2"></i>Quyết định phê duyệt
+                    </label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="approvalDecision" id="approveRadio" value="approve">
+                        <label class="btn btn-outline-success" for="approveRadio">
+                            <i class="fas fa-check me-2"></i>Phê duyệt
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="approvalDecision" id="rejectRadio" value="reject">
+                        <label class="btn btn-outline-danger" for="rejectRadio">
+                            <i class="fas fa-times me-2"></i>Từ chối
+                        </label>
+                    </div>
+                </div>
+
+                <div id="rejectionReasonSection" class="mb-3" style="display: none;">
+                    <label for="rejectionReason" class="form-label text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Lý do từ chối <span class="text-danger">*</span>
+                    </label>
+                    <textarea 
+                        class="form-control" 
+                        id="rejectionReason" 
+                        rows="3" 
+                        placeholder="Vui lòng nhập lý do cụ thể tại sao yêu cầu bị từ chối..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Hủy
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmStatusChange">
+                    <i class="fas fa-check me-2"></i>Xác nhận thay đổi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Request Detail Quick View -->
+<div class="modal fade" id="requestDetailModal" tabindex="-1" aria-labelledby="requestDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="requestDetailModalLabel">
+                    <i class="fas fa-file-alt me-2"></i>Chi tiết yêu cầu
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="requestDetailContent">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <a href="#" id="viewFullDetailBtn" class="btn btn-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-2"></i>Xem toàn bộ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.kanban-board {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 20px;
+}
+
+.kanban-container {
+    display: flex;
+    gap: 20px;
+    min-width: fit-content;
+    padding: 10px;
+}
+
+.kanban-column {
+    min-width: 320px;
+    max-width: 320px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.kanban-column-header {
+    padding: 15px;
+    border-radius: 8px 8px 0 0;
+}
+
+.kanban-column-body {
+    padding: 15px;
+    min-height: 400px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.kanban-column-body.drag-over {
+    background: #e3f2fd;
+    border: 2px dashed #2196F3;
+}
+
+.kanban-card {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: grab;
+    transition: all 0.3s ease;
+}
+
+.kanban-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.kanban-card.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.kanban-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.kanban-card-header > div {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.kanban-card-body {
+    margin-bottom: 8px;
+}
+
+.kanban-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.kanban-card-description {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 0;
+    line-height: 1.4;
+}
+
+.kanban-card-footer {
+    display: block;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+}
+
+.kanban-card-footer small {
+    font-size: 11px;
+}
+
+.kanban-card-actions {
+    margin-top: 8px;
+}
+
+.kanban-card-actions .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.kanban-empty {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+/* Scrollbar styling */
+.kanban-column-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.kanban-column-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.kanban-column-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.kanban-column-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.kanban-card');
+    const columns = document.querySelectorAll('.kanban-column-body');
+    const statusChangeModal = new bootstrap.Modal(document.getElementById('statusChangeModal'));
+    const requestDetailModal = new bootstrap.Modal(document.getElementById('requestDetailModal'));
+    
+    let pendingStatusChange = null; // Store pending change data
+
+    // View detail button click
+    document.querySelectorAll('.view-detail-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const requestId = this.dataset.requestId;
+            loadRequestDetail(requestId);
+        });
+    });
+
+    // Approval decision radio buttons
+    document.querySelectorAll('input[name="approvalDecision"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const rejectionSection = document.getElementById('rejectionReasonSection');
+            if (this.value === 'reject') {
+                rejectionSection.style.display = 'block';
+                document.getElementById('rejectionReason').required = true;
+            } else {
+                rejectionSection.style.display = 'none';
+                document.getElementById('rejectionReason').required = false;
+            }
+        });
+    });
+
+    // Drag start
+    cards.forEach(card => {
+        card.addEventListener('dragstart', function(e) {
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            e.dataTransfer.setData('request-id', this.dataset.requestId);
+            
+            // Get request title
+            const titleEl = this.querySelector('.kanban-card-title a');
+            e.dataTransfer.setData('request-title', titleEl ? titleEl.textContent.trim() : '');
+        });
+
+        card.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            columns.forEach(col => col.classList.remove('drag-over'));
+        });
+    });
+
+    // Drag over columns
+    columns.forEach(column => {
+        column.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+            e.dataTransfer.dropEffect = 'move';
+        });
+
+        column.addEventListener('dragleave', function(e) {
+            if (e.target === this) {
+                this.classList.remove('drag-over');
+            }
+        });
+
+        column.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+
+            const requestId = e.dataTransfer.getData('request-id');
+            const requestTitle = e.dataTransfer.getData('request-title');
+            const newStatusId = this.dataset.statusId;
+            const draggedCard = document.querySelector(`[data-request-id="${requestId}"]`);
+
+            if (!draggedCard) return;
+
+            // Get current status
+            const oldColumn = draggedCard.closest('.kanban-column-body');
+            const oldStatusId = oldColumn.dataset.statusId;
+
+            // Check if status changed
+            if (oldStatusId === newStatusId) {
+                return;
+            }
+
+            // Get status names
+            const oldStatusName = oldColumn.closest('.kanban-column').querySelector('.kanban-column-header h5').textContent.trim().split('\n')[0].trim();
+            const newStatusName = this.closest('.kanban-column').querySelector('.kanban-column-header h5').textContent.trim().split('\n')[0].trim();
+
+            // Show confirmation modal
+            showStatusChangeModal(requestId, requestTitle, oldStatusId, newStatusId, oldStatusName, newStatusName, draggedCard, oldColumn, this);
+        });
+    });
+
+    function showStatusChangeModal(requestId, requestTitle, oldStatusId, newStatusId, oldStatusName, newStatusName, card, oldColumn, newColumn) {
+        // Store pending change
+        pendingStatusChange = {
+            requestId,
+            newStatusId,
+            card,
+            oldColumn,
+            newColumn
+        };
+
+        // Update modal content
+        document.getElementById('modalRequestTitle').textContent = requestTitle || `#${requestId}`;
+        document.getElementById('modalOldStatus').textContent = oldStatusName;
+        document.getElementById('modalNewStatus').textContent = newStatusName;
+        
+        // Reset form
+        document.getElementById('statusChangeNote').value = '';
+        document.getElementById('rejectionReason').value = '';
+        document.getElementById('approvalSection').style.display = 'none';
+        document.getElementById('rejectionReasonSection').style.display = 'none';
+        document.querySelectorAll('input[name="approvalDecision"]').forEach(r => r.checked = false);
+
+        // Show approval section if moving to "Chờ phê duyệt" or similar
+        if (newStatusName.includes('phê duyệt') || newStatusName.toLowerCase().includes('approval')) {
+            document.getElementById('approvalSection').style.display = 'block';
+        }
+
+        statusChangeModal.show();
+    }
+
+    // Confirm status change
+    document.getElementById('confirmStatusChange').addEventListener('click', function() {
+        const note = document.getElementById('statusChangeNote').value.trim();
+        
+        if (!note) {
+            showToast('error', 'Vui lòng nhập ghi chú/lý do thay đổi');
+            return;
+        }
+
+        const approvalDecision = document.querySelector('input[name="approvalDecision"]:checked');
+        const rejectionReason = document.getElementById('rejectionReason').value.trim();
+
+        // Validate rejection reason if reject is selected
+        if (approvalDecision && approvalDecision.value === 'reject' && !rejectionReason) {
+            showToast('error', 'Vui lòng nhập lý do từ chối');
+            return;
+        }
+
+        // Prepare data
+        const data = {
+            statusId: pendingStatusChange.newStatusId,
+            note: note,
+        };
+
+        if (approvalDecision) {
+            data.isApproved = approvalDecision.value === 'approve';
+            if (approvalDecision.value === 'reject') {
+                data.rejectionReason = rejectionReason;
+            }
+        }
+
+        // Call API to update status
+        updateRequestStatus(
+            pendingStatusChange.requestId,
+            data,
+            pendingStatusChange.card,
+            pendingStatusChange.oldColumn,
+            pendingStatusChange.newColumn
+        );
+
+        statusChangeModal.hide();
+    });
+
+    function updateRequestStatus(requestId, data, card, oldColumn, newColumn) {
+        // Show loading
+        card.style.opacity = '0.6';
+        card.style.pointerEvents = 'none';
+
+        fetch(`/requests/${requestId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // Move card to new column
+                newColumn.insertBefore(card, newColumn.firstChild);
+                
+                // Update badges count
+                updateColumnCounts(oldColumn, newColumn);
+                
+                // Show success message
+                const message = data.isApproved === false 
+                    ? 'Đã từ chối yêu cầu' 
+                    : data.isApproved === true
+                    ? 'Đã phê duyệt yêu cầu'
+                    : 'Đã cập nhật trạng thái yêu cầu';
+                showToast('success', message);
+                
+                // Reset card style
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+                
+                // Clear pending change
+                pendingStatusChange = null;
+            } else {
+                throw new Error(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('error', 'Không thể cập nhật trạng thái: ' + error.message);
+            
+            // Reset card style
+            card.style.opacity = '1';
+            card.style.pointerEvents = 'auto';
+        });
+    }
+
+    function updateColumnCounts(oldColumn, newColumn) {
+        const oldColumnHeader = oldColumn.closest('.kanban-column').querySelector('.kanban-column-header .badge');
+        const newColumnHeader = newColumn.closest('.kanban-column').querySelector('.kanban-column-header .badge');
+        
+        const oldCount = oldColumn.querySelectorAll('.kanban-card').length;
+        const newCount = newColumn.querySelectorAll('.kanban-card').length;
+        
+        oldColumnHeader.textContent = oldCount;
+        newColumnHeader.textContent = newCount;
+
+        // Show/hide empty state
+        updateEmptyState(oldColumn);
+        updateEmptyState(newColumn);
+    }
+
+    function updateEmptyState(column) {
+        const cards = column.querySelectorAll('.kanban-card');
+        let emptyState = column.querySelector('.kanban-empty');
+        
+        if (cards.length === 0 && !emptyState) {
+            emptyState = document.createElement('div');
+            emptyState.className = 'kanban-empty';
+            emptyState.innerHTML = `
+                <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                <p class="text-muted mb-0">Không có yêu cầu</p>
+            `;
+            column.appendChild(emptyState);
+        } else if (cards.length > 0 && emptyState) {
+            emptyState.remove();
+        }
+    }
+
+    function showToast(type, message) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
+    }
+
+    function loadRequestDetail(requestId) {
+        const contentDiv = document.getElementById('requestDetailContent');
+        const viewBtn = document.getElementById('viewFullDetailBtn');
+        
+        // Show loading
+        contentDiv.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        
+        // Update view full button
+        viewBtn.href = `/requests/${requestId}`;
+        
+        // Load request data
+        fetch(`/requests/${requestId}/api`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.request) {
+                    const req = data.request;
+                    contentDiv.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="mb-3">${req.Title}</h5>
+                                <div class="mb-3">
+                                    <span class="badge bg-${req.StatusName === 'Hoàn thành' ? 'success' : req.StatusName === 'Đang xử lý' ? 'info' : req.StatusName === 'Từ chối' ? 'danger' : 'warning'}">
+                                        ${req.StatusName || 'N/A'}
+                                    </span>
+                                    <span class="badge bg-${req.PriorityName === 'Cao' ? 'danger' : req.PriorityName === 'Trung bình' ? 'warning' : 'info'}">
+                                        ${req.PriorityName || 'N/A'}
+                                    </span>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Mô tả:</strong>
+                                    <p class="mt-2">${req.Description || '<em class="text-muted">Không có mô tả</em>'}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Thông tin</h6>
+                                        <p class="mb-2"><small class="text-muted">Người tạo:</small><br>${req.CreatorEmail || 'N/A'}</p>
+                                        <p class="mb-2"><small class="text-muted">Người xử lý:</small><br>${req.AssignedToEmail || '<em>Chưa phân công</em>'}</p>
+                                        <p class="mb-2"><small class="text-muted">Ngày tạo:</small><br>${new Date(req.CreatedAt).toLocaleDateString('vi-VN')}</p>
+                                        <p class="mb-0"><small class="text-muted">Cập nhật:</small><br>${new Date(req.UpdatedAt).toLocaleDateString('vi-VN')}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    contentDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Không thể tải thông tin yêu cầu
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading request:', error);
+                contentDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Lỗi khi tải dữ liệu: ${error.message}
+                    </div>
+                `;
+            });
+        
+        requestDetailModal.show();
+    }
+});
+</script>

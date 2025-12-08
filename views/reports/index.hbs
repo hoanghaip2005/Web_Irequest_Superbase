@@ -1,0 +1,201 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Báo cáo</h1>
+        <p class="page-subtitle">Xem và xuất báo cáo yêu cầu</p>
+    </div>
+    <div class="content-actions">
+        <button type="button" class="btn btn-success" onclick="exportReport()">
+            <i class="fas fa-file-export me-2"></i>Xuất báo cáo
+        </button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Tổng yêu cầu</div>
+                        <div class="fs-5 fw-bold text-primary">{{summary.totalRequests}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Hoàn thành</div>
+                        <div class="fs-5 fw-bold text-success">{{summary.completed}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-warning bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Đang chờ</div>
+                        <div class="fs-5 fw-bold text-warning">{{summary.pending}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-info bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-hourglass-half"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Thời gian TB</div>
+                        <div class="fs-5 fw-bold text-info">{{summary.avgHours}} giờ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/reports" class="row g-3">
+            <div class="col-md-3">
+                <label for="startDate" class="form-label">Từ ngày</label>
+                <input type="date" class="form-control" id="startDate" name="startDate" value="{{filters.startDate}}">
+            </div>
+            <div class="col-md-3">
+                <label for="endDate" class="form-label">Đến ngày</label>
+                <input type="date" class="form-control" id="endDate" name="endDate" value="{{filters.endDate}}">
+            </div>
+            <div class="col-md-2">
+                <label for="department" class="form-label">Phòng ban</label>
+                <select class="form-select" id="department" name="department">
+                    <option value="">Tất cả</option>
+                    {{#each departments}}
+                    <option value="{{DepartmentID}}" {{#ifEquals DepartmentID ../filters.department}}selected{{/ifEquals}}>
+                        {{Name}}
+                    </option>
+                    {{/each}}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">Trạng thái</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">Tất cả</option>
+                    {{#each statuses}}
+                    <option value="{{StatusID}}" {{#ifEquals StatusID ../filters.status}}selected{{/ifEquals}}>
+                        {{StatusName}}
+                    </option>
+                    {{/each}}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i>Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reports Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-table me-2"></i>
+            Danh sách yêu cầu ({{reports.length}})
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {{#if reports.length}}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Tiêu đề</th>
+                        <th style="width: 150px;">Người tạo</th>
+                        <th style="width: 150px;">Phòng ban</th>
+                        <th style="width: 120px;">Trạng thái</th>
+                        <th style="width: 120px;">Ưu tiên</th>
+                        <th style="width: 150px;">Ngày tạo</th>
+                        <th style="width: 100px;">Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each reports}}
+                    <tr>
+                        <td><span class="badge bg-secondary">#{{RequestID}}</span></td>
+                        <td>
+                            <a href="/requests/{{RequestID}}" class="text-decoration-none">{{Title}}</a>
+                        </td>
+                        <td>{{CreatorEmail}}</td>
+                        <td>
+                            {{#if DepartmentName}}
+                            <span class="badge bg-info">{{DepartmentName}}</span>
+                            {{else}}
+                            <span class="text-muted">N/A</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{#ifEquals StatusName 'Completed'}}success{{/ifEquals}}{{#ifEquals StatusName 'In Progress'}}warning{{/ifEquals}}{{#ifEquals StatusName 'Pending'}}secondary{{/ifEquals}}">
+                                {{StatusName}}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{#ifEquals PriorityName 'High'}}danger{{/ifEquals}}{{#ifEquals PriorityName 'Medium'}}warning{{/ifEquals}}{{#ifEquals PriorityName 'Low'}}info{{/ifEquals}}">
+                                {{PriorityName}}
+                            </span>
+                        </td>
+                        <td>{{formatDate CreatedAt}}</td>
+                        <td>{{hoursElapsed}} giờ</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+        {{else}}
+        <div class="text-center py-5">
+            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Không có dữ liệu báo cáo</h5>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<script>
+function exportReport() {
+    alert('Chức năng xuất báo cáo đang được phát triển');
+}
+</script>

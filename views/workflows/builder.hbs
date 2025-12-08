@@ -368,6 +368,33 @@ let connections = [];
 let selectedStep = null;
 let connectingFrom = null;
 
+// Load template data if available
+{{#if templateWorkflow}}
+const templateData = {
+    workflow: {
+        name: {{{json templateWorkflow.WorkflowName}}},
+        description: {{{json templateWorkflow.Description}}},
+        priorityId: {{#if templateWorkflow.PriorityID}}{{templateWorkflow.PriorityID}}{{else}}null{{/if}},
+        isActive: {{templateWorkflow.IsActive}}
+    },
+    steps: [
+        {{#each templateSteps}}
+        {
+            stepName: {{{json StepName}}},
+            stepOrder: {{StepOrder}},
+            requiredRoleId: {{#if RequiredRoleId}}{{RequiredRoleId}}{{else}}null{{/if}},
+            roleName: {{{json RoleName}}},
+            timeLimitHours: {{#if TimeLimitHours}}{{TimeLimitHours}}{{else}}null{{/if}},
+            approvalRequired: {{ApprovalRequired}},
+            statusId: {{#if StatusID}}{{StatusID}}{{else}}null{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ]
+};
+{{else}}
+const templateData = null;
+{{/if}}
+
 // Initialize SVG for connections
 function initSVG() {
     const svg = document.getElementById('connectionLayer');
@@ -379,6 +406,111 @@ function initSVG() {
             </marker>
         </defs>
     `;
+}
+
+initSVG();
+
+// Load template if available
+if (templateData) {
+    loadTemplate();
+}
+
+function loadTemplate() {
+    console.log('📋 Loading template:', templateData);
+    
+    // Fill workflow form
+    document.querySelector('input[name="workflowName"]').value = templateData.workflow.name + ' (Bản sao)';
+    document.querySelector('textarea[name="description"]').value = templateData.workflow.description || '';
+    if (templateData.workflow.priorityId) {
+        document.querySelector('select[name="priorityId"]').value = templateData.workflow.priorityId;
+    }
+    document.querySelector('input[name="isActive"]').checked = templateData.workflow.isActive;
+    
+    // Remove placeholder
+    const canvas = document.getElementById('workflowCanvas');
+    const placeholder = canvas.querySelector('.canvas-placeholder');
+    if (placeholder) {
+        placeholder.remove();
+    }
+    
+    // Create steps from template
+    let yPos = 100;
+    templateData.steps.forEach((templateStep, index) => {
+        const stepId = `step-${Date.now()}-${index}`;
+        const type = templateStep.approvalRequired ? 'approval' : 'step';
+        
+        // Create step element
+        const stepElement = document.createElement('div');
+        stepElement.className = `workflow-step type-${type}`;
+        stepElement.id = stepId;
+        stepElement.style.left = '200px';
+        stepElement.style.top = yPos + 'px';
+        
+        const stepNumber = index + 1;
+        const icon = type === 'approval' ? 'fa-check-circle' : 'fa-tasks';
+        const iconColor = type === 'approval' ? 'text-success' : 'text-primary';
+        const label = type === 'approval' ? 'Phê duyệt' : 'Bước xử lý';
+        
+        stepElement.innerHTML = `
+            <div class="connection-point input" data-step-id="${stepId}" data-point="input"></div>
+            <div class="step-header">
+                <span class="badge bg-secondary me-2">#${stepNumber}</span>
+                <i class="fas ${icon} ${iconColor}"></i>
+                <strong>${label}</strong>
+            </div>
+            <div class="step-info">
+                <div class="step-name" style="font-weight: 600; color: #495057;">${templateStep.stepName}</div>
+                <small class="text-muted">${type === 'approval' ? 'Duyệt/từ chối' : 'Xử lý yêu cầu'}</small>
+            </div>
+            <div class="step-role">
+                <i class="fas fa-user-tag"></i>
+                <span class="role-name" style="${templateStep.roleName ? 'font-weight: 600; color: #28a745;' : ''}">${templateStep.roleName || 'Chưa chỉ định'}</span>
+            </div>
+            <div class="connection-point output" data-step-id="${stepId}" data-point="output"></div>
+        `;
+        
+        canvas.appendChild(stepElement);
+        makeDraggable(stepElement);
+        addConnectionHandlers(stepElement);
+        
+        // Add to steps array
+        const stepData = {
+            id: stepId,
+            type: type,
+            x: 200,
+            y: yPos,
+            order: stepNumber,
+            name: templateStep.stepName,
+            description: '',
+            roleId: templateStep.requiredRoleId,
+            duration: templateStep.timeLimitHours,
+            statusId: templateStep.statusId,
+            isApprovalStep: templateStep.approvalRequired
+        };
+        steps.push(stepData);
+        
+        // Auto-connect to previous step
+        if (index > 0) {
+            connections.push({
+                from: steps[index - 1].id,
+                to: stepId
+            });
+        }
+        
+        yPos += 150;
+    });
+    
+    // Update counter
+    updateStepCounter();
+    
+    // Draw connections
+    drawConnections();
+    
+    // Show success message
+    setTimeout(() => {
+        alert(`✅ Đã load ${templateData.steps.length} bước từ mẫu!\n\nBạn có thể chỉnh sửa và lưu làm workflow mới.`);
+    }, 500);
+}
 }
 
 initSVG();

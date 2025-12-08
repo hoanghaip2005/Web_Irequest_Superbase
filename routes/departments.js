@@ -12,13 +12,13 @@ router.get('/', authenticateToken, async (req, res) => {
     const departmentsQuery = `
       SELECT 
         d.*,
-        u."FullName" as "ManagerName",
-        (SELECT COUNT(*) FROM "Users" WHERE "DepartmentId" = d."DepartmentID") as "EmployeeCount",
-        (SELECT COUNT(*) FROM "Requests" r JOIN "Users" u2 ON r."UsersId" = u2."Id" WHERE u2."DepartmentId" = d."DepartmentID") as "RequestCount"
+        u."Email" as "ManagerEmail",
+        (SELECT COUNT(*) FROM "Users" WHERE "DepartmentID" = d."DepartmentID") as "EmployeeCount",
+        (SELECT COUNT(*) FROM "Requests" r JOIN "Users" u2 ON r."UsersId" = u2."Id" WHERE u2."DepartmentID" = d."DepartmentID") as "RequestCount"
       FROM "Departments" d
-      LEFT JOIN "Users" u ON d."ManagerId" = u."Id"
-      WHERE d."DepartmentName" ILIKE $1
-      ORDER BY d."DepartmentName" ASC
+      LEFT JOIN "Users" u ON d."AssignedUserId" = u."Id"
+      WHERE d."Name" ILIKE $1
+      ORDER BY d."Name" ASC
     `;
 
     const departmentsResult = await query(departmentsQuery, [`%${search}%`]);
@@ -28,13 +28,13 @@ router.get('/', authenticateToken, async (req, res) => {
       SELECT 
         (SELECT COUNT(*) FROM "Departments") as "totalDepartments",
         (SELECT COUNT(*) FROM "Users") as "totalEmployees",
-        (SELECT COUNT(*) FROM "Requests" WHERE "IsFinal" = false) as "activeRequests",
-        (SELECT COUNT(DISTINCT "ManagerId") FROM "Departments" WHERE "ManagerId" IS NOT NULL) as "totalManagers"
+        (SELECT COUNT(*) FROM "Requests" WHERE "ClosedAt" IS NULL) as "activeRequests",
+        (SELECT COUNT(DISTINCT "AssignedUserId") FROM "Departments" WHERE "AssignedUserId" IS NOT NULL) as "totalManagers"
     `;
     const statsResult = await query(statsQuery);
 
     // Get all users for the dropdown
-    const usersQuery = `SELECT "Id", "FullName", "Email" FROM "Users" ORDER BY "FullName" ASC`;
+    const usersQuery = `SELECT "Id", "Email" FROM "Users" ORDER BY "Email" ASC`;
     const usersResult = await query(usersQuery);
 
     res.render('departments/index', {
@@ -71,9 +71,9 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
     // Get department info
     const departmentQuery = `
-      SELECT d.*, u."FullName" as "ManagerName", u."Email" as "ManagerEmail"
+      SELECT d.*, u."Email" as "ManagerEmail"
       FROM "Departments" d
-      LEFT JOIN "Users" u ON d."ManagerId" = u."Id"
+      LEFT JOIN "Users" u ON d."AssignedUserId" = u."Id"
       WHERE d."DepartmentID" = $1
     `;
     const departmentResult = await query(departmentQuery, [departmentId]);
@@ -89,10 +89,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
     // Get employees
     const employeesQuery = `
-      SELECT "Id", "FullName", "Email", "PhoneNumber", "CreatedAt"
+      SELECT "Id", "Email", "PhoneNumber", "CreatedAt"
       FROM "Users"
-      WHERE "DepartmentId" = $1
-      ORDER BY "FullName" ASC
+      WHERE "DepartmentID" = $1
+      ORDER BY "Email" ASC
     `;
     const employeesResult = await query(employeesQuery, [departmentId]);
 
@@ -101,16 +101,16 @@ router.get('/:id', authenticateToken, async (req, res) => {
       SELECT r.*, s."StatusName", p."PriorityName"
       FROM "Requests" r
       JOIN "Users" u ON r."UsersId" = u."Id"
-      JOIN "Status" s ON r."StatusId" = s."StatusID"
-      JOIN "Priority" p ON r."PriorityId" = p."PriorityID"
-      WHERE u."DepartmentId" = $1
+      JOIN "Status" s ON r."StatusID" = s."StatusID"
+      JOIN "Priority" p ON r."PriorityID" = p."PriorityID"
+      WHERE u."DepartmentID" = $1
       ORDER BY r."CreatedAt" DESC
       LIMIT 10
     `;
     const requestsResult = await query(requestsQuery, [departmentId]);
 
     res.render('departments/detail', {
-      title: department.DepartmentName,
+      title: department.Name,
       department: department,
       employees: employeesResult.rows,
       requests: requestsResult.rows,
@@ -127,33 +127,20 @@ router.get('/:id', authenticateToken, async (req, res) => {
 // Create department
 router.post('/create', authenticateToken, async (req, res) => {
   try {
-    const {
-      departmentName,
-      departmentCode,
-      description,
-      managerId,
-      location,
-      email,
-      phone,
-    } = req.body;
+    const { departmentName, departmentCode, description, managerId } = req.body;
 
     const createQuery = `
       INSERT INTO "Departments" (
-        "DepartmentName", "DepartmentCode", "Description", "ManagerId", 
-        "Location", "Email", "Phone", "CreatedAt"
+        "Name", "Description", "AssignedUserId", "CreatedAt", "IsActive"
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      VALUES ($1, $2, $3, NOW(), true)
       RETURNING "DepartmentID"
     `;
 
     await query(createQuery, [
       departmentName,
-      departmentCode || null,
-      description || null,
+      description || '',
       managerId || null,
-      location || null,
-      email || null,
-      phone || null,
     ]);
 
     res.redirect(
@@ -171,38 +158,21 @@ router.post('/create', authenticateToken, async (req, res) => {
 // Update department
 router.post('/update', authenticateToken, async (req, res) => {
   try {
-    const {
-      departmentId,
-      departmentName,
-      departmentCode,
-      description,
-      managerId,
-      location,
-      email,
-      phone,
-    } = req.body;
+    const { departmentId, departmentName, description, managerId } = req.body;
 
     const updateQuery = `
       UPDATE "Departments"
       SET 
-        "DepartmentName" = $1,
-        "DepartmentCode" = $2,
-        "Description" = $3,
-        "ManagerId" = $4,
-        "Location" = $5,
-        "Email" = $6,
-        "Phone" = $7
-      WHERE "DepartmentID" = $8
+        "Name" = $1,
+        "Description" = $2,
+        "AssignedUserId" = $3
+      WHERE "DepartmentID" = $4
     `;
 
     await query(updateQuery, [
       departmentName,
-      departmentCode || null,
-      description || null,
+      description || '',
       managerId || null,
-      location || null,
-      email || null,
-      phone || null,
       departmentId,
     ]);
 
@@ -224,13 +194,13 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     const departmentId = req.params.id;
 
     // Check if department has employees
-    const checkQuery = `SELECT COUNT(*) as count FROM "Users" WHERE "DepartmentId" = $1`;
+    const checkQuery = `SELECT COUNT(*) as count FROM "Users" WHERE "DepartmentID" = $1`;
     const checkResult = await query(checkQuery, [departmentId]);
 
     if (parseInt(checkResult.rows[0].count) > 0) {
       // Update employees to remove department
       await query(
-        `UPDATE "Users" SET "DepartmentId" = NULL WHERE "DepartmentId" = $1`,
+        `UPDATE "Users" SET "DepartmentID" = NULL WHERE "DepartmentID" = $1`,
         [departmentId]
       );
     }

@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha tests/**/*.test.js --exit",
+    "test:db": "mocha tests/db.test.js --exit",
+    "test:workflows": "mocha tests/workflows.test.js --exit",
+    "test:integration": "node tests/integration.test.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "format:js": "prettier --write \"**/*.js\"",
@@ -25,6 +28,7 @@
   },
   "homepage": "https://github.com/hoanghaip2005/Web_Irequest_Superbase#readme",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -37,10 +41,14 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "pg": "^8.16.3",
+    "socket.io": "^4.8.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "chai": "^6.2.1",
+    "mocha": "^11.7.5",
     "nodemon": "^3.1.11",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "supertest": "^7.1.4"
   }
 }

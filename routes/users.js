@@ -479,4 +479,117 @@ router.get('/:userId', authenticateToken, async (req, res) => {
   }
 });
 
+// ==================== API ENDPOINTS ====================
+
+// GET /users/api/search - Search users for @mentions autocomplete
+router.get('/api/search', authenticateToken, async (req, res) => {
+  try {
+    const query = req.query.q || '';
+    const limit = parseInt(req.query.limit) || 10;
+
+    if (!query || query.trim().length < 1) {
+      return res.json({
+        success: true,
+        users: [],
+      });
+    }
+
+    // Search users by username or email
+    const { query: dbQuery } = require('../config/database');
+    const searchPattern = `%${query.trim()}%`;
+
+    const result = await dbQuery(
+      `SELECT 
+        u."Id",
+        u."UserName",
+        u."Email",
+        u."Avatar",
+        d."Name" as "DepartmentName"
+       FROM "Users" u
+       LEFT JOIN "Departments" d ON u."DepartmentID" = d."DepartmentID"
+       WHERE (
+         LOWER(u."UserName") LIKE LOWER($1) OR 
+         LOWER(u."Email") LIKE LOWER($1)
+       )
+       AND u."LockoutEnabled" = false
+       ORDER BY 
+         CASE 
+           WHEN LOWER(u."UserName") LIKE LOWER($2) THEN 1
+           WHEN LOWER(u."Email") LIKE LOWER($2) THEN 2
+           ELSE 3
+         END,
+         u."UserName"
+       LIMIT $3`,
+      [searchPattern, query.trim().toLowerCase() + '%', limit]
+    );
+
+    const users = result.rows.map((user) => ({
+      id: user.Id,
+      username: user.UserName,
+      email: user.Email,
+      avatar: user.Avatar || '/images/default-avatar.png',
+      department: user.DepartmentName,
+      displayName: user.UserName || user.Email.split('@')[0],
+    }));
+
+    res.json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    console.error('User search error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error searching users: ' + error.message,
+    });
+  }
+});
+
+// GET /users/api/:id - Get user details for mentions
+router.get('/api/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { query: dbQuery } = require('../config/database');
+
+    const result = await dbQuery(
+      `SELECT 
+        u."Id",
+        u."UserName",
+        u."Email",
+        u."Avatar",
+        d."Name" as "DepartmentName"
+       FROM "Users" u
+       LEFT JOIN "Departments" d ON u."DepartmentID" = d."DepartmentID"
+       WHERE u."Id" = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const user = result.rows[0];
+    res.json({
+      success: true,
+      user: {
+        id: user.Id,
+        username: user.UserName,
+        email: user.Email,
+        avatar: user.Avatar || '/images/default-avatar.png',
+        department: user.DepartmentName,
+        displayName: user.UserName || user.Email.split('@')[0],
+      },
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting user: ' + error.message,
+    });
+  }
+});
+
 module.exports = router;

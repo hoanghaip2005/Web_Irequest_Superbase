@@ -6,7 +6,79 @@ const { authenticateToken } = require('../middleware/auth');
 // Apply authentication middleware to all routes
 router.use(authenticateToken);
 
-// Get all workflows
+// API endpoint: Get all workflows (JSON)
+router.get('/api/list', async (req, res) => {
+  try {
+    const result = await pool.query(`
+            SELECT 
+                w.*,
+                p."PriorityName",
+                COUNT(DISTINCT ws."StepID") as "StepCount",
+                COUNT(DISTINCT r."RequestID") as "RequestCount"
+            FROM "Workflow" w
+            LEFT JOIN "Priority" p ON w."PriorityID" = p."PriorityID"
+            LEFT JOIN "WorkflowSteps" ws ON w."WorkflowID" = ws."WorkflowID"
+            LEFT JOIN "Requests" r ON w."WorkflowID" = r."WorkflowID" 
+                AND r."StatusID" IN (SELECT "StatusID" FROM "Status" WHERE "StatusName" IN ('Đang xử lý', 'Chờ duyệt'))
+            GROUP BY w."WorkflowID", p."PriorityName"
+            ORDER BY w."WorkflowID" DESC
+        `);
+
+    res.json({
+      success: true,
+      workflows: result.rows,
+    });
+  } catch (err) {
+    console.error('Error fetching workflows:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Không thể tải danh sách workflow: ' + err.message,
+    });
+  }
+});
+
+// API endpoint: Get workflow by ID (JSON)
+router.get('/api/:id', async (req, res) => {
+  try {
+    const workflowResult = await pool.query(
+      `SELECT w.*, p."PriorityName"
+       FROM "Workflow" w
+       LEFT JOIN "Priority" p ON w."PriorityID" = p."PriorityID"
+       WHERE w."WorkflowID" = $1`,
+      [req.params.id]
+    );
+
+    if (workflowResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Workflow không tồn tại',
+      });
+    }
+
+    const stepsResult = await pool.query(
+      `SELECT ws.*, s."StatusName"
+       FROM "WorkflowSteps" ws
+       LEFT JOIN "Status" s ON ws."StatusID" = s."StatusID"
+       WHERE ws."WorkflowID" = $1
+       ORDER BY ws."StepOrder"`,
+      [req.params.id]
+    );
+
+    res.json({
+      success: true,
+      workflow: workflowResult.rows[0],
+      steps: stepsResult.rows,
+    });
+  } catch (err) {
+    console.error('Error fetching workflow:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Không thể tải workflow: ' + err.message,
+    });
+  }
+});
+
+// Get all workflows (HTML view)
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -102,6 +174,33 @@ router.get('/templates', async (req, res) => {
 // Get workflow builder page
 router.get('/builder', async (req, res) => {
   try {
+    const templateId = req.query.template;
+    let templateWorkflow = null;
+    let templateSteps = [];
+
+    // If template ID provided, load template data
+    if (templateId) {
+      const workflowResult = await pool.query(
+        `SELECT * FROM "Workflow" WHERE "WorkflowID" = $1 AND "IsActive" = true`,
+        [templateId]
+      );
+
+      if (workflowResult.rows.length > 0) {
+        templateWorkflow = workflowResult.rows[0];
+
+        const stepsResult = await pool.query(
+          `SELECT ws.*, r."Name" as "RoleName"
+           FROM "WorkflowSteps" ws
+           LEFT JOIN "Roles" r ON ws."RequiredRoleId" = r."Id"
+           WHERE ws."WorkflowID" = $1
+           ORDER BY ws."StepOrder"`,
+          [templateId]
+        );
+
+        templateSteps = stepsResult.rows;
+      }
+    }
+
     // Get roles for assignment
     const rolesResult = await pool.query(`
             SELECT "Id", "Name" FROM "Roles" ORDER BY "Name"
@@ -127,13 +226,17 @@ router.get('/builder', async (req, res) => {
         `);
 
     res.render('workflows/builder', {
-      title: 'Thiết kế Quy trình',
+      title: templateWorkflow
+        ? `Tạo từ mẫu: ${templateWorkflow.WorkflowName}`
+        : 'Thiết kế Quy trình',
       page: 'workflows',
       user: req.user,
       roles: rolesResult.rows,
       statuses: statusesResult.rows,
       departments: departmentsResult.rows,
       priorities: prioritiesResult.rows,
+      templateWorkflow: templateWorkflow,
+      templateSteps: templateSteps,
     });
   } catch (err) {
     console.error('Error loading workflow builder:', err);
@@ -260,23 +363,21 @@ router.post('/create', async (req, res) => {
                     INSERT INTO "WorkflowSteps" (
                         "WorkflowID",
                         "StepName",
-                        "Description",
                         "StepOrder",
-                        "AssignedRoleId",
-                        "StatusID",
-                        "ExpectedDuration",
-                        "IsApprovalStep"
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                        "RequiredRoleId",
+                        "TimeLimitHours",
+                        "ApprovalRequired",
+                        "StatusID"
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
                 `,
           [
             workflowId,
             step.stepName,
-            step.description || null,
             step.stepOrder,
             step.assignedRoleId || null,
-            step.statusId || null,
             step.expectedDuration || null,
             step.isApprovalStep || false,
+            step.statusId || null,
           ]
         );
       }
@@ -527,10 +628,10 @@ router.get('/:id/steps', async (req, res) => {
             SELECT 
                 ws.*,
                 s."StatusName",
-                r."Name" as "AssignedRoleName"
+                r."Name" as "RoleName"
             FROM "WorkflowSteps" ws
             LEFT JOIN "Status" s ON ws."StatusID" = s."StatusID"
-            LEFT JOIN "Roles" r ON ws."AssignedRoleId" = r."Id"
+            LEFT JOIN "Roles" r ON ws."RequiredRoleId" = r."Id"
             WHERE ws."WorkflowID" = $1
             ORDER BY ws."StepOrder"
         `,
@@ -587,27 +688,25 @@ router.post('/:id/steps/create', async (req, res) => {
             INSERT INTO "WorkflowSteps" (
                 "WorkflowID",
                 "StepName",
-                "StepDescription",
                 "StepOrder",
-                "ExpectedDuration",
-                "AssignedRoleId",
+                "RequiredRoleId",
+                "TimeLimitHours",
+                "ApprovalRequired",
                 "StatusID",
-                "RequiresApproval",
-                "IsAutomatic",
-                "CanSkip"
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                "RequiresSubWorkflow",
+                "SubWorkflowCompletionRequired"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         `,
       [
         req.params.id,
         stepName,
-        stepDescription || null,
         stepOrder,
-        expectedDuration || null,
         assignedRoleId || null,
+        expectedDuration || null,
+        requiresApproval || false,
         statusId || null,
-        requiresApproval === 'on',
-        isAutomatic === 'on',
-        canSkip === 'on',
+        false,
+        false,
       ]
     );
 
@@ -644,26 +743,20 @@ router.post('/:id/steps/update', async (req, res) => {
       `
             UPDATE "WorkflowSteps" SET
                 "StepName" = $1,
-                "StepDescription" = $2,
-                "StepOrder" = $3,
-                "ExpectedDuration" = $4,
-                "AssignedRoleId" = $5,
-                "StatusID" = $6,
-                "RequiresApproval" = $7,
-                "IsAutomatic" = $8,
-                "CanSkip" = $9
-            WHERE "StepID" = $10 AND "WorkflowID" = $11
+                "StepOrder" = $2,
+                "RequiredRoleId" = $3,
+                "TimeLimitHours" = $4,
+                "ApprovalRequired" = $5,
+                "StatusID" = $6
+            WHERE "StepID" = $7 AND "WorkflowID" = $8
         `,
       [
         stepName,
-        stepDescription || null,
         stepOrder,
-        expectedDuration || null,
         assignedRoleId || null,
-        statusId || null,
+        expectedDuration || null,
         requiresApproval === 'on',
-        isAutomatic === 'on',
-        canSkip === 'on',
+        statusId || null,
         stepId,
         req.params.id,
       ]

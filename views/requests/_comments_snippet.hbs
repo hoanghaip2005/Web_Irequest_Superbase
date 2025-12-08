@@ -1,0 +1,124 @@
+<!-- 
+  Comments System Template Addition
+  Add this section before the closing </style> tag in detail.hbs
+-->
+
+<!-- Include Quill Rich Text Editor -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+<!-- Include Comments CSS -->
+<link rel="stylesheet" href="/css/comments.css">
+<link rel="stylesheet" href="/css/mentions.css">
+
+<!-- Comments & Activity Section -->
+<div class="row mt-4 comments-section">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="comments-tab" data-bs-toggle="tab" href="#comments" role="tab">
+                            <i class="fas fa-comments me-2"></i>Comments
+                            <span class="badge bg-primary ms-2" id="comments-count">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="activity-tab" data-bs-toggle="tab" href="#activity" role="tab">
+                            <i class="fas fa-history me-2"></i>Activity
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <!-- Comments Tab -->
+                    <div class="tab-pane fade show active" id="comments" role="tabpanel">
+                        <!-- Comment Form -->
+                        <div class="comment-form mb-4">
+                            <div class="d-flex align-items-start">
+                                <img src="{{#if user.Avatar}}{{user.Avatar}}{{else}}/images/default-avatar.png{{/if}}" 
+                                     alt="Your Avatar" 
+                                     class="rounded-circle me-3" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <!-- Rich Text Editor Container -->
+                                    <div class="form-group mb-3">
+                                        <div id="comment-editor" class="comment-editor"></div>
+                                        <textarea class="form-control d-none" 
+                                                  id="comment-content" 
+                                                  rows="3"></textarea>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="form-check">
+                                            {{#if canEdit}}
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   id="comment-internal">
+                                            <label class="form-check-label text-warning" for="comment-internal">
+                                                <i class="fas fa-lock me-1"></i>Internal Note (Staff Only)
+                                            </label>
+                                            {{/if}}
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="attach-file-btn">
+                                                <i class="fas fa-paperclip me-1"></i>Attach Files
+                                            </button>
+                                            <button type="button" class="btn btn-primary" id="submit-comment-btn">
+                                                <i class="fas fa-paper-plane me-2"></i>Send Comment
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="comment-file-input" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" class="d-none">
+                                    <div id="comment-files-preview"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Comments List -->
+                        <div id="comments-list">
+                            <div class="comments-loading">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading comments...</span>
+                                </div>
+                                <p class="text-muted mt-3">Loading comments...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Tab -->
+                    <div class="tab-pane fade" id="activity" role="tabpanel">
+                        <div id="activity-timeline" class="activity-timeline">
+                            <div class="text-center py-5">
+                                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Activity history will be displayed here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Quill JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<!-- Include Mentions and Comments JS -->
+<script src="/js/mentions.js"></script>
+<script src="/js/comments.js"></script>
+<script>
+    // Initialize Comments System
+    document.addEventListener('DOMContentLoaded', function() {
+        window.commentsSystem = new CommentsSystem({{request.RequestID}}, {
+            currentUser: {
+                Id: '{{user.Id}}',
+                UserName: '{{user.UserName}}',
+                Email: '{{user.Email}}',
+                Avatar: '{{user.Avatar}}',
+                isAdmin: {{user.isAdmin}}
+            }
+        });
+    });
+</script>

@@ -151,18 +151,18 @@
                     {{#each users}}
                     <tr>
                         <td>
-                            <div class="user-avatar" style="background-color: {{AvatarColor}};">
-                                {{#if AvatarPath}}
-                                <img src="{{AvatarPath}}" alt="{{FullName}}">
+                            <div class="user-avatar" style="background-color: #667eea;">
+                                {{#if Avatar}}
+                                <img src="{{Avatar}}" alt="{{Email}}">
                                 {{else}}
-                                {{substring FullName 0 2}}
+                                {{substring Email 0 2}}
                                 {{/if}}
                             </div>
                         </td>
                         <td>
                             <div>
-                                <h6 class="mb-0">{{FullName}}</h6>
-                                <small class="text-muted">@{{Username}}</small>
+                                <h6 class="mb-0">{{Email}}</h6>
+                                <small class="text-muted">@{{UserName}}</small>
                             </div>
                         </td>
                         <td>{{Email}}</td>
@@ -183,13 +183,13 @@
                             {{/if}}
                         </td>
                         <td>
-                            {{#if IsActive}}
+                            {{#if EmailConfirmed}}
                             <span class="badge bg-success">Hoạt động</span>
                             {{else}}
                             <span class="badge bg-secondary">Vô hiệu</span>
                             {{/if}}
                         </td>
-                        <td>{{formatDateTime CreatedAt}}</td>
+                        <td>{{formatDateTime BirthDate}}</td>
                         <td>
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-sm btn-outline-primary" 
@@ -197,13 +197,13 @@
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-warning" 
-                                        onclick="resetPassword('{{UserID}}', '{{FullName}}')" title="Đặt lại mật khẩu">
+                                        onclick="resetPassword('{{Id}}', '{{Email}}')" title="Đặt lại mật khẩu">
                                     <i class="fas fa-key"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-{{#if IsActive}}secondary{{else}}success{{/if}}" 
-                                        onclick="toggleUserStatus('{{UserID}}', {{IsActive}}, '{{FullName}}')" 
-                                        title="{{#if IsActive}}Vô hiệu hóa{{else}}Kích hoạt{{/if}}">
-                                    <i class="fas fa-{{#if IsActive}}ban{{else}}check{{/if}}"></i>
+                                <button type="button" class="btn btn-sm btn-outline-{{#if EmailConfirmed}}secondary{{else}}success{{/if}}" 
+                                        onclick="toggleUserStatus('{{Id}}', {{EmailConfirmed}}, '{{Email}}')" 
+                                        title="{{#if EmailConfirmed}}Vô hiệu hóa{{else}}Kích hoạt{{/if}}">
+                                    <i class="fas fa-{{#if EmailConfirmed}}ban{{else}}check{{/if}}"></i>
                                 </button>
                             </div>
                         </td>
@@ -410,22 +410,22 @@
 
 <script>
 function editUser(user) {
-    document.getElementById('editUserId').value = user.UserID;
-    document.getElementById('editUsername').value = user.Username;
-    document.getElementById('editFullName').value = user.FullName;
+    document.getElementById('editUserId').value = user.Id;
+    document.getElementById('editUsername').value = user.UserName;
+    document.getElementById('editFullName').value = user.Email;
     document.getElementById('editEmail').value = user.Email;
     document.getElementById('editPhone').value = user.PhoneNumber || '';
     document.getElementById('editDepartmentId').value = user.DepartmentID || '';
     document.getElementById('editRoleId').value = user.RoleId || '';
-    document.getElementById('editAddress').value = user.Address || '';
-    document.getElementById('editIsActive').checked = user.IsActive;
+    document.getElementById('editAddress').value = user.HomeAdress || '';
+    document.getElementById('editIsActive').checked = user.EmailConfirmed;
     
     const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
     modal.show();
 }
 
-function resetPassword(userId, fullName) {
-    if (confirm(`Bạn có chắc chắn muốn đặt lại mật khẩu cho "${fullName}"?`)) {
+function resetPassword(userId, email) {
+    if (confirm(`Bạn có chắc chắn muốn đặt lại mật khẩu cho "${email}"?`)) {
         fetch(`/employees/${userId}/reset-password`, {
             method: 'POST',
             headers: {
@@ -447,9 +447,9 @@ function resetPassword(userId, fullName) {
     }
 }
 
-function toggleUserStatus(userId, currentStatus, fullName) {
+function toggleUserStatus(userId, currentStatus, email) {
     const action = currentStatus ? 'vô hiệu hóa' : 'kích hoạt';
-    if (confirm(`Bạn có chắc chắn muốn ${action} tài khoản "${fullName}"?`)) {
+    if (confirm(`Bạn có chắc chắn muốn ${action} tài khoản "${email}"?`)) {
         fetch(`/employees/${userId}/toggle-status`, {
             method: 'POST',
             headers: {

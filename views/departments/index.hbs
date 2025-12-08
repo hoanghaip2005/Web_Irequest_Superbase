@@ -149,22 +149,22 @@
                         </td>
                         <td>
                             <div>
-                                <h6 class="mb-0">{{DepartmentName}}</h6>
+                                <h6 class="mb-0">{{Name}}</h6>
                                 {{#if Description}}
                                 <small class="text-muted">{{substring Description 0 50}}{{#if (gt (length Description) 50)}}...{{/if}}</small>
                                 {{/if}}
                             </div>
                         </td>
                         <td>
-                            <code>{{DepartmentCode}}</code>
+                            <code>{{DepartmentID}}</code>
                         </td>
                         <td>
-                            {{#if ManagerName}}
+                            {{#if ManagerEmail}}
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
-                                    {{substring ManagerName 0 1}}
+                                    {{substring ManagerEmail 0 1}}
                                 </div>
-                                <span>{{ManagerName}}</span>
+                                <span>{{ManagerEmail}}</span>
                             </div>
                             {{else}}
                             <span class="text-muted">Chưa có</span>
@@ -189,7 +189,7 @@
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-danger" 
-                                        onclick="deleteDepartment({{DepartmentID}}, '{{DepartmentName}}')" title="Xóa">
+                                        onclick="deleteDepartment({{DepartmentID}}, '{{Name}}')" title="Xóa">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -248,7 +248,7 @@
                             <select class="form-select" id="managerId" name="managerId">
                                 <option value="">-- Chọn trưởng phòng --</option>
                                 {{#each users}}
-                                <option value="{{Id}}">{{FullName}} ({{Email}})</option>
+                                <option value="{{Id}}">{{Email}}</option>
                                 {{/each}}
                             </select>
                         </div>
@@ -309,7 +309,7 @@
                             <select class="form-select" id="editManagerId" name="managerId">
                                 <option value="">-- Chọn trưởng phòng --</option>
                                 {{#each users}}
-                                <option value="{{Id}}">{{FullName}} ({{Email}})</option>
+                                <option value="{{Id}}">{{Email}}</option>
                                 {{/each}}
                             </select>
                         </div>
@@ -368,13 +368,10 @@
 <script>
 function editDepartment(department) {
     document.getElementById('editDepartmentId').value = department.DepartmentID;
-    document.getElementById('editDepartmentName').value = department.DepartmentName;
-    document.getElementById('editDepartmentCode').value = department.DepartmentCode || '';
+    document.getElementById('editDepartmentName').value = department.Name;
+    document.getElementById('editDepartmentCode').value = department.DepartmentID || '';
     document.getElementById('editDescription').value = department.Description || '';
-    document.getElementById('editManagerId').value = department.ManagerId || '';
-    document.getElementById('editLocation').value = department.Location || '';
-    document.getElementById('editEmail').value = department.Email || '';
-    document.getElementById('editPhone').value = department.Phone || '';
+    document.getElementById('editManagerId').value = department.AssignedUserId || '';
     
     const modal = new bootstrap.Modal(document.getElementById('editDepartmentModal'));
     modal.show();

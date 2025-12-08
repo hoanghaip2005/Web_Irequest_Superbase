@@ -12,14 +12,14 @@ router.get('/', async (req, res) => {
   try {
     const { search, department, role } = req.query;
 
-    let query = `
+    let queryText = `
             SELECT 
                 u.*,
                 d."Name" as "DepartmentName",
                 r."Name" as "RoleName"
             FROM "Users" u
             LEFT JOIN "Departments" d ON u."DepartmentID" = d."DepartmentID"
-            LEFT JOIN "UserRoles" ur ON u."UserID" = ur."UserId"
+            LEFT JOIN "UserRoles" ur ON u."Id" = ur."UserId"
             LEFT JOIN "Roles" r ON ur."RoleId" = r."Id"
             WHERE 1=1
         `;
@@ -28,30 +28,30 @@ router.get('/', async (req, res) => {
 
     if (search) {
       params.push(`%${search}%`);
-      query += ` AND (u."FullName" ILIKE $${params.length} OR u."Email" ILIKE $${params.length} OR u."Username" ILIKE $${params.length})`;
+      queryText += ` AND (u."Email" ILIKE $${params.length} OR u."UserName" ILIKE $${params.length})`;
     }
 
     if (department) {
       params.push(department);
-      query += ` AND u."DepartmentID" = $${params.length}`;
+      queryText += ` AND u."DepartmentID" = $${params.length}`;
     }
 
     if (role) {
       params.push(role);
-      query += ` AND ur."RoleId" = $${params.length}`;
+      queryText += ` AND ur."RoleId" = $${params.length}`;
     }
 
-    query += ` ORDER BY u."CreatedAt" DESC`;
+    queryText += ` ORDER BY u."Email" DESC`;
 
-    const result = await pool.query(query, params);
+    const result = await pool.query(queryText, params);
 
     // Get statistics
     const statsResult = await pool.query(`
             SELECT 
                 COUNT(*) as "totalUsers",
-                COUNT(*) FILTER (WHERE "IsActive" = true) as "activeUsers",
+                COUNT(*) FILTER (WHERE "EmailConfirmed" = true) as "activeUsers",
                 COUNT(*) FILTER (
-                    WHERE "UserID" IN (
+                    WHERE "Id" IN (
                         SELECT ur."UserId" 
                         FROM "UserRoles" ur 
                         JOIN "Roles" r ON ur."RoleId" = r."Id" 
@@ -128,7 +128,7 @@ router.post('/create', async (req, res) => {
     // Check if username or email already exists
     const existingUser = await pool.query(
       `
-            SELECT * FROM "Users" WHERE "Username" = $1 OR "Email" = $2
+            SELECT * FROM "Users" WHERE "UserName" = $1 OR "Email" = $2
         `,
       [username, email]
     );
@@ -143,50 +143,46 @@ router.post('/create', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate random avatar color
-    const colors = [
-      '#667eea',
-      '#764ba2',
-      '#f093fb',
-      '#f5576c',
-      '#4facfe',
-      '#00f2fe',
-      '#43e97b',
-      '#38f9d7',
-    ];
-    const avatarColor = colors[Math.floor(Math.random() * colors.length)];
+    // Generate UUID for new user
+    const { v4: uuidv4 } = require('uuid');
+    const userId = uuidv4();
 
     // Insert user
     const userResult = await pool.query(
       `
             INSERT INTO "Users" (
-                "Username",
-                "FullName",
+                "Id",
+                "UserName",
+                "NormalizedUserName",
                 "Email",
+                "NormalizedEmail",
+                "EmailConfirmed",
                 "PasswordHash",
                 "PhoneNumber",
                 "DepartmentID",
-                "Address",
-                "IsActive",
-                "AvatarColor",
-                "CreatedAt"
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-            RETURNING "UserID"
+                "HomeAdress",
+                "PhoneNumberConfirmed",
+                "TwoFactorEnabled",
+                "LockoutEnabled",
+                "AccessFailedCount"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false, false, false, 0)
+            RETURNING "Id"
         `,
       [
+        userId,
         username,
-        fullName,
+        username.toUpperCase(),
         email,
+        email.toUpperCase(),
+        isActive === 'on',
         hashedPassword,
         phone || null,
         departmentId || null,
         address || null,
-        isActive === 'on',
-        avatarColor,
       ]
     );
 
-    const userId = userResult.rows[0].UserID;
+    const newUserId = userResult.rows[0].Id;
 
     // Assign role if provided
     if (roleId) {
@@ -195,7 +191,7 @@ router.post('/create', async (req, res) => {
                 INSERT INTO "UserRoles" ("UserId", "RoleId")
                 VALUES ($1, $2)
             `,
-        [userId, roleId]
+        [newUserId, roleId]
       );
     }
 
@@ -227,7 +223,7 @@ router.post('/update', async (req, res) => {
     // Check if email already exists (exclude current user)
     const existingUser = await pool.query(
       `
-            SELECT * FROM "Users" WHERE "Email" = $1 AND "UserID" != $2
+            SELECT * FROM "Users" WHERE "Email" = $1 AND "Id" != $2
         `,
       [email, userId]
     );
@@ -242,17 +238,17 @@ router.post('/update', async (req, res) => {
     await pool.query(
       `
             UPDATE "Users" SET
-                "FullName" = $1,
-                "Email" = $2,
+                "Email" = $1,
+                "NormalizedEmail" = $2,
                 "PhoneNumber" = $3,
                 "DepartmentID" = $4,
-                "Address" = $5,
-                "IsActive" = $6
-            WHERE "UserID" = $7
+                "HomeAdress" = $5,
+                "EmailConfirmed" = $6
+            WHERE "Id" = $7
         `,
       [
-        fullName,
         email,
+        email.toUpperCase(),
         phone || null,
         departmentId || null,
         address || null,
@@ -302,7 +298,7 @@ router.post('/:id/reset-password', async (req, res) => {
       `
             UPDATE "Users" SET
                 "PasswordHash" = $1
-            WHERE "UserID" = $2
+            WHERE "Id" = $2
         `,
       [hashedPassword, req.params.id]
     );
@@ -330,8 +326,8 @@ router.post('/:id/toggle-status', async (req, res) => {
     await pool.query(
       `
             UPDATE "Users" SET
-                "IsActive" = $1
-            WHERE "UserID" = $2
+                "EmailConfirmed" = $1
+            WHERE "Id" = $2
         `,
       [newStatus, req.params.id]
     );

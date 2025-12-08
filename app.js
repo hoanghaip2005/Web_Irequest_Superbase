@@ -79,6 +79,20 @@ const hbs = exphbs.create({
     eq: function (arg1, arg2) {
       return arg1 == arg2;
     },
+    json: function (context) {
+      return JSON.stringify(context);
+    },
+    substring: function (str, start, length) {
+      if (!str) return '';
+      return str.substring(start, start + length);
+    },
+    gt: function (arg1, arg2) {
+      return arg1 > arg2;
+    },
+    length: function (arr) {
+      if (!arr) return 0;
+      return arr.length || 0;
+    },
     formatDate: function (date) {
       if (!date) return '';
       return new Date(date).toLocaleDateString('vi-VN');
@@ -220,6 +234,22 @@ const hbs = exphbs.create({
         return value.length;
       return 0;
     },
+    lt: function (arg1, arg2) {
+      return arg1 < arg2;
+    },
+    add: function (arg1, arg2) {
+      return arg1 + arg2;
+    },
+    subtract: function (arg1, arg2) {
+      return arg1 - arg2;
+    },
+    range: function (start, end) {
+      const result = [];
+      for (let i = start; i <= end; i++) {
+        result.push(i);
+      }
+      return result;
+    },
   },
 });
 
@@ -242,6 +272,8 @@ const departmentRoutes = require('./routes/departments');
 const workflowRoutes = require('./routes/workflows');
 const employeeRoutes = require('./routes/employees');
 const analyticsRoutes = require('./routes/analytics');
+const reportsRoutes = require('./routes/reports');
+const activityLogRoutes = require('./routes/activity-log');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -255,6 +287,8 @@ app.use('/departments', departmentRoutes);
 app.use('/workflows', workflowRoutes);
 app.use('/employees', employeeRoutes);
 app.use('/analytics', analyticsRoutes);
+app.use('/reports', reportsRoutes);
+app.use('/activity-log', activityLogRoutes);
 
 // 404 Error handler
 app.use((req, res) => {
