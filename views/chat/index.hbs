@@ -1,0 +1,581 @@
+<link rel="stylesheet" href="/css/chat.css">
+
+<div class="chat-container">
+    <div class="row h-100">
+        <!-- Chat Sidebar -->
+        <div class="col-lg-4 col-md-5 border-end">
+            <div class="chat-sidebar">
+                <!-- Search and New Chat -->
+                <div class="chat-sidebar-header p-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Tin nhắn</h5>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newChatModal">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="chatSearch" 
+                               placeholder="Tìm kiếm cuộc trò chuyện...">
+                    </div>
+                </div>
+
+                <!-- Chat Tabs -->
+                <ul class="nav nav-tabs px-3 pt-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#direct-chats" type="button">
+                            Trực tiếp
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#group-chats" type="button">
+                            Nhóm
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Chat List -->
+                <div class="tab-content">
+                    <!-- Direct Chats -->
+                    <div class="tab-pane fade show active" id="direct-chats">
+                        <div class="chat-list">
+                            {{#if directChats.length}}
+                            {{#each directChats}}
+                            <div class="chat-item {{#if active}}active{{/if}}" onclick="loadChat('{{UserId}}', 'direct')">
+                                <div class="d-flex align-items-center">
+                                    <div class="position-relative">
+                                        {{#if AvatarPath}}
+                                        <img src="{{AvatarPath}}" class="chat-avatar rounded-circle" alt="{{name}}">
+                                        {{else}}
+                                        <div class="chat-avatar {{#if AvatarColor}}{{AvatarColor}}{{else}}bg-primary{{/if}}">
+                                            {{substring name 0 1}}
+                                        </div>
+                                        {{/if}}
+                                        {{#if online}}
+                                        <span class="online-indicator"></span>
+                                        {{/if}}
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-0">{{name}}</h6>
+                                            <small class="text-muted">{{formatTime lastMessageTime}}</small>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <p class="mb-0 text-muted small text-truncate">{{lastMessage}}</p>
+                                            {{#if (gt unreadCount 0)}}
+                                            <span class="badge bg-primary rounded-pill">{{unreadCount}}</span>
+                                            {{/if}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {{/each}}
+                            {{else}}
+                            <div class="text-center py-5">
+                                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Chưa có cuộc trò chuyện nào</p>
+                            </div>
+                            {{/if}}
+                        </div>
+                    </div>
+
+                    <!-- Group Chats -->
+                    <div class="tab-pane fade" id="group-chats">
+                        <div class="chat-list">
+                            {{#if groupChats.length}}
+                            {{#each groupChats}}
+                            <div class="chat-item {{#if active}}active{{/if}}" onclick="loadChat('{{id}}', 'group')">
+                                <div class="d-flex align-items-center">
+                                    <div class="chat-avatar bg-secondary">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-0">{{name}}</h6>
+                                            <small class="text-muted">{{formatTime lastMessageTime}}</small>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <p class="mb-0 text-muted small text-truncate">
+                                                <strong>{{lastMessageUser}}:</strong> {{lastMessage}}
+                                            </p>
+                                            {{#if unreadCount}}
+                                            <span class="badge bg-primary rounded-pill">{{unreadCount}}</span>
+                                            {{/if}}
+                                        </div>
+                                        <small class="text-muted">{{memberCount}} thành viên</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {{/each}}
+                            {{else}}
+                            <div class="text-center py-5">
+                                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Chưa có nhóm chat nào</p>
+                            </div>
+                            {{/if}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Content -->
+        <div class="col-lg-8 col-md-7 h-100">
+            <div class="chat-content h-100 d-flex flex-column" id="chatContent">
+                {{#if currentChat}}
+                <!-- Chat Header -->
+                <div class="chat-header p-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            {{#if currentChat.isGroup}}
+                            <div class="chat-avatar me-3 bg-info">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            {{else}}
+                            {{#if currentChat.AvatarPath}}
+                            <img src="{{currentChat.AvatarPath}}" class="chat-avatar me-3 rounded-circle" alt="{{currentChat.name}}">
+                            {{else}}
+                            <div class="chat-avatar me-3 {{#if currentChat.AvatarColor}}{{currentChat.AvatarColor}}{{else}}bg-primary{{/if}}">
+                                {{substring currentChat.name 0 1}}
+                            </div>
+                            {{/if}}
+                            {{/if}}
+                            <div>
+                                <h6 class="mb-0">{{currentChat.name}}</h6>
+                                {{#if currentChat.isGroup}}
+                                <small class="text-muted">{{currentChat.memberCount}} thành viên</small>
+                                {{else}}
+                                <small class="text-muted">{{currentChat.Email}}</small>
+                                {{/if}}
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                {{#if currentChat.isGroup}}
+                                <li><a class="dropdown-item" href="#" onclick="viewGroupInfo('{{currentChat.id}}')">
+                                    <i class="fas fa-info-circle me-2"></i>Thông tin nhóm
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" onclick="manageMembers('{{currentChat.id}}')">
+                                    <i class="fas fa-users-cog me-2"></i>Quản lý thành viên
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                {{/if}}
+                                <li><a class="dropdown-item" href="#" onclick="clearChat('{{currentChat.id}}')">
+                                    <i class="fas fa-broom me-2"></i>Xóa lịch sử
+                                </a></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteChat('{{currentChat.id}}')">
+                                    <i class="fas fa-trash me-2"></i>Xóa cuộc trò chuyện
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages p-3" id="chatMessages">
+                    {{#each currentChat.messages}}
+                    <div class="message {{#if (eq SenderId ../user.Id)}}message-sent{{else}}message-received{{/if}}">
+                        {{#unless (eq SenderId ../user.Id)}}
+                        {{#if senderAvatar}}
+                        <img src="{{senderAvatar}}" class="message-avatar" alt="{{senderName}}">
+                        {{else}}
+                        <div class="message-avatar {{#if senderColor}}{{senderColor}}{{else}}bg-primary{{/if}}">
+                            {{substring senderName 0 1}}
+                        </div>
+                        {{/if}}
+                        {{/unless}}
+                        <div class="message-content">
+                            {{#unless (eq SenderId ../user.Id)}}
+                            <div class="message-sender">{{senderName}}</div>
+                            {{/unless}}
+                            <div class="message-bubble">
+                                <p class="mb-0">{{Content}}</p>
+                            </div>
+                            <div class="message-time">
+                                {{formatTime CreatedAt}}
+                                {{#if (eq SenderId ../user.Id)}}
+                                {{#if IsRead}}
+                                <i class="fas fa-check-double text-info"></i>
+                                {{else}}
+                                <i class="fas fa-check"></i>
+                                {{/if}}
+                                {{/if}}
+                            </div>
+                        </div>
+                    </div>
+                    {{else}}
+                    <div class="text-center py-5">
+                        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Chưa có tin nhắn nào. Bắt đầu cuộc trò chuyện!</p>
+                    </div>
+                    {{/each}}
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input">
+                    <!-- File/Image Preview Area -->
+                    <div id="filePreviewArea" class="file-preview-area d-none">
+                        <div class="file-preview-container">
+                            <div id="filePreviewList" class="file-preview-list"></div>
+                        </div>
+                    </div>
+
+                    <form id="chatForm" onsubmit="sendMessage(event)">
+                        <div class="d-flex align-items-end gap-2">
+                            <!-- Attachment Buttons -->
+                            <button type="button" class="btn btn-light btn-icon" onclick="attachFile()" title="Đính kèm file">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button type="button" class="btn btn-light btn-icon" onclick="attachImage()" title="Gửi hình ảnh">
+                                <i class="fas fa-image"></i>
+                            </button>
+                            
+                            <!-- Message Input -->
+                            <div class="flex-grow-1">
+                                <textarea class="form-control" id="messageInput" rows="1"
+                                   placeholder="Nhập tin nhắn..." autocomplete="off"></textarea>
+                            </div>
+                            
+                            <!-- Emoji Button -->
+                            <button type="button" class="btn btn-light btn-icon" onclick="insertEmoji()" title="Chèn emoji">
+                                <i class="fas fa-smile"></i>
+                            </button>
+                            
+                            <!-- Send Button -->
+                            <button type="submit" class="btn btn-primary btn-icon">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <input type="file" id="fileInput" class="d-none" multiple onchange="handleFileSelect(event)">
+                        <input type="file" id="imageInput" class="d-none" accept="image/*" multiple onchange="handleImageSelect(event)">
+                    </form>
+                    <div id="typingIndicator" class="typing-indicator d-none">
+                        <small class="text-muted"><i>Đang nhập...</i></small>
+                    </div>
+                </div>
+                {{else}}
+                <!-- No Chat Selected -->
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="text-center">
+                        <i class="fas fa-comments fa-5x text-muted mb-4"></i>
+                        <h4 class="text-muted">Chọn một cuộc trò chuyện</h4>
+                        <p class="text-muted">Chọn cuộc trò chuyện từ danh sách bên trái hoặc bắt đầu cuộc trò chuyện mới</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newChatModal">
+                            <i class="fas fa-plus me-2"></i>Cuộc trò chuyện mới
+                        </button>
+                    </div>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Chat Modal -->
+<div class="modal fade" id="newChatModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cuộc trò chuyện mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-pills mb-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#new-direct-chat" type="button">
+                            Trực tiếp
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#new-group-chat" type="button">
+                            Nhóm mới
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content">
+                    <!-- New Direct Chat -->
+                    <div class="tab-pane fade show active" id="new-direct-chat">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="userSearch" 
+                                   placeholder="Tìm kiếm người dùng..." onkeyup="searchUsers(this.value)">
+                        </div>
+                        <div id="userList" class="list-group">
+                            <!-- User list will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- New Group Chat -->
+                    <div class="tab-pane fade" id="new-group-chat">
+                        <form id="newGroupForm" onsubmit="createGroup(event)">
+                            <div class="mb-3">
+                                <label for="groupName" class="form-label">Tên nhóm</label>
+                                <input type="text" class="form-control" id="groupName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="groupDescription" class="form-label">Mô tả</label>
+                                <textarea class="form-control" id="groupDescription" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Thêm thành viên</label>
+                                <input type="text" class="form-control mb-2" id="memberSearch" 
+                                       placeholder="Tìm kiếm người dùng..." onkeyup="searchMembers(this.value)">
+                                <div id="memberList" class="list-group mb-2">
+                                    <!-- Member list will be populated here -->
+                                </div>
+                                <div id="selectedMembers">
+                                    <!-- Selected members will appear here -->
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Tạo nhóm</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    height: calc(100vh - 120px);
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.chat-sidebar {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.chat-item {
+    padding: 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.chat-item:hover {
+    background-color: #f8f9fa;
+}
+
+.chat-item.active {
+    background-color: #e3f2fd;
+}
+
+.chat-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.online-indicator {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background-color: #28a745;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.chat-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 1rem;
+    clear: both;
+    animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Tin nhắn người nhận - căn trái */
+.message-received {
+    justify-content: flex-start;
+    padding-right: 20%;
+}
+
+/* Tin nhắn người gửi - căn phải */
+.message-sent {
+    justify-content: flex-end;
+    padding-left: 80%;
+    flex-direction: row-reverse;
+}
+
+/* Avatar styles */
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    object-fit: cover;
+    align-self: flex-end;
+}
+
+.message-received .message-avatar {
+    margin-right: 0.5rem;
+    order: 1;
+}
+
+.message-sent .message-avatar {
+    margin-left: 0.5rem;
+    order: 2;
+}
+
+.message-content {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    order: 2;
+}
+
+.message-sent .message-content {
+    align-items: flex-end;
+    order: 1;
+}
+
+.message-received .message-content {
+    align-items: flex-start;
+}
+
+.message-sender {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 0.25rem;
+    padding: 0 0.5rem;
+}
+
+.message-bubble {
+    padding: 0.5rem 0.75rem;
+    border-radius: 18px;
+    word-wrap: break-word;
+    line-height: 1.35;
+    width: fit-content;
+    max-width: 100%;
+    position: relative;
+    transition: transform 0.2s ease;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.message-bubble:hover {
+    transform: scale(1.02);
+}
+
+.message-received .message-bubble {
+    background-color: #f0f0f0;
+    color: #000;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.message-sent .message-bubble {
+    background: linear-gradient(135deg, #0084ff 0%, #00a3ff 100%);
+    color: white;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 132, 255, 0.3);
+}
+
+.message-bubble p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 0.25rem;
+    padding: 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.message-sent .message-time {
+    justify-content: flex-end;
+}
+
+.message-received .message-time {
+    justify-content: flex-start;
+}
+
+.message-time i {
+    font-size: 0.7rem;
+    margin-left: 0.15rem;
+}
+
+.message-sent .message-time i.fa-check-double {
+    color: #4fc3f7;
+}
+
+.message-sent .message-time i.fa-check {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.message-image img {
+    max-width: 200px;
+    margin-bottom: 0.5rem;
+}
+
+.message-file {
+    padding: 0.5rem;
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.typing-indicator {
+    margin-top: 0.5rem;
+}
+</style>
+
+<script src="/js/chat.js"></script>

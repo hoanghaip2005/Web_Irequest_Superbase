@@ -1,0 +1,282 @@
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="page-title">
+                <i class="fas fa-tags me-2"></i>
+                Quản lý Danh mục
+            </h2>
+            <p class="text-muted">Quản lý các loại yêu cầu, ưu tiên và trạng thái</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="fas fa-plus me-2"></i>Thêm danh mục
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#types-tab">
+                <i class="fas fa-list me-2"></i>Loại yêu cầu
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#priorities-tab">
+                <i class="fas fa-exclamation-circle me-2"></i>Mức ưu tiên
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#statuses-tab">
+                <i class="fas fa-flag me-2"></i>Trạng thái
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Request Types -->
+        <div class="tab-pane fade show active" id="types-tab">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tên loại</th>
+                                    <th>Mô tả</th>
+                                    <th>Màu sắc</th>
+                                    <th>Số lượng</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Yêu cầu IT</strong></td>
+                                    <td>Các vấn đề liên quan đến CNTT</td>
+                                    <td><span class="badge" style="background-color: #007bff">IT</span></td>
+                                    <td>245</td>
+                                    <td><span class="badge bg-success">Hoạt động</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Yêu cầu HR</strong></td>
+                                    <td>Các vấn đề nhân sự</td>
+                                    <td><span class="badge" style="background-color: #28a745">HR</span></td>
+                                    <td>128</td>
+                                    <td><span class="badge bg-success">Hoạt động</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Yêu cầu Tài chính</strong></td>
+                                    <td>Các vấn đề về kế toán, thanh toán</td>
+                                    <td><span class="badge" style="background-color: #ffc107">Finance</span></td>
+                                    <td>89</td>
+                                    <td><span class="badge bg-success">Hoạt động</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priorities -->
+        <div class="tab-pane fade" id="priorities-tab">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mức độ</th>
+                                    <th>Mô tả</th>
+                                    <th>Thời gian xử lý</th>
+                                    <th>Màu sắc</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-danger">Khẩn cấp</span></td>
+                                    <td>Cần xử lý ngay lập tức</td>
+                                    <td>1 giờ</td>
+                                    <td><span class="badge bg-danger">●</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-warning">Cao</span></td>
+                                    <td>Ưu tiên xử lý trong ngày</td>
+                                    <td>4 giờ</td>
+                                    <td><span class="badge bg-warning">●</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-info">Trung bình</span></td>
+                                    <td>Xử lý trong 2-3 ngày</td>
+                                    <td>2 ngày</td>
+                                    <td><span class="badge bg-info">●</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-secondary">Thấp</span></td>
+                                    <td>Có thể xử lý sau</td>
+                                    <td>1 tuần</td>
+                                    <td><span class="badge bg-secondary">●</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statuses -->
+        <div class="tab-pane fade" id="statuses-tab">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Trạng thái</th>
+                                    <th>Mô tả</th>
+                                    <th>Màu sắc</th>
+                                    <th>Loại</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-primary">Mới</span></td>
+                                    <td>Yêu cầu mới chưa xử lý</td>
+                                    <td><span class="badge bg-primary">●</span></td>
+                                    <td>Initial</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-info">Đang xử lý</span></td>
+                                    <td>Đang được xử lý</td>
+                                    <td><span class="badge bg-info">●</span></td>
+                                    <td>Processing</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-success">Hoàn thành</span></td>
+                                    <td>Đã hoàn thành</td>
+                                    <td><span class="badge bg-success">●</span></td>
+                                    <td>Final</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-danger">Từ chối</span></td>
+                                    <td>Yêu cầu bị từ chối</td>
+                                    <td><span class="badge bg-danger">●</span></td>
+                                    <td>Final</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm danh mục mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm">
+                    <div class="mb-3">
+                        <label class="form-label">Loại danh mục</label>
+                        <select class="form-select" name="categoryType" required>
+                            <option value="">-- Chọn loại --</option>
+                            <option value="type">Loại yêu cầu</option>
+                            <option value="priority">Mức ưu tiên</option>
+                            <option value="status">Trạng thái</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Màu sắc</label>
+                        <input type="color" class="form-control" name="color" value="#007bff">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary">Thêm</button>
+            </div>
+        </div>
+    </div>
+</div>

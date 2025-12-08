@@ -1,0 +1,483 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Quản lý bước Workflow: {{workflow.WorkflowName}}</h1>
+        <p class="page-subtitle">{{workflow.Description}}</p>
+    </div>
+    <div class="content-actions">
+        <a href="/workflows" class="btn btn-secondary me-2">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStepModal">
+            <i class="fas fa-plus me-2"></i>Thêm bước
+        </button>
+    </div>
+</div>
+
+{{#if success}}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{{/if}}
+
+{{#if error}}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{{/if}}
+
+<!-- Workflow Steps Visualization -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-sitemap me-2"></i>Sơ đồ quy trình
+        </h5>
+    </div>
+    <div class="card-body">
+        {{#if steps}}
+        <div class="workflow-diagram">
+            {{#each steps}}
+            <div class="workflow-step-card" data-step-id="{{StepID}}">
+                <div class="step-number">Bước {{StepOrder}}</div>
+                <div class="step-content">
+                    <h6 class="mb-1">{{StepName}}</h6>
+                    <small class="text-muted">{{StepDescription}}</small>
+                    <div class="mt-2">
+                        {{#if AssignedRoleName}}
+                        <span class="badge bg-primary me-1">
+                            <i class="fas fa-user-tag me-1"></i>{{AssignedRoleName}}
+                        </span>
+                        {{/if}}
+                        {{#if RequiresApproval}}
+                        <span class="badge bg-warning">
+                            <i class="fas fa-check-double me-1"></i>Cần phê duyệt
+                        </span>
+                        {{/if}}
+                    </div>
+                </div>
+                <div class="step-actions">
+                    <button class="btn btn-sm btn-outline-primary" onclick="editStep({{json this}})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteStep({{StepID}}, '{{StepName}}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                {{#unless @last}}
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                {{/unless}}
+            </div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="text-center py-5">
+            <i class="fas fa-list-ol fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Chưa có bước nào</h5>
+            <p class="text-muted">Thêm các bước để định nghĩa quy trình xử lý yêu cầu</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStepModal">
+                <i class="fas fa-plus me-2"></i>Thêm bước đầu tiên
+            </button>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<!-- Steps Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>
+            Danh sách bước ({{length steps}} bước)
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {{#if steps}}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">Thứ tự</th>
+                        <th>Tên bước</th>
+                        <th style="width: 150px;">Vai trò xử lý</th>
+                        <th style="width: 120px;">Thời gian (giờ)</th>
+                        <th style="width: 120px;">Phê duyệt</th>
+                        <th style="width: 120px;">Tự động</th>
+                        <th style="width: 150px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="stepsTableBody">
+                    {{#each steps}}
+                    <tr data-step-id="{{StepID}}">
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary" onclick="moveStepUp({{StepID}})" 
+                                        {{#ifEquals StepOrder 1}}disabled{{/ifEquals}}>
+                                    <i class="fas fa-arrow-up"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="moveStepDown({{StepID}})" 
+                                        {{#ifEquals StepOrder ../steps.length}}disabled{{/ifEquals}}>
+                                    <i class="fas fa-arrow-down"></i>
+                                </button>
+                            </div>
+                            <span class="ms-2 fw-bold">{{StepOrder}}</span>
+                        </td>
+                        <td>
+                            <div>
+                                <h6 class="mb-0">{{StepName}}</h6>
+                                <small class="text-muted">{{StepDescription}}</small>
+                            </div>
+                        </td>
+                        <td>
+                            {{#if AssignedRoleName}}
+                            <span class="badge bg-primary">{{AssignedRoleName}}</span>
+                            {{else}}
+                            <span class="text-muted">Chưa gán</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            {{#if ExpectedDuration}}
+                            {{ExpectedDuration}} giờ
+                            {{else}}
+                            <span class="text-muted">--</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            {{#if RequiresApproval}}
+                            <span class="badge bg-warning">Có</span>
+                            {{else}}
+                            <span class="badge bg-secondary">Không</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            {{#if IsAutomatic}}
+                            <span class="badge bg-success">Có</span>
+                            {{else}}
+                            <span class="badge bg-secondary">Không</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        onclick="editStep({{json this}})" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteStep({{StepID}}, '{{StepName}}')" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<!-- Add Step Modal -->
+<div class="modal fade" id="addStepModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm bước mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/workflows/{{workflow.WorkflowID}}/steps/create" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="stepName" class="form-label">Tên bước <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="stepName" name="stepName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stepDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="stepDescription" name="stepDescription" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="stepOrder" class="form-label">Thứ tự <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="stepOrder" name="stepOrder" 
+                                   value="{{add steps.length 1}}" min="1" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="expectedDuration" class="form-label">Thời gian dự kiến (giờ)</label>
+                            <input type="number" class="form-control" id="expectedDuration" name="expectedDuration" 
+                                   min="0" step="0.5">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignedRoleId" class="form-label">Vai trò xử lý</label>
+                        <select class="form-select" id="assignedRoleId" name="assignedRoleId">
+                            <option value="">-- Chọn vai trò --</option>
+                            {{#each roles}}
+                            <option value="{{Id}}">{{Name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statusId" class="form-label">Trạng thái sau khi hoàn thành</label>
+                        <select class="form-select" id="statusId" name="statusId">
+                            <option value="">-- Chọn trạng thái --</option>
+                            {{#each statuses}}
+                            <option value="{{StatusID}}">{{StatusName}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="requiresApproval" name="requiresApproval">
+                        <label class="form-check-label" for="requiresApproval">
+                            Yêu cầu phê duyệt
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="isAutomatic" name="isAutomatic">
+                        <label class="form-check-label" for="isAutomatic">
+                            Tự động thực hiện
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="canSkip" name="canSkip">
+                        <label class="form-check-label" for="canSkip">
+                            Cho phép bỏ qua
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Thêm bước
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Step Modal -->
+<div class="modal fade" id="editStepModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chỉnh sửa bước</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/workflows/{{workflow.WorkflowID}}/steps/update" method="POST">
+                <input type="hidden" id="editStepId" name="stepId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editStepName" class="form-label">Tên bước <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editStepName" name="stepName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStepDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="editStepDescription" name="stepDescription" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editStepOrder" class="form-label">Thứ tự <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="editStepOrder" name="stepOrder" min="1" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editExpectedDuration" class="form-label">Thời gian dự kiến (giờ)</label>
+                            <input type="number" class="form-control" id="editExpectedDuration" name="expectedDuration" 
+                                   min="0" step="0.5">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editAssignedRoleId" class="form-label">Vai trò xử lý</label>
+                        <select class="form-select" id="editAssignedRoleId" name="assignedRoleId">
+                            <option value="">-- Chọn vai trò --</option>
+                            {{#each roles}}
+                            <option value="{{Id}}">{{Name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStatusId" class="form-label">Trạng thái sau khi hoàn thành</label>
+                        <select class="form-select" id="editStatusId" name="statusId">
+                            <option value="">-- Chọn trạng thái --</option>
+                            {{#each statuses}}
+                            <option value="{{StatusID}}">{{StatusName}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="editRequiresApproval" name="requiresApproval">
+                        <label class="form-check-label" for="editRequiresApproval">
+                            Yêu cầu phê duyệt
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="editIsAutomatic" name="isAutomatic">
+                        <label class="form-check-label" for="editIsAutomatic">
+                            Tự động thực hiện
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="editCanSkip" name="canSkip">
+                        <label class="form-check-label" for="editCanSkip">
+                            Cho phép bỏ qua
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Cập nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.workflow-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+}
+
+.workflow-step-card {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.step-number {
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.875rem;
+}
+
+.step-content h6 {
+    color: #333;
+    margin-top: 0.5rem;
+}
+
+.step-actions {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.step-arrow {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.5rem;
+    color: #667eea;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.table td {
+    vertical-align: middle;
+}
+</style>
+
+<script>
+function editStep(step) {
+    document.getElementById('editStepId').value = step.StepID;
+    document.getElementById('editStepName').value = step.StepName;
+    document.getElementById('editStepDescription').value = step.StepDescription || '';
+    document.getElementById('editStepOrder').value = step.StepOrder;
+    document.getElementById('editExpectedDuration').value = step.ExpectedDuration || '';
+    document.getElementById('editAssignedRoleId').value = step.AssignedRoleId || '';
+    document.getElementById('editStatusId').value = step.StatusId || '';
+    document.getElementById('editRequiresApproval').checked = step.RequiresApproval || false;
+    document.getElementById('editIsAutomatic').checked = step.IsAutomatic || false;
+    document.getElementById('editCanSkip').checked = step.CanSkip || false;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editStepModal'));
+    modal.show();
+}
+
+function deleteStep(id, name) {
+    if (confirm(`Bạn có chắc chắn muốn xóa bước "${name}"?`)) {
+        fetch(`/workflows/steps/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Có lỗi xảy ra khi xóa bước');
+        });
+    }
+}
+
+function moveStepUp(stepId) {
+    fetch(`/workflows/steps/${stepId}/move-up`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Có lỗi xảy ra');
+    });
+}
+
+function moveStepDown(stepId) {
+    fetch(`/workflows/steps/${stepId}/move-down`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Có lỗi xảy ra');
+    });
+}
+</script>

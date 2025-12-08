@@ -1,0 +1,272 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Tất cả yêu cầu</h1>
+        <p class="page-subtitle">Quản lý và theo dõi tất cả yêu cầu trong hệ thống</p>
+    </div>
+    <div class="content-actions">
+        <a href="/requests/create" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/requests" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Tìm kiếm</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{filters.search}}" placeholder="Nhập tiêu đề hoặc mô tả...">
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Trạng thái</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    {{#each statuses}}
+                    <option value="{{StatusID}}" {{#ifEquals StatusID ../filters.status}}selected{{/ifEquals}}>
+                        {{StatusName}}
+                    </option>
+                    {{/each}}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="priority" class="form-label">Độ ưu tiên</label>
+                <select class="form-select" id="priority" name="priority">
+                    <option value="">Tất cả độ ưu tiên</option>
+                    {{#each priorities}}
+                    <option value="{{PriorityID}}" {{#ifEquals PriorityID ../filters.priority}}selected{{/ifEquals}}>
+                        {{PriorityName}}
+                    </option>
+                    {{/each}}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-search me-2"></i>Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Requests Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-clipboard-list me-2"></i>
+            Danh sách yêu cầu ({{pagination.totalRecords}} kết quả)
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {{#if requests.length}}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Tiêu đề</th>
+                        <th style="width: 150px;">Người tạo</th>
+                        <th style="width: 120px;">Trạng thái</th>
+                        <th style="width: 120px;">Độ ưu tiên</th>
+                        <th style="width: 150px;">Ngày tạo</th>
+                        <th style="width: 100px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each requests}}
+                    <tr>
+                        <td>
+                            <span class="badge bg-secondary">#{{RequestID}}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {{#if AttachmentURL}}
+                                <i class="fas fa-paperclip text-muted me-2" title="Có đính kèm"></i>
+                                {{/if}}
+                                <div>
+                                    <h6 class="mb-0">{{Title}}</h6>
+                                    <small class="text-muted">{{substring Description 0 60}}...</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                    {{substring CreatedByUser 0 1}}
+                                </div>
+                                <div>
+                                    <div class="fw-medium">{{CreatedByUser}}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {{#if IsStatusFinal}}bg-success{{else}}bg-warning{{/if}}">
+                                {{StatusName}}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge" style="background-color: {{PriorityColor}};">
+                                {{PriorityName}}
+                            </span>
+                        </td>
+                        <td>
+                            <small>{{formatDate CreatedAt}}</small>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                        data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/requests/{{RequestID}}">
+                                        <i class="fas fa-eye me-2"></i>Xem chi tiết
+                                    </a></li>
+                                    {{#ifEquals ../user.id UsersId}}
+                                    <li><a class="dropdown-item" href="/requests/{{RequestID}}/edit">
+                                        <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                                    </a></li>
+                                    {{/ifEquals}}
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {{#if pagination.total}}
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+            <div class="text-muted">
+                Hiển thị {{#multiply pagination.current pagination.limit}}{{/multiply}} - 
+                {{#if pagination.totalRecords}}{{pagination.totalRecords}}{{else}}0{{/if}} 
+                của {{pagination.totalRecords}} kết quả
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item {{#ifEquals pagination.current 1}}disabled{{/ifEquals}}">
+                        <a class="page-link" href="?page={{#subtract pagination.current 1}}{{/subtract}}{{#if filters.search}}&search={{filters.search}}{{/if}}{{#if filters.status}}&status={{filters.status}}{{/if}}{{#if filters.priority}}&priority={{filters.priority}}{{/if}}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    {{#for 1 pagination.total}}
+                    <li class="page-item {{#ifEquals this ../pagination.current}}active{{/ifEquals}}">
+                        <a class="page-link" href="?page={{this}}{{#if ../filters.search}}&search={{../filters.search}}{{/if}}{{#if ../filters.status}}&status={{../filters.status}}{{/if}}{{#if ../filters.priority}}&priority={{../filters.priority}}{{/if}}">
+                            {{this}}
+                        </a>
+                    </li>
+                    {{/for}}
+                    
+                    <li class="page-item {{#ifEquals pagination.current pagination.total}}disabled{{/ifEquals}}">
+                        <a class="page-link" href="?page={{#add pagination.current 1}}{{/add}}{{#if filters.search}}&search={{filters.search}}{{/if}}{{#if filters.status}}&status={{filters.status}}{{/if}}{{#if filters.priority}}&priority={{filters.priority}}{{/if}}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {{/if}}
+        {{else}}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Không có yêu cầu nào</h5>
+            <p class="text-muted">{{#if filters.search}}Không tìm thấy yêu cầu phù hợp với từ khóa "{{filters.search}}"{{else}}Chưa có yêu cầu nào trong hệ thống{{/if}}</p>
+            <a href="/requests/create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Tạo yêu cầu đầu tiên
+            </a>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(79, 70, 229, 0.02);
+}
+
+.badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+.pagination-sm .page-link {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.page-link {
+    color: var(--primary-color);
+    border-color: var(--border-color);
+}
+
+.page-link:hover {
+    color: var(--primary-dark);
+    background-color: var(--light-color);
+    border-color: var(--border-color);
+}
+
+.page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto submit form when filter changes
+    const statusSelect = document.getElementById('status');
+    const prioritySelect = document.getElementById('priority');
+    
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            this.form.submit();
+        });
+    }
+    
+    if (prioritySelect) {
+        prioritySelect.addEventListener('change', function() {
+            this.form.submit();
+        });
+    }
+    
+    // Search form submit on Enter
+    const searchInput = document.getElementById('search');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.form.submit();
+            }
+        });
+    }
+});
+</script>

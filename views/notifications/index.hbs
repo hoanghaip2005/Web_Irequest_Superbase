@@ -1,0 +1,423 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Thông báo</h1>
+        <p class="page-subtitle">Theo dõi các thông báo và cập nhật quan trọng</p>
+    </div>
+    <div class="content-actions">
+        <button type="button" class="btn btn-outline-primary" onclick="markAllAsRead()">
+            <i class="fas fa-check-double me-2"></i>Đánh dấu tất cả đã đọc
+        </button>
+        <button type="button" class="btn btn-outline-secondary" onclick="clearReadNotifications()">
+            <i class="fas fa-trash me-2"></i>Xóa đã đọc
+        </button>
+    </div>
+</div>
+
+<!-- Notification Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Tổng thông báo</div>
+                        <div class="fs-5 fw-bold text-primary">{{stats.total}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-warning bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Chưa đọc</div>
+                        <div class="fs-5 fw-bold text-warning">{{stats.unread}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Đã đọc</div>
+                        <div class="fs-5 fw-bold text-success">{{stats.read}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="type" class="form-label">Loại thông báo</label>
+                <select class="form-select" id="type" name="type" onchange="filterNotifications()">
+                    <option value="">Tất cả</option>
+                    <option value="request_created" {{#ifEquals filters.type 'request_created'}}selected{{/ifEquals}}>Yêu cầu mới</option>
+                    <option value="request_assigned" {{#ifEquals filters.type 'request_assigned'}}selected{{/ifEquals}}>Được giao việc</option>
+                    <option value="request_updated" {{#ifEquals filters.type 'request_updated'}}selected{{/ifEquals}}>Cập nhật yêu cầu</option>
+                    <option value="request_completed" {{#ifEquals filters.type 'request_completed'}}selected{{/ifEquals}}>Hoàn thành</option>
+                    <option value="comment_added" {{#ifEquals filters.type 'comment_added'}}selected{{/ifEquals}}>Bình luận mới</option>
+                    <option value="system" {{#ifEquals filters.type 'system'}}selected{{/ifEquals}}>Hệ thống</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Trạng thái</label>
+                <select class="form-select" id="status" name="status" onchange="filterNotifications()">
+                    <option value="">Tất cả</option>
+                    <option value="unread" {{#ifEquals filters.status 'unread'}}selected{{/ifEquals}}>Chưa đọc</option>
+                    <option value="read" {{#ifEquals filters.status 'read'}}selected{{/ifEquals}}>Đã đọc</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="dateRange" class="form-label">Thời gian</label>
+                <select class="form-select" id="dateRange" name="dateRange" onchange="filterNotifications()">
+                    <option value="">Tất cả thời gian</option>
+                    <option value="today" {{#ifEquals filters.dateRange 'today'}}selected{{/ifEquals}}>Hôm nay</option>
+                    <option value="yesterday" {{#ifEquals filters.dateRange 'yesterday'}}selected{{/ifEquals}}>Hôm qua</option>
+                    <option value="week" {{#ifEquals filters.dateRange 'week'}}selected{{/ifEquals}}>Tuần này</option>
+                    <option value="month" {{#ifEquals filters.dateRange 'month'}}selected{{/ifEquals}}>Tháng này</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="button" class="btn btn-outline-primary w-100" onclick="resetFilters()">
+                    <i class="fas fa-redo me-2"></i>Đặt lại
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>Danh sách thông báo
+        </h5>
+        <small class="text-muted">{{notifications.length}} thông báo</small>
+    </div>
+    <div class="card-body p-0">
+        {{#if notifications.length}}
+        <div class="list-group list-group-flush">
+            {{#each notifications}}
+            <div class="list-group-item list-group-item-action {{#unless IsRead}}list-group-item-warning{{/unless}}" 
+                 onclick="markAsRead('{{Id}}')" style="cursor: pointer;">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                            <!-- Notification Type Icon -->
+                            <div class="me-3">
+                                {{#ifEquals Type 'request_created'}}
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-plus fa-sm"></i>
+                                </div>
+                                {{else}}{{#ifEquals Type 'request_assigned'}}
+                                <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-user-tag fa-sm"></i>
+                                </div>
+                                {{else}}{{#ifEquals Type 'request_updated'}}
+                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-edit fa-sm"></i>
+                                </div>
+                                {{else}}{{#ifEquals Type 'request_completed'}}
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-check fa-sm"></i>
+                                </div>
+                                {{else}}{{#ifEquals Type 'comment_added'}}
+                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-comment fa-sm"></i>
+                                </div>
+                                {{else}}
+                                <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-cog fa-sm"></i>
+                                </div>
+                                {{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}
+                            </div>
+                            
+                            <!-- Notification Content -->
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 {{#unless IsRead}}fw-bold{{/unless}}">{{Title}}</h6>
+                                <p class="mb-2 text-muted">{{Message}}</p>
+                                
+                                <!-- Request Info (if applicable) -->
+                                {{#if RequestID}}
+                                <div class="d-flex align-items-center gap-3 small text-muted">
+                                    <span><i class="fas fa-hashtag me-1"></i>{{RequestID}}</span>
+                                    {{#if RequestTitle}}
+                                    <span><i class="fas fa-file-alt me-1"></i>{{RequestTitle}}</span>
+                                    {{/if}}
+                                </div>
+                                {{/if}}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notification Meta -->
+                    <div class="text-end">
+                        <small class="text-muted d-block">{{formatDateTime CreatedAt}}</small>
+                        <div class="mt-1">
+                            {{#unless IsRead}}
+                            <span class="badge bg-warning">Chưa đọc</span>
+                            {{/unless}}
+
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    {{#if RequestId}}
+                    <a href="/requests/{{RequestId}}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>Xem yêu cầu
+                    </a>
+                    {{/if}}
+                    {{#unless IsRead}}
+                    <button type="button" class="btn btn-sm btn-outline-success" 
+                            onclick="event.stopPropagation(); markAsRead('{{Id}}')">
+                        <i class="fas fa-check me-1"></i>Đánh dấu đã đọc
+                    </button>
+                    {{/unless}}
+                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                            onclick="event.stopPropagation(); deleteNotification('{{Id}}')">
+                        <i class="fas fa-trash me-1"></i>Xóa
+                    </button>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        
+        <!-- Pagination -->
+        {{#if pagination.totalPages}}
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+            <small class="text-muted">
+                Hiển thị {{pagination.startRecord}} - {{pagination.endRecord}} 
+                trong tổng số {{pagination.totalRecords}} thông báo
+            </small>
+            
+            {{#if pagination.showPagination}}
+            <nav aria-label="Pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    {{#if pagination.hasPrevious}}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{pagination.previousPage}}{{#if filters.type}}&type={{filters.type}}{{/if}}{{#if filters.status}}&status={{filters.status}}{{/if}}{{#if filters.dateRange}}&dateRange={{filters.dateRange}}{{/if}}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {{/if}}
+                    
+                    {{#each pagination.pages}}
+                    <li class="page-item {{#if active}}active{{/if}}">
+                        <a class="page-link" href="?page={{number}}{{#if ../filters.type}}&type={{../filters.type}}{{/if}}{{#if ../filters.status}}&status={{../filters.status}}{{/if}}{{#if ../filters.dateRange}}&dateRange={{../filters.dateRange}}{{/if}}">
+                            {{number}}
+                        </a>
+                    </li>
+                    {{/each}}
+                    
+                    {{#if pagination.hasNext}}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{pagination.nextPage}}{{#if filters.type}}&type={{filters.type}}{{/if}}{{#if filters.status}}&status={{filters.status}}{{/if}}{{#if filters.dateRange}}&dateRange={{filters.dateRange}}{{/if}}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {{/if}}
+                </ul>
+            </nav>
+            {{/if}}
+        </div>
+        {{/if}}
+        
+        {{else}}
+        <div class="text-center py-5">
+            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Không có thông báo nào</h5>
+            <p class="text-muted">Bạn đã xem hết tất cả thông báo hoặc chưa có thông báo mới.</p>
+            <button type="button" class="btn btn-outline-primary" onclick="location.reload()">
+                <i class="fas fa-sync-alt me-2"></i>Làm mới
+            </button>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<script>
+// Mark notification as read
+async function markAsRead(notificationId) {
+    try {
+        const response = await fetch(`/api/notifications/${notificationId}/read`, {
+            method: 'PUT'
+        });
+        
+        if (response.ok) {
+            // Update UI without full reload
+            const notificationElement = document.querySelector(`[onclick*="${notificationId}"]`);
+            if (notificationElement) {
+                notificationElement.classList.remove('list-group-item-warning');
+                const badge = notificationElement.querySelector('.badge.bg-warning');
+                if (badge) badge.remove();
+            }
+            
+            // Update unread count in header
+            updateUnreadCount();
+        }
+    } catch (error) {
+        console.error('Error marking notification as read:', error);
+    }
+}
+
+// Delete notification
+async function deleteNotification(notificationId) {
+    if (!confirm('Bạn có chắc muốn xóa thông báo này?')) return;
+    
+    try {
+        const response = await fetch(`/api/notifications/${notificationId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            showAlert('Không thể xóa thông báo!', 'danger');
+        }
+    } catch (error) {
+        console.error('Error deleting notification:', error);
+        showAlert('Có lỗi xảy ra!', 'danger');
+    }
+}
+
+// Mark all notifications as read
+async function markAllAsRead() {
+    try {
+        const response = await fetch('/api/notifications/mark-all-read', {
+            method: 'PUT'
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            showAlert('Không thể đánh dấu tất cả thông báo!', 'danger');
+        }
+    } catch (error) {
+        console.error('Error marking all as read:', error);
+        showAlert('Có lỗi xảy ra!', 'danger');
+    }
+}
+
+// Clear read notifications
+async function clearReadNotifications() {
+    if (!confirm('Bạn có chắc muốn xóa tất cả thông báo đã đọc?')) return;
+    
+    try {
+        const response = await fetch('/api/notifications/clear-read', {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            showAlert('Không thể xóa thông báo!', 'danger');
+        }
+    } catch (error) {
+        console.error('Error clearing notifications:', error);
+        showAlert('Có lỗi xảy ra!', 'danger');
+    }
+}
+
+// Filter notifications
+function filterNotifications() {
+    const type = document.getElementById('type').value;
+    const status = document.getElementById('status').value;
+    const dateRange = document.getElementById('dateRange').value;
+    
+    const params = new URLSearchParams();
+    if (type) params.set('type', type);
+    if (status) params.set('status', status);
+    if (dateRange) params.set('dateRange', dateRange);
+    
+    window.location.search = params.toString();
+}
+
+// Reset filters
+function resetFilters() {
+    window.location.href = window.location.pathname;
+}
+
+// Update unread count in navigation
+function updateUnreadCount() {
+    fetch('/api/notifications/unread-count')
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.querySelector('.notification-badge');
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.error('Error updating unread count:', error));
+}
+
+// Auto refresh notifications every 2 minutes
+setInterval(() => {
+    updateUnreadCount();
+}, 120000);
+
+// Real-time notifications using Server-Sent Events (if available)
+if (typeof EventSource !== 'undefined') {
+    const eventSource = new EventSource('/api/notifications/stream');
+    
+    eventSource.onmessage = function(event) {
+        const notification = JSON.parse(event.data);
+        
+        // Show desktop notification if permission granted
+        if (Notification.permission === 'granted') {
+            new Notification(notification.title, {
+                body: notification.message,
+                icon: '/favicon.ico'
+            });
+        }
+        
+        // Update unread count
+        updateUnreadCount();
+        
+        // Optionally reload the page to show new notification
+        if (window.location.pathname === '/notifications') {
+            setTimeout(() => location.reload(), 2000);
+        }
+    };
+    
+    eventSource.onerror = function(event) {
+        console.error('EventSource failed:', event);
+    };
+}
+
+// Request notification permission on page load
+if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+}
+</script>

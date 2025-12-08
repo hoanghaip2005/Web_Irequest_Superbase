@@ -1,0 +1,531 @@
+/* Custom styles for iRequest application */
+
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+}
+
+/* General Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Request Processing Styles */
+.priority-badge {
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+.priority-badge.priority-Khẩn\ cấp,
+.priority-badge.priority-urgent {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+.priority-badge.priority-Cao,
+.priority-badge.priority-high {
+  background-color: #fd7e14 !important;
+  color: white !important;
+}
+
+.priority-badge.priority-Trung\ bình,
+.priority-badge.priority-medium {
+  background-color: #ffc107 !important;
+  color: #000 !important;
+}
+
+.priority-badge.priority-Thấp,
+.priority-badge.priority-low {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+.status-badge {
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+.status-badge.status-Mới {
+  background-color: #6f42c1 !important;
+  color: white !important;
+}
+
+.status-badge.status-Đang\ xử\ lý {
+  background-color: #17a2b8 !important;
+  color: white !important;
+}
+
+.status-badge.status-Hoàn\ thành {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+.status-badge.status-Từ\ chối {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+.status-badge.status-Tạm\ hoãn {
+  background-color: #ffc107 !important;
+  color: #000 !important;
+}
+
+/* Avatar Circle */
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  background-color: #6c757d;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.avatar-circle.bg-success {
+  background-color: #28a745 !important;
+}
+
+/* Timeline Styles */
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -35px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.timeline-item:before {
+  content: '';
+  position: absolute;
+  left: -31px;
+  top: 15px;
+  width: 2px;
+  height: calc(100% + 10px);
+  background-color: #e9ecef;
+}
+
+.timeline-item:last-child:before {
+  display: none;
+}
+
+/* Workflow Step Number */
+.workflow-step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+/* Content Header */
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.page-title {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.page-subtitle {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 0;
+}
+
+/* Card Enhancements */
+.card {
+  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* Table Responsive */
+.table-responsive {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Button Group */
+.btn-group .btn {
+  border-radius: 0.375rem !important;
+  margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+/* Request Description */
+.request-description {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Comment Styles */
+.comment-item {
+  padding: 10px 0;
+}
+
+.comment-content {
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border-left: 3px solid #007bff;
+}
+
+.comment-header {
+  margin-bottom: 0.5rem;
+}
+
+/* Add Comment Form */
+.add-comment {
+  border-top: 1px solid #e9ecef;
+  padding-top: 1rem;
+}
+
+/* Statistics Cards Animation */
+.stats-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Filter Form */
+.filter-form .form-control,
+.filter-form .form-select {
+  border-radius: 0.375rem;
+}
+
+/* Action Buttons */
+.action-buttons .btn {
+  margin-right: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Status Select Dropdown */
+.status-select {
+  min-width: 120px;
+}
+
+/* Notification Toast */
+.notification-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  min-width: 300px;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .btn-group {
+    flex-wrap: wrap;
+  }
+
+  .table-responsive {
+    font-size: 14px;
+  }
+
+  .avatar-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
+
+/* Button enhancements */
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Loading spinner */
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.spinner-border-lg {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Custom form styles */
+.form-floating > label {
+  color: #6c757d;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Status badges */
+.status-badge {
+  font-size: 0.75em;
+  padding: 0.35em 0.65em;
+  font-weight: 500;
+  border-radius: 0.375rem;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+.status-in-progress {
+  background-color: #cce7ff;
+  color: #004085;
+}
+.status-completed {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Priority indicators */
+.priority-low {
+  border-left: 4px solid #28a745;
+}
+.priority-medium {
+  border-left: 4px solid #ffc107;
+}
+.priority-high {
+  border-left: 4px solid #fd7e14;
+}
+.priority-critical {
+  border-left: 4px solid #dc3545;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .mobile-center {
+    text-align: center;
+  }
+
+  .mobile-full-width {
+    width: 100% !important;
+  }
+
+  .mobile-hide {
+    display: none !important;
+  }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1a1a1a;
+    color: #e4e4e4;
+  }
+
+  .card {
+    background-color: #2d2d2d;
+    border-color: #444;
+  }
+
+  .form-control {
+    background-color: #2d2d2d;
+    border-color: #444;
+    color: #e4e4e4;
+  }
+}
+
+/* Utility classes */
+.text-break-word {
+  word-break: break-word;
+}
+
+.min-height-50 {
+  min-height: 50vh;
+}
+
+.min-height-75 {
+  min-height: 75vh;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.user-select-none {
+  user-select: none;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .card {
+    border: 1px solid #000 !important;
+  }
+
+  .btn {
+    border: 1px solid #000 !important;
+    background: transparent !important;
+    color: #000 !important;
+  }
+}

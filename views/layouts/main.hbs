@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{#if title}}{{title}} - {{/if}}iRequest</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-dark: #0056b3;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+            --border-color: #e2e8f0;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 15px rgba(79, 70, 229, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+        }
+
+        .sidebar-header .logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .sidebar-header .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+            height: calc(100vh - var(--header-height));
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-radius: 0;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-right: 4px solid white;
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 15px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .nav-text {
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        .nav-section-header {
+            padding: 12px 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .sidebar.collapsed .nav-section-header {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+        }
+
+        /* Submenu Styles */
+        .nav-submenu {
+            list-style: none;
+            padding-left: 0;
+            background: rgba(0, 0, 0, 0.1);
+            margin: 0;
+        }
+
+        .nav-submenu li {
+            margin: 0;
+        }
+
+        .nav-submenu .nav-link {
+            padding: 10px 20px 10px 55px;
+            font-size: 14px;
+        }
+
+        .nav-submenu .nav-link i {
+            font-size: 14px;
+            width: 16px;
+            margin-right: 10px;
+        }
+
+        .collapse-icon {
+            margin-left: auto;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link[aria-expanded="true"] .collapse-icon {
+            transform: rotate(180deg);
+        }
+
+        .sidebar.collapsed .nav-submenu {
+            display: none !important;
+        }
+
+        .sidebar.collapsed .collapse-icon {
+            display: none;
+        }
+
+        /* Header Styles */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 999;
+            transition: left 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar.collapsed + .main-header {
+            left: 80px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-right: 20px;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--light-color);
+            color: var(--primary-color);
+        }
+
+        .breadcrumb {
+            background: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .breadcrumb-item {
+            font-size: 14px;
+        }
+
+        .breadcrumb-item.active {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 15px 8px 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            background: var(--light-color);
+            font-size: 14px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary-color);
+        }
+
+        .notification-icon {
+            position: relative;
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--secondary-color);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .notification-icon:hover {
+            background: var(--light-color);
+            color: var(--primary-color);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-dropdown {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--secondary-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 30px;
+            min-height: calc(100vh - var(--header-height));
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.collapsed + .main-header + .main-content {
+            margin-left: 80px;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .page-subtitle {
+            color: var(--secondary-color);
+            margin-top: 5px;
+        }
+
+        .content-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 12px 12px 0 0 !important;
+            padding: 20px 25px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Status Badge Styles */
+        .status-badge {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-in-progress {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .status-completed {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Priority Badge Styles */
+        .priority-low {
+            color: #28a745;
+        }
+
+        .priority-normal {
+            color: #007bff;
+        }
+
+        .priority-high {
+            color: #ffc107;
+        }
+
+        .priority-urgent {
+            color: #dc3545;
+        }
+
+        /* Form Styles */
+        .form-floating {
+            position: relative;
+        }
+
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label {
+            opacity: 0.65;
+            transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+        }
+
+        /* Table Styles */
+        .table th {
+            background-color: var(--light-color);
+            border-bottom: 2px solid var(--border-color);
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        /* Button Styles */
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-header {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px 15px;
+            }
+
+            .search-box {
+                width: 200px;
+            }
+
+            .user-info {
+                display: none;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+    </style>
+</head>
+
+<body>
+    {{#if user}}
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">iR</div>
+            <div class="logo-text">iRequest</div>
+        </div>
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'dashboard'}}active{{/ifEquals}}" href="/dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="nav-text">Tổng quan</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'requests'}}active{{/ifEquals}}" href="/requests">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span class="nav-text">Yêu cầu</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'my-requests'}}active{{/ifEquals}}" href="/requests/my">
+                        <i class="fas fa-user-check"></i>
+                        <span class="nav-text">Yêu cầu của tôi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'assigned'}}active{{/ifEquals}}" href="/requests/assigned">
+                        <i class="fas fa-tasks"></i>
+                        <span class="nav-text">Được giao</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'notifications'}}active{{/ifEquals}}" href="/notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="nav-text">Thông báo</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'chat'}}active{{/ifEquals}}" href="/chat">
+                        <i class="fas fa-comments"></i>
+                        <span class="nav-text">Tin nhắn</span>
+                    </a>
+                </li>
+                
+                <!-- Reports Section -->
+                <li class="nav-item mt-3">
+                    <div class="nav-section-header">
+                        <span class="nav-text">BÁO CÁO</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'analytics'}}active{{/ifEquals}}" href="/analytics">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="nav-text">Thống kê</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'reports'}}active{{/ifEquals}}" href="/reports">
+                        <i class="fas fa-file-chart-line"></i>
+                        <span class="nav-text">Báo cáo</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'activity-log'}}active{{/ifEquals}}" href="/activity-log">
+                        <i class="fas fa-history"></i>
+                        <span class="nav-text">Lịch sử hoạt động</span>
+                    </a>
+                </li>
+                
+                <!-- Admin Section -->
+                {{#if user.isAdmin}}
+                <li class="nav-item mt-3">
+                    <div class="nav-section-header">
+                        <span class="nav-text">QUẢN TRỊ</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'users'}}active{{/ifEquals}}" href="/users">
+                        <i class="fas fa-user-cog"></i>
+                        <span class="nav-text">Quản lý người dùng</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'employees'}}active{{/ifEquals}}" href="/employees">
+                        <i class="fas fa-users"></i>
+                        <span class="nav-text">Nhân viên</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'departments'}}active{{/ifEquals}}" href="/departments">
+                        <i class="fas fa-building"></i>
+                        <span class="nav-text">Phòng ban</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'workflows'}}active{{/ifEquals}}" href="#" data-bs-toggle="collapse" data-bs-target="#workflowSubmenu" aria-expanded="false">
+                        <i class="fas fa-sitemap"></i>
+                        <span class="nav-text">Quy trình</span>
+                        <i class="fas fa-chevron-down ms-auto collapse-icon"></i>
+                    </a>
+                    <ul class="collapse nav-submenu" id="workflowSubmenu">
+                        <li>
+                            <a class="nav-link" href="/workflows">
+                                <i class="fas fa-list"></i>
+                                <span class="nav-text">Danh sách</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" href="/workflows/templates">
+                                <i class="fas fa-layer-group"></i>
+                                <span class="nav-text">Mẫu quy trình</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" href="/workflows/builder">
+                                <i class="fas fa-project-diagram"></i>
+                                <span class="nav-text">Thiết kế quy trình</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'categories'}}active{{/ifEquals}}" href="/categories">
+                        <i class="fas fa-tags"></i>
+                        <span class="nav-text">Danh mục</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'settings'}}active{{/ifEquals}}" href="/settings">
+                        <i class="fas fa-cog"></i>
+                        <span class="nav-text">Cài đặt hệ thống</span>
+                    </a>
+                </li>
+                {{/if}}
+                
+                <!-- Help Section -->
+                <li class="nav-item mt-3">
+                    <div class="nav-section-header">
+                        <span class="nav-text">HỖ TRỢ</span>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'help'}}active{{/ifEquals}}" href="/help">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="nav-text">Trợ giúp</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'docs'}}active{{/ifEquals}}" href="/docs">
+                        <i class="fas fa-book"></i>
+                        <span class="nav-text">Tài liệu</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-left">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/dashboard">Trang chủ</a></li>
+                    {{#if breadcrumbs}}
+                        {{#each breadcrumbs}}
+                        <li class="breadcrumb-item {{#if @last}}active{{/if}}">
+                            {{#if @last}}{{name}}{{else}}<a href="{{url}}">{{name}}</a>{{/if}}
+                        </li>
+                        {{/each}}
+                    {{else}}
+                        <li class="breadcrumb-item active">{{title}}</li>
+                    {{/if}}
+                </ol>
+            </nav>
+        </div>
+
+        <div class="header-right">
+            <div class="search-box">
+                <input type="text" placeholder="Tìm kiếm yêu cầu..." id="globalSearch">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <button class="notification-icon">
+                <i class="fas fa-bell"></i>
+                {{#if unreadNotifications}}
+                <span class="notification-badge">{{unreadNotifications}}</span>
+                {{/if}}
+            </button>
+
+            <div class="dropdown">
+                <div class="user-dropdown" data-bs-toggle="dropdown">
+                    <div class="user-avatar">
+                        {{#if user.avatar}}
+                        <img src="{{user.avatar}}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        {{else}}
+                        {{substring user.UserName 0 1}}
+                        {{/if}}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">{{user.UserName}}</div>
+                        <div class="user-role">{{user.department}}</div>
+                    </div>
+                    <i class="fas fa-chevron-down ms-2"></i>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>Hồ sơ</a></li>
+                    <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {{#if success}}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{success}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {{/if}}
+
+        {{#if error}}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {{/if}}
+
+        <div class="fade-in">
+            {{{body}}}
+        </div>
+    </main>
+    {{else}}
+    <!-- Public Layout (không có sidebar/header) -->
+    <div class="container-fluid">
+        {{#if success}}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{success}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {{/if}}
+
+        {{#if error}}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {{/if}}
+
+        {{{body}}}
+    </div>
+    {{/if}}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        {{#if user}}
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Search functionality
+        const globalSearchInput = document.getElementById('globalSearch');
+        if (globalSearchInput) {
+            globalSearchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value;
+                    if (query.trim()) {
+                        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                    }
+                }
+            });
+        }
+
+        // Responsive handling
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+        {{/if}}
+
+        // Auto-hide alerts
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                if (alert.classList.contains('show')) {
+                    alert.classList.remove('show');
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

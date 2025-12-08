@@ -1,0 +1,314 @@
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="page-title">
+                <i class="fas fa-chart-line me-2"></i>
+                Thống kê & Phân tích
+            </h2>
+            <p class="text-muted">Tổng quan về các chỉ số và xu hướng của hệ thống</p>
+        </div>
+        <div class="col-auto">
+            <div class="btn-group">
+                <button class="btn btn-outline-primary active" data-period="week">7 ngày</button>
+                <button class="btn btn-outline-primary" data-period="month">30 ngày</button>
+                <button class="btn btn-outline-primary" data-period="quarter">90 ngày</button>
+                <button class="btn btn-outline-primary" data-period="year">1 năm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card stat-card-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Tổng yêu cầu</p>
+                            <h3 class="mb-0">{{stats.totalRequests}}</h3>
+                            <small class="text-success">
+                                <i class="fas fa-arrow-up"></i> +12% so với tháng trước
+                            </small>
+                        </div>
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card stat-card-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Đã hoàn thành</p>
+                            <h3 class="mb-0">{{stats.completedRequests}}</h3>
+                            <small class="text-success">
+                                <i class="fas fa-arrow-up"></i> +8% so với tháng trước
+                            </small>
+                        </div>
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card stat-card-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Đang xử lý</p>
+                            <h3 class="mb-0">{{stats.inProgressRequests}}</h3>
+                            <small class="text-muted">
+                                <i class="fas fa-minus"></i> Không đổi
+                            </small>
+                        </div>
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-spinner"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card stat-card-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Thời gian trung bình</p>
+                            <h3 class="mb-0">{{stats.avgCompletionTime}}</h3>
+                            <small class="text-success">
+                                <i class="fas fa-arrow-down"></i> -5% nhanh hơn
+                            </small>
+                        </div>
+                        <div class="stat-icon bg-info">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-area me-2"></i>
+                        Xu hướng yêu cầu
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="requestTrendChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Trạng thái yêu cầu
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="requestStatusChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>
+                        Hiệu suất theo phòng ban
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="departmentPerformanceChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        Top nhân viên xuất sắc
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nhân viên</th>
+                                    <th>Hoàn thành</th>
+                                    <th>Đánh giá</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each topEmployees}}
+                                <tr>
+                                    <td>{{@index}}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar avatar-sm me-2">
+                                                {{#if Avatar}}
+                                                <img src="{{Avatar}}" alt="{{UserName}}">
+                                                {{else}}
+                                                <span>{{substring UserName 0 1}}</span>
+                                                {{/if}}
+                                            </div>
+                                            <span>{{UserName}}</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-success">{{completedCount}}</span></td>
+                                    <td>
+                                        <div class="rating">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <span>{{rating}}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Response Time Analysis -->
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-stopwatch me-2"></i>
+                        Phân tích thời gian phản hồi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="responseTimeChart" height="60"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e0e0e0;
+    font-weight: 600;
+}
+
+.avatar-sm img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Chart.js configurations will be added here
+document.addEventListener('DOMContentLoaded', function() {
+    // Request Trend Chart
+    const trendCtx = document.getElementById('requestTrendChart');
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                datasets: [{
+                    label: 'Yêu cầu mới',
+                    data: [12, 19, 15, 25, 22, 18, 14],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.4
+                }, {
+                    label: 'Hoàn thành',
+                    data: [8, 15, 12, 20, 18, 16, 12],
+                    borderColor: 'rgb(54, 162, 235)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    }
+
+    // Status Pie Chart
+    const statusCtx = document.getElementById('requestStatusChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Hoàn thành', 'Đang xử lý', 'Chờ duyệt', 'Từ chối'],
+                datasets: [{
+                    data: [45, 30, 20, 5],
+                    backgroundColor: [
+                        'rgb(75, 192, 192)',
+                        'rgb(255, 205, 86)',
+                        'rgb(54, 162, 235)',
+                        'rgb(255, 99, 132)'
+                    ]
+                }]
+            }
+        });
+    }
+});
+</script>

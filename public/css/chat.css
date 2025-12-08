@@ -1,0 +1,679 @@
+/* ===================================
+   CHAT PAGE - MODERN CLEAN DESIGN
+   =================================== */
+
+/* Main Container */
+.chat-container {
+  height: calc(100vh - 100px);
+  overflow: hidden;
+  background: #fff;
+}
+
+.chat-container .row {
+  height: 100%;
+  margin: 0;
+}
+
+.chat-container .col-lg-4,
+.chat-container .col-md-5,
+.chat-container .col-lg-8,
+.chat-container .col-md-7 {
+  padding: 0;
+}
+
+/* ===================================
+   SIDEBAR - DANH SÁCH CUỘC TRÒ CHUYỆN
+   =================================== */
+
+.chat-sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+}
+
+.chat-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Chat Item */
+.chat-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chat-item:hover {
+  background-color: #f8f9fa;
+}
+
+.chat-item.active {
+  background-color: #e3f2fd;
+  border-left: 3px solid #2196f3;
+}
+
+.chat-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Avatar khi là hình ảnh */
+.chat-avatar.rounded-circle {
+  object-fit: cover;
+}
+
+/* Truncate text trong chat list */
+.chat-item .text-truncate {
+  max-width: 200px;
+}
+
+.online-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background-color: #4caf50;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+/* ===================================
+   CHAT CONTENT - KHU VỰC CHAT CHÍNH
+   =================================== */
+
+.chat-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+/* Header */
+.chat-header {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.chat-header h5 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.chat-header small {
+  opacity: 0.9;
+  font-size: 0.85rem;
+}
+
+/* Messages Area */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.25rem;
+  background: linear-gradient(to bottom, #f5f7fa 0%, #ffffff 100%);
+  min-height: 0;
+}
+
+.chat-messages::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+/* Input Area */
+.chat-input {
+  flex-shrink: 0;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.chat-input textarea {
+  border-radius: 24px;
+  border: 1px solid #e0e0e0;
+  padding: 0.75rem 1rem;
+  resize: none;
+  transition: all 0.3s ease;
+}
+
+.chat-input textarea:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.chat-input .btn {
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+}
+
+.chat-input .btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+/* ===================================
+   MESSAGE BUBBLES - GIAO DIỆN TIN NHẮN
+   =================================== */
+
+.message {
+  display: flex;
+  margin-bottom: 0.75rem;
+  animation: messageSlideIn 0.3s ease-out;
+  width: 100%;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tin nhắn nhận - Bên trái */
+.message-received {
+  justify-content: flex-start;
+  padding-right: 15%;
+}
+
+/* Tin nhắn gửi - Bên phải */
+.message-sent {
+  justify-content: flex-end;
+  padding-left: 80%;
+  flex-direction: row-reverse;
+}
+
+/* Avatar trong tin nhắn */
+.message-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  align-self: flex-end;
+  margin-bottom: 2px;
+}
+
+.message-received .message-avatar {
+  margin-right: 0.5rem;
+}
+
+.message-sent .message-avatar {
+  margin-left: 0.5rem;
+  order: 2;
+}
+
+/* Message content wrapper */
+.message-content {
+  display: flex;
+  flex-direction: column;
+  max-width: 65%;
+}
+
+.message-sent .message-content {
+  align-items: flex-end;
+  order: 1;
+}
+
+.message-received .message-content {
+  align-items: flex-start;
+}
+
+/* Sender name */
+.message-sender {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 0.25rem;
+  padding: 0 0.5rem;
+}
+
+/* Message bubble */
+.message-bubble {
+  padding: 0.5rem 0.85rem;
+  border-radius: 18px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.message-bubble:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Tin nhắn gửi đi */
+.message-sent .message-bubble {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+/* Tin nhắn nhận được */
+.message-received .message-bubble {
+  background: #f0f0f0;
+  color: #2c3e50;
+  border-bottom-left-radius: 4px;
+}
+
+.message-bubble p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Timestamp */
+.message-time {
+  font-size: 0.7rem;
+  color: #999;
+  margin-top: 0.25rem;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.message-sent .message-time {
+  justify-content: flex-end;
+}
+
+.message-received .message-time {
+  justify-content: flex-start;
+}
+
+.message-time i {
+  font-size: 0.7rem;
+}
+
+.message-sent .message-time i.fa-check-double {
+  color: #4caf50;
+}
+
+.message-sent .message-time i.fa-check {
+  color: #999;
+}
+
+/* ===================================
+   TYPING INDICATOR
+   =================================== */
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f0f0f0;
+  border-radius: 18px;
+  width: fit-content;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #999;
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+/* ===================================
+   FILE & IMAGE ATTACHMENTS
+   =================================== */
+
+/* Buttons trong input */
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+  background: #f5f5f5;
+  transform: scale(1.05);
+}
+
+.btn-icon.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.btn-icon.btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* File Preview Area */
+.file-preview-area {
+  padding: 0.75rem 1.25rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+}
+
+.file-preview-container {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.file-preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* File Preview Item */
+.file-preview-item {
+  position: relative;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 200px;
+  max-width: 250px;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Image Preview */
+.file-preview-item.image-preview {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  min-width: 120px;
+  max-width: 150px;
+}
+
+.file-preview-item.image-preview img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px 8px 0 0;
+}
+
+.file-preview-item.image-preview .file-info {
+  padding: 0.5rem;
+}
+
+/* File Icon */
+.file-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.file-icon i {
+  font-size: 1.25rem;
+  color: #667eea;
+}
+
+/* File Info */
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.15rem;
+}
+
+.file-size {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+/* Remove File Button */
+.file-remove {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  padding: 0;
+  font-size: 0.75rem;
+}
+
+.file-preview-item:hover .file-remove {
+  opacity: 1;
+}
+
+.file-remove:hover {
+  background: rgba(220, 53, 69, 0.9);
+}
+
+/* Message with Attachments */
+.message-attachment {
+  margin-top: 0.5rem;
+}
+
+.message-attachment.image-attachment img {
+  max-width: 300px;
+  width: 100%;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.message-attachment.image-attachment img:hover {
+  transform: scale(1.02);
+}
+
+.message-attachment.file-attachment {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.75rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  max-width: 300px;
+}
+
+.message-attachment.file-attachment:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.message-sent .message-attachment.file-attachment {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.message-sent .message-attachment.file-attachment:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.attachment-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.message-sent .attachment-icon {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.attachment-info .attachment-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.1rem;
+}
+
+.attachment-info .attachment-size {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* ===================================
+   SCROLLBAR - THANH CUỘN
+   =================================== */
+
+.chat-messages::-webkit-scrollbar,
+.chat-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track,
+.chat-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.chat-messages::-webkit-scrollbar-thumb,
+.chat-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover,
+.chat-list::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* ===================================
+   RESPONSIVE DESIGN
+   =================================== */
+
+@media (max-width: 768px) {
+  .chat-container {
+    height: calc(100vh - 80px);
+  }
+
+  .message-content {
+    max-width: 80%;
+  }
+
+  .chat-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .chat-messages {
+    padding: 1rem;
+  }
+
+  .chat-input {
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .message-content {
+    max-width: 85%;
+  }
+
+  .chat-sidebar {
+    position: fixed;
+    left: -100%;
+    width: 80%;
+    z-index: 1000;
+    transition: left 0.3s ease;
+  }
+
+  .chat-sidebar.show {
+    left: 0;
+  }
+}

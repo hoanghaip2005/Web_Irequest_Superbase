@@ -1,0 +1,405 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Quản lý phòng ban</h1>
+        <p class="page-subtitle">Quản lý thông tin các phòng ban trong tổ chức</p>
+    </div>
+    <div class="content-actions">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+            <i class="fas fa-plus me-2"></i>Thêm phòng ban
+        </button>
+    </div>
+</div>
+
+{{#if success}}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{{/if}}
+
+{{#if error}}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{{/if}}
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-building"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Tổng phòng ban</div>
+                        <div class="fs-5 fw-bold text-primary">{{stats.totalDepartments}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Tổng nhân viên</div>
+                        <div class="fs-5 fw-bold text-success">{{stats.totalEmployees}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-info bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Yêu cầu hoạt động</div>
+                        <div class="fs-5 fw-bold text-info">{{stats.activeRequests}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-warning bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Trưởng phòng</div>
+                        <div class="fs-5 fw-bold text-warning">{{stats.totalManagers}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/departments" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" class="form-control" name="search" value="{{search}}" 
+                       placeholder="Tìm kiếm theo tên phòng ban...">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-search me-2"></i>Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Departments Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-building me-2"></i>
+            Danh sách phòng ban ({{departments.length}} phòng ban)
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {{#if departments.length}}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Tên phòng ban</th>
+                        <th style="width: 150px;">Mã phòng ban</th>
+                        <th style="width: 200px;">Trưởng phòng</th>
+                        <th style="width: 120px;">Số nhân viên</th>
+                        <th style="width: 120px;">Số yêu cầu</th>
+                        <th style="width: 150px;">Ngày tạo</th>
+                        <th style="width: 150px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each departments}}
+                    <tr>
+                        <td>
+                            <span class="badge bg-secondary">#{{DepartmentID}}</span>
+                        </td>
+                        <td>
+                            <div>
+                                <h6 class="mb-0">{{DepartmentName}}</h6>
+                                {{#if Description}}
+                                <small class="text-muted">{{substring Description 0 50}}{{#if (gt (length Description) 50)}}...{{/if}}</small>
+                                {{/if}}
+                            </div>
+                        </td>
+                        <td>
+                            <code>{{DepartmentCode}}</code>
+                        </td>
+                        <td>
+                            {{#if ManagerName}}
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                    {{substring ManagerName 0 1}}
+                                </div>
+                                <span>{{ManagerName}}</span>
+                            </div>
+                            {{else}}
+                            <span class="text-muted">Chưa có</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{EmployeeCount}} nhân viên</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success">{{RequestCount}} yêu cầu</span>
+                        </td>
+                        <td>
+                            <small>{{formatDate CreatedAt}}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="/departments/{{DepartmentID}}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-success" 
+                                        onclick="editDepartment({{json this}})" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteDepartment({{DepartmentID}}, '{{DepartmentName}}')" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+        {{else}}
+        <div class="text-center py-5">
+            <i class="fas fa-building fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Không có phòng ban nào</h5>
+            <p class="text-muted">
+                {{#if search}}
+                    Không tìm thấy phòng ban phù hợp với từ khóa "{{search}}"
+                {{else}}
+                    Chưa có phòng ban nào trong hệ thống
+                {{/if}}
+            </p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+                <i class="fas fa-plus me-2"></i>Thêm phòng ban đầu tiên
+            </button>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<!-- Add Department Modal -->
+<div class="modal fade" id="addDepartmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm phòng ban mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/departments/create" method="POST">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="departmentName" class="form-label">Tên phòng ban <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="departmentName" name="departmentName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="departmentCode" class="form-label">Mã phòng ban <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="departmentCode" name="departmentCode" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="managerId" class="form-label">Trưởng phòng</label>
+                            <select class="form-select" id="managerId" name="managerId">
+                                <option value="">-- Chọn trưởng phòng --</option>
+                                {{#each users}}
+                                <option value="{{Id}}">{{FullName}} ({{Email}})</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">Vị trí</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   placeholder="Ví dụ: Tầng 3, Tòa nhà A">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email liên hệ</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-control" id="phone" name="phone">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Lưu phòng ban
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Department Modal -->
+<div class="modal fade" id="editDepartmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chỉnh sửa phòng ban</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/departments/update" method="POST">
+                <input type="hidden" id="editDepartmentId" name="departmentId">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editDepartmentName" class="form-label">Tên phòng ban <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editDepartmentName" name="departmentName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editDepartmentCode" class="form-label">Mã phòng ban <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editDepartmentCode" name="departmentCode" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editManagerId" class="form-label">Trưởng phòng</label>
+                            <select class="form-select" id="editManagerId" name="managerId">
+                                <option value="">-- Chọn trưởng phòng --</option>
+                                {{#each users}}
+                                <option value="{{Id}}">{{FullName}} ({{Email}})</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editLocation" class="form-label">Vị trí</label>
+                            <input type="text" class="form-control" id="editLocation" name="location">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">Email liên hệ</label>
+                        <input type="email" class="form-control" id="editEmail" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPhone" class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-control" id="editPhone" name="phone">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Cập nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+</style>
+
+<script>
+function editDepartment(department) {
+    document.getElementById('editDepartmentId').value = department.DepartmentID;
+    document.getElementById('editDepartmentName').value = department.DepartmentName;
+    document.getElementById('editDepartmentCode').value = department.DepartmentCode || '';
+    document.getElementById('editDescription').value = department.Description || '';
+    document.getElementById('editManagerId').value = department.ManagerId || '';
+    document.getElementById('editLocation').value = department.Location || '';
+    document.getElementById('editEmail').value = department.Email || '';
+    document.getElementById('editPhone').value = department.Phone || '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('editDepartmentModal'));
+    modal.show();
+}
+
+function deleteDepartment(id, name) {
+    if (confirm(`Bạn có chắc chắn muốn xóa phòng ban "${name}"?\n\nLưu ý: Tất cả nhân viên trong phòng ban này sẽ không thuộc phòng ban nào.`)) {
+        fetch(`/departments/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Có lỗi xảy ra khi xóa phòng ban');
+        });
+    }
+}
+</script>

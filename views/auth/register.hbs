@@ -1,0 +1,318 @@
+<h3 class="text-center mb-4 fw-bold text-dark">Đăng ký tài khoản</h3>
+
+{{#if error}}
+<div class="alert alert-danger d-flex align-items-center">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <span>{{error}}</span>
+</div>
+{{/if}}
+
+{{#if success}}
+<div class="alert alert-success d-flex align-items-center">
+    <i class="fas fa-check-circle me-2"></i>
+    <span>{{success}}</span>
+</div>
+{{/if}}
+
+<form action="/auth/register" method="POST" id="registerForm" novalidate>
+    <div class="form-floating mb-3">
+        <input 
+            type="text" 
+            class="form-control" 
+            id="username" 
+            name="username" 
+            value="{{username}}"
+            placeholder="Tên người dùng"
+            required
+            minlength="3"
+            maxlength="50"
+        >
+        <label for="username">
+            <i class="fas fa-user me-2"></i>Tên người dùng
+        </label>
+        <div class="invalid-feedback">
+            Tên người dùng phải từ 3-50 ký tự
+        </div>
+    </div>
+    
+    <div class="form-floating mb-3">
+        <input 
+            type="email" 
+            class="form-control" 
+            id="email" 
+            name="email" 
+            value="{{email}}"
+            placeholder="name@example.com"
+            required
+        >
+        <label for="email">
+            <i class="fas fa-envelope me-2"></i>Địa chỉ email
+        </label>
+        <div class="invalid-feedback">
+            Vui lòng nhập email hợp lệ
+        </div>
+    </div>
+    
+    <div class="form-floating mb-3 password-field">
+        <input 
+            type="password" 
+            class="form-control" 
+            id="password" 
+            name="password" 
+            placeholder="Password"
+            required
+            minlength="6"
+        >
+        <label for="password">
+            <i class="fas fa-lock me-2"></i>Mật khẩu
+        </label>
+        <button 
+            type="button" 
+            class="password-toggle"
+            title="Hiện/ẩn mật khẩu"
+        >
+            <i class="fas fa-eye"></i>
+        </button>
+        <div class="invalid-feedback">
+            Mật khẩu phải có ít nhất 6 ký tự
+        </div>
+    </div>
+    
+    <div class="password-strength mb-3" id="passwordStrength" style="display: none;">
+        <div class="small text-muted mb-1">Độ mạnh mật khẩu:</div>
+        <div class="progress" style="height: 4px;">
+            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+        </div>
+        <small class="strength-text text-muted">Nhập mật khẩu</small>
+    </div>
+    
+    <div class="form-floating mb-3 password-field">
+        <input 
+            type="password" 
+            class="form-control" 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            placeholder="Confirm Password"
+            required
+        >
+        <label for="confirmPassword">
+            <i class="fas fa-lock me-2"></i>Xác nhận mật khẩu
+        </label>
+        <button 
+            type="button" 
+            class="password-toggle"
+            title="Hiện/ẩn mật khẩu"
+        >
+            <i class="fas fa-eye"></i>
+        </button>
+        <div class="invalid-feedback">
+            Mật khẩu xác nhận không khớp
+        </div>
+    </div>
+    
+    <div class="form-floating mb-3">
+        <select class="form-select" id="department" name="department" required>
+            <option value="">Chọn phòng ban</option>
+            <option value="1" {{#if (eq department "1")}}selected{{/if}}>IT</option>
+            <option value="2" {{#if (eq department "2")}}selected{{/if}}>Nhân sự</option>
+            <option value="3" {{#if (eq department "3")}}selected{{/if}}>Kế toán</option>
+            <option value="4" {{#if (eq department "4")}}selected{{/if}}>Marketing</option>
+            <option value="5" {{#if (eq department "5")}}selected{{/if}}>Bán hàng</option>
+            <option value="6" {{#if (eq department "6")}}selected{{/if}}>Hành chính</option>
+        </select>
+        <label for="department">
+            <i class="fas fa-building me-2"></i>Phòng ban
+        </label>
+        <div class="invalid-feedback">
+            Vui lòng chọn phòng ban
+        </div>
+    </div>
+    
+    <div class="form-check mb-4">
+        <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+        <label class="form-check-label" for="terms">
+            Tôi đồng ý với 
+            <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#termsModal">
+                Điều khoản sử dụng
+            </a> 
+            và 
+            <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#privacyModal">
+                Chính sách bảo mật
+            </a>
+        </label>
+        <div class="invalid-feedback">
+            Vui lòng đồng ý với điều khoản sử dụng
+        </div>
+    </div>
+    
+    <button type="submit" class="btn btn-auth text-white mb-3" id="registerBtn">
+        <i class="fas fa-user-plus me-2"></i>Tạo tài khoản
+    </button>
+    
+    <div class="divider">
+        <span>hoặc</span>
+    </div>
+    
+    <div class="auth-links">
+        <p class="mb-2 text-muted">Đã có tài khoản?</p>
+        <a href="/auth/login" class="fw-semibold">
+            <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập ngay
+        </a>
+    </div>
+</form>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Điều khoản sử dụng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Chấp nhận điều khoản</h6>
+                <p>Khi sử dụng hệ thống iRequest, bạn đồng ý tuân thủ các điều khoản và điều kiện này.</p>
+                
+                <h6>2. Trách nhiệm người dùng</h6>
+                <p>Người dùng có trách nhiệm:</p>
+                <ul>
+                    <li>Cung cấp thông tin chính xác và cập nhật</li>
+                    <li>Bảo mật thông tin đăng nhập</li>
+                    <li>Sử dụng hệ thống đúng mục đích</li>
+                </ul>
+                
+                <h6>3. Quyền riêng tư</h6>
+                <p>Chúng tôi cam kết bảo vệ thông tin cá nhân của bạn theo chính sách bảo mật.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chính sách bảo mật</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Thu thập thông tin</h6>
+                <p>Chúng tôi chỉ thu thập thông tin cần thiết để vận hành hệ thống:</p>
+                <ul>
+                    <li>Tên người dùng và email</li>
+                    <li>Thông tin phòng ban</li>
+                    <li>Lịch sử sử dụng hệ thống</li>
+                </ul>
+                
+                <h6>Sử dụng thông tin</h6>
+                <p>Thông tin được sử dụng để:</p>
+                <ul>
+                    <li>Quản lý tài khoản người dùng</li>
+                    <li>Xử lý và theo dõi yêu cầu</li>
+                    <li>Cải thiện chất lượng dịch vụ</li>
+                </ul>
+                
+                <h6>Bảo mật</h6>
+                <p>Chúng tôi áp dụng các biện pháp bảo mật hiện đại để bảo vệ dữ liệu của bạn.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const strengthIndicator = document.getElementById('passwordStrength');
+    
+    // Password strength checker
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        const strength = calculatePasswordStrength(password);
+        updatePasswordStrength(strength);
+        
+        if (password.length > 0) {
+            strengthIndicator.style.display = 'block';
+        } else {
+            strengthIndicator.style.display = 'none';
+        }
+    });
+    
+    // Confirm password validation
+    confirmPasswordInput.addEventListener('input', function() {
+        const password = passwordInput.value;
+        const confirmPassword = this.value;
+        
+        if (confirmPassword && password !== confirmPassword) {
+            this.setCustomValidity('Mật khẩu không khớp');
+            this.classList.add('is-invalid');
+        } else {
+            this.setCustomValidity('');
+            this.classList.remove('is-invalid');
+            if (confirmPassword) this.classList.add('is-valid');
+        }
+    });
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!form.checkValidity()) {
+            e.stopPropagation();
+            form.classList.add('was-validated');
+            return;
+        }
+        
+        // Check if passwords match
+        if (passwordInput.value !== confirmPasswordInput.value) {
+            confirmPasswordInput.setCustomValidity('Mật khẩu không khớp');
+            confirmPasswordInput.classList.add('is-invalid');
+            return;
+        }
+        
+        // Submit form
+        this.submit();
+    });
+    
+    function calculatePasswordStrength(password) {
+        let strength = 0;
+        
+        if (password.length >= 6) strength += 1;
+        if (password.length >= 8) strength += 1;
+        if (/[a-z]/.test(password)) strength += 1;
+        if (/[A-Z]/.test(password)) strength += 1;
+        if (/[0-9]/.test(password)) strength += 1;
+        if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+        
+        return Math.min(strength, 4);
+    }
+    
+    function updatePasswordStrength(strength) {
+        const progressBar = strengthIndicator.querySelector('.progress-bar');
+        const strengthText = strengthIndicator.querySelector('.strength-text');
+        
+        const levels = [
+            { width: 0, text: 'Quá yếu', class: 'bg-danger' },
+            { width: 25, text: 'Yếu', class: 'bg-danger' },
+            { width: 50, text: 'Trung bình', class: 'bg-warning' },
+            { width: 75, text: 'Mạnh', class: 'bg-info' },
+            { width: 100, text: 'Rất mạnh', class: 'bg-success' }
+        ];
+        
+        const level = levels[strength] || levels[0];
+        
+        progressBar.style.width = level.width + '%';
+        progressBar.className = 'progress-bar ' + level.class;
+        strengthText.textContent = level.text;
+        strengthText.className = 'strength-text ' + level.class.replace('bg-', 'text-');
+    }
+});
+</script>

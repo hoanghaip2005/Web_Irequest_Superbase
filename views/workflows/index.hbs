@@ -1,0 +1,386 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Quản lý Workflow</h1>
+        <p class="page-subtitle">Quản lý quy trình xử lý yêu cầu trong hệ thống</p>
+    </div>
+    <div class="content-actions">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addWorkflowModal">
+            <i class="fas fa-plus me-2"></i>Tạo Workflow mới
+        </button>
+    </div>
+</div>
+
+{{#if success}}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{{/if}}
+
+{{#if error}}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{{/if}}
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Tổng Workflows</div>
+                        <div class="fs-5 fw-bold text-primary">{{stats.totalWorkflows}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Đang hoạt động</div>
+                        <div class="fs-5 fw-bold text-success">{{stats.activeWorkflows}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-info bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-list-ol"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Tổng bước</div>
+                        <div class="fs-5 fw-bold text-info">{{stats.totalSteps}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-warning bg-gradient text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 48px; height: 48px;">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="text-muted small">Yêu cầu đang xử lý</div>
+                        <div class="fs-5 fw-bold text-warning">{{stats.processingRequests}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Workflows List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-project-diagram me-2"></i>
+            Danh sách Workflow
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        {{#if workflows}}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Tên Workflow</th>
+                        <th style="width: 150px;">Mức ưu tiên</th>
+                        <th style="width: 100px;">Số bước</th>
+                        <th style="width: 120px;">Trạng thái</th>
+                        <th style="width: 150px;">Ngày tạo</th>
+                        <th style="width: 200px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each workflows}}
+                    <tr>
+                        <td>
+                            <span class="badge bg-secondary">#{{WorkflowID}}</span>
+                        </td>
+                        <td>
+                            <div>
+                                <h6 class="mb-0">{{WorkflowName}}</h6>
+                                {{#if Description}}
+                                <small class="text-muted">{{substring Description 0 60}}{{#if (gt (length Description) 60)}}...{{/if}}</small>
+                                {{/if}}
+                            </div>
+                        </td>
+                        <td>
+                            {{#if PriorityName}}
+                            <span class="badge bg-{{#ifEquals PriorityName 'Cao'}}danger{{/ifEquals}}{{#ifEquals PriorityName 'Trung bình'}}warning{{/ifEquals}}{{#ifEquals PriorityName 'Thấp'}}info{{/ifEquals}}">
+                                {{PriorityName}}
+                            </span>
+                            {{else}}
+                            <span class="text-muted">Tất cả</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{StepCount}} bước</span>
+                        </td>
+                        <td>
+                            {{#if IsActive}}
+                            <span class="badge bg-success">Hoạt động</span>
+                            {{else}}
+                            <span class="badge bg-secondary">Không hoạt động</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            <small>{{formatDate CreatedAt}}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="/workflows/{{WorkflowID}}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="/workflows/{{WorkflowID}}/setup" class="btn btn-sm btn-outline-secondary" title="Thiết lập">
+                                    <i class="fas fa-cogs"></i>
+                                </a>
+                                <a href="/workflows/{{WorkflowID}}/steps" class="btn btn-sm btn-outline-info" title="Quản lý bước">
+                                    <i class="fas fa-list-ol"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-success" 
+                                        onclick="editWorkflow({{json this}})" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-{{#if IsActive}}warning{{else}}success{{/if}}" 
+                                        onclick="toggleWorkflowStatus({{WorkflowID}}, {{IsActive}})" 
+                                        title="{{#if IsActive}}Tắt{{else}}Bật{{/if}}">
+                                    <i class="fas fa-{{#if IsActive}}pause{{else}}play{{/if}}"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteWorkflow({{WorkflowID}}, '{{WorkflowName}}')" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+        {{else}}
+        <div class="text-center py-5">
+            <i class="fas fa-project-diagram fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Chưa có workflow nào</h5>
+            <p class="text-muted">Tạo workflow đầu tiên để bắt đầu tự động hóa quy trình xử lý yêu cầu</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addWorkflowModal">
+                <i class="fas fa-plus me-2"></i>Tạo Workflow đầu tiên
+            </button>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<!-- Add Workflow Modal -->
+<div class="modal fade" id="addWorkflowModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo Workflow mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/workflows/create" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="workflowName" class="form-label">Tên Workflow <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="workflowName" name="workflowName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="priorityId" class="form-label">Mức độ ưu tiên</label>
+                            <select class="form-select" id="priorityId" name="priorityId">
+                                <option value="">-- Chọn mức ưu tiên --</option>
+                                {{#each priorities}}
+                                <option value="{{PriorityID}}">{{PriorityName}}</option>
+                                {{/each}}
+                            </select>
+                            <small class="text-muted">Để trống nếu áp dụng cho tất cả mức ưu tiên</small>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked>
+                        <label class="form-check-label" for="isActive">
+                            Kích hoạt ngay sau khi tạo
+                        </label>
+                    </div>
+                    </div>
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Sau khi tạo workflow, bạn có thể thêm các bước xử lý trong phần quản lý bước
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Tạo Workflow
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Workflow Modal -->
+<div class="modal fade" id="editWorkflowModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chỉnh sửa Workflow</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/workflows/update" method="POST">
+                <input type="hidden" id="editWorkflowId" name="workflowId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editWorkflowName" class="form-label">Tên Workflow <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editWorkflowName" name="workflowName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="editPriorityId" class="form-label">Mức độ ưu tiên</label>
+                            <select class="form-select" id="editPriorityId" name="priorityId">
+                                <option value="">-- Chọn mức ưu tiên --</option>
+                                {{#each priorities}}
+                                <option value="{{PriorityID}}">{{PriorityName}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="editIsActive" name="isActive">
+                        <label class="form-check-label" for="editIsActive">
+                            Kích hoạt workflow
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Cập nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+</style>
+
+<script>
+function editWorkflow(workflow) {
+    document.getElementById('editWorkflowId').value = workflow.WorkflowID;
+    document.getElementById('editWorkflowName').value = workflow.WorkflowName;
+    document.getElementById('editDescription').value = workflow.Description || '';
+    document.getElementById('editPriorityId').value = workflow.PriorityID || '';
+    document.getElementById('editIsActive').checked = workflow.IsActive;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editWorkflowModal'));
+    modal.show();
+}
+
+function toggleWorkflowStatus(id, currentStatus) {
+    const action = currentStatus ? 'tắt' : 'bật';
+    if (confirm(`Bạn có chắc chắn muốn ${action} workflow này?`)) {
+        fetch(`/workflows/${id}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isActive: !currentStatus })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Có lỗi xảy ra khi thay đổi trạng thái workflow');
+        });
+    }
+}
+
+function deleteWorkflow(id, name) {
+    if (confirm(`Bạn có chắc chắn muốn xóa workflow "${name}"?\n\nCảnh báo: Hành động này không thể hoàn tác!`)) {
+        fetch(`/workflows/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Có lỗi xảy ra khi xóa workflow');
+        });
+    }
+}
+</script>

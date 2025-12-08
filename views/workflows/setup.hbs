@@ -1,0 +1,664 @@
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="page-title">
+                <i class="fas fa-cogs me-2"></i>
+                Thiết lập Workflow: {{workflow.WorkflowName}}
+            </h2>
+            <p class="text-muted">Cấu hình chi tiết quy trình xử lý yêu cầu</p>
+        </div>
+        <div class="col-auto">
+            <a href="/workflows" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </a>
+            <button class="btn btn-success" onclick="saveWorkflow()">
+                <i class="fas fa-save me-2"></i>Lưu thay đổi
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs nav-tabs-custom mb-4" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#general-tab">
+                <i class="fas fa-info-circle me-2"></i>Thông tin chung
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#steps-tab">
+                <i class="fas fa-list-ol me-2"></i>Các bước ({{length steps}})
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#conditions-tab">
+                <i class="fas fa-code-branch me-2"></i>Điều kiện & Logic
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#notifications-tab">
+                <i class="fas fa-bell me-2"></i>Thông báo
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#automation-tab">
+                <i class="fas fa-robot me-2"></i>Tự động hóa
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- General Settings -->
+        <div class="tab-pane fade show active" id="general-tab">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thông tin cơ bản</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="generalForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên workflow *</label>
+                                    <input type="text" class="form-control" name="workflowName" 
+                                           value="{{workflow.WorkflowName}}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Mô tả</label>
+                                    <textarea class="form-control" name="description" rows="3">{{workflow.Description}}</textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Loại yêu cầu</label>
+                                        <select class="form-select" name="requestType">
+                                            <option value="">Tất cả</option>
+                                            <option value="IT">IT</option>
+                                            <option value="HR">HR</option>
+                                            <option value="Finance">Tài chính</option>
+                                            <option value="Admin">Hành chính</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Mức ưu tiên</label>
+                                        <select class="form-select" name="priority">
+                                            <option value="">Tất cả</option>
+                                            <option value="1">Khẩn cấp</option>
+                                            <option value="2">Cao</option>
+                                            <option value="3">Trung bình</option>
+                                            <option value="4">Thấp</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Phòng ban áp dụng</label>
+                                        <select class="form-select" name="department">
+                                            <option value="">Tất cả phòng ban</option>
+                                            {{#each departments}}
+                                            <option value="{{DepartmentID}}">{{Name}}</option>
+                                            {{/each}}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Thời gian xử lý tối đa (giờ)</label>
+                                        <input type="number" class="form-control" name="maxDuration" 
+                                               value="{{workflow.MaxDuration}}" min="1">
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" name="isActive" 
+                                           id="isActive" {{#if workflow.IsActive}}checked{{/if}}>
+                                    <label class="form-check-label" for="isActive">
+                                        Kích hoạt workflow
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" name="allowParallel" 
+                                           id="allowParallel">
+                                    <label class="form-check-label" for="allowParallel">
+                                        Cho phép xử lý song song
+                                    </label>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thống kê</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="stat-item mb-3">
+                                <div class="stat-label">Tổng số bước</div>
+                                <div class="stat-value">{{length steps}}</div>
+                            </div>
+                            <div class="stat-item mb-3">
+                                <div class="stat-label">Yêu cầu đang xử lý</div>
+                                <div class="stat-value text-warning">{{stats.processingCount}}</div>
+                            </div>
+                            <div class="stat-item mb-3">
+                                <div class="stat-label">Đã hoàn thành</div>
+                                <div class="stat-value text-success">{{stats.completedCount}}</div>
+                            </div>
+                            <div class="stat-item mb-3">
+                                <div class="stat-label">Thời gian TB</div>
+                                <div class="stat-value">{{stats.avgDuration}}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Tỷ lệ hoàn thành</div>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" style="width: {{stats.completionRate}}%">
+                                        {{stats.completionRate}}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Lịch sử thay đổi</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-primary"></div>
+                                    <div class="timeline-content">
+                                        <small class="text-muted">{{formatDate workflow.CreatedAt}}</small>
+                                        <p class="mb-0">Workflow được tạo</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-info"></div>
+                                    <div class="timeline-content">
+                                        <small class="text-muted">{{formatDate workflow.UpdatedAt}}</small>
+                                        <p class="mb-0">Cập nhật lần cuối</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Steps Configuration -->
+        <div class="tab-pane fade" id="steps-tab">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Sơ đồ quy trình</h5>
+                    <button class="btn btn-primary btn-sm" onclick="addStep()">
+                        <i class="fas fa-plus me-2"></i>Thêm bước
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="workflowCanvas" class="workflow-canvas">
+                        <!-- Visual workflow builder will be rendered here -->
+                        <div class="workflow-builder">
+                            <div class="workflow-start">
+                                <i class="fas fa-play-circle"></i>
+                                <span>Bắt đầu</span>
+                            </div>
+                            
+                            {{#each steps}}
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-step-node" data-step-id="{{StepID}}">
+                                <div class="step-node-header">
+                                    <span class="step-number">{{StepOrder}}</span>
+                                    <div class="step-actions-mini">
+                                        <button class="btn-icon" onclick="editStepConfig({{StepID}})">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button class="btn-icon" onclick="deleteStepConfirm({{StepID}})">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="step-node-body">
+                                    <h6>{{StepName}}</h6>
+                                    <p class="text-muted small mb-2">{{StepDescription}}</p>
+                                    <div class="step-badges">
+                                        {{#if AssignedRoleName}}
+                                        <span class="badge bg-primary">{{AssignedRoleName}}</span>
+                                        {{/if}}
+                                        {{#if RequiresApproval}}
+                                        <span class="badge bg-warning">Phê duyệt</span>
+                                        {{/if}}
+                                        {{#if ExpectedDuration}}
+                                        <span class="badge bg-info">{{ExpectedDuration}}h</span>
+                                        {{/if}}
+                                    </div>
+                                </div>
+                            </div>
+                            {{/each}}
+
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-end">
+                                <i class="fas fa-flag-checkered"></i>
+                                <span>Kết thúc</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conditions & Logic -->
+        <div class="tab-pane fade" id="conditions-tab">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Điều kiện chuyển bước</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Thiết lập điều kiện để tự động chuyển giữa các bước dựa trên trạng thái, vai trò, hoặc dữ liệu yêu cầu.
+                    </div>
+
+                    <button class="btn btn-primary mb-3" onclick="addCondition()">
+                        <i class="fas fa-plus me-2"></i>Thêm điều kiện
+                    </button>
+
+                    <div id="conditionsList">
+                        <div class="condition-item">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="condition-label">NẾU</span>
+                                <select class="form-select form-select-sm" style="width: auto;">
+                                    <option>Trạng thái</option>
+                                    <option>Mức ưu tiên</option>
+                                    <option>Phòng ban</option>
+                                    <option>Giá trị yêu cầu</option>
+                                </select>
+                                <select class="form-select form-select-sm" style="width: auto;">
+                                    <option>bằng</option>
+                                    <option>lớn hơn</option>
+                                    <option>nhỏ hơn</option>
+                                    <option>chứa</option>
+                                </select>
+                                <input type="text" class="form-control form-control-sm" style="width: 200px;" 
+                                       placeholder="Giá trị...">
+                                <span class="condition-label">THÌ</span>
+                                <select class="form-select form-select-sm" style="width: auto;">
+                                    <option>Chuyển đến bước</option>
+                                    <option>Gửi thông báo</option>
+                                    <option>Tự động phê duyệt</option>
+                                </select>
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="tab-pane fade" id="notifications-tab">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Cấu hình thông báo</h5>
+                </div>
+                <div class="card-body">
+                    <div class="notification-config">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifyOnStart" checked>
+                            <label class="form-check-label" for="notifyOnStart">
+                                Thông báo khi bắt đầu workflow
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifyOnStepChange" checked>
+                            <label class="form-check-label" for="notifyOnStepChange">
+                                Thông báo khi chuyển bước
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifyOnComplete" checked>
+                            <label class="form-check-label" for="notifyOnComplete">
+                                Thông báo khi hoàn thành
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifyOnDelay">
+                            <label class="form-check-label" for="notifyOnDelay">
+                                Thông báo khi quá hạn
+                            </label>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h6 class="mb-3">Email Templates</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Template khi bắt đầu</label>
+                            <textarea class="form-control" rows="3" placeholder="Nội dung email..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Template khi hoàn thành</label>
+                            <textarea class="form-control" rows="3" placeholder="Nội dung email..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automation -->
+        <div class="tab-pane fade" id="automation-tab">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Tự động hóa</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-robot me-2"></i>
+                        Thiết lập các hành động tự động để tăng hiệu quả xử lý.
+                    </div>
+
+                    <div class="automation-section mb-4">
+                        <h6 class="mb-3">Tự động phê duyệt</h6>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="autoApproveSimple">
+                            <label class="form-check-label" for="autoApproveSimple">
+                                Tự động phê duyệt yêu cầu đơn giản (giá trị < 1 triệu)
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="autoApproveUrgent">
+                            <label class="form-check-label" for="autoApproveUrgent">
+                                Ưu tiên xử lý yêu cầu khẩn cấp
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="automation-section mb-4">
+                        <h6 class="mb-3">Tự động phân công</h6>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="autoAssignByLoad">
+                            <label class="form-check-label" for="autoAssignByLoad">
+                                Phân công dựa trên khối lượng công việc
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="autoAssignBySkill">
+                            <label class="form-check-label" for="autoAssignBySkill">
+                                Phân công dựa trên kỹ năng
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="automation-section">
+                        <h6 class="mb-3">Escalation (Chuyển cấp trên)</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Thời gian chờ trước khi escalate (giờ)</label>
+                                <input type="number" class="form-control" value="24" min="1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Escalate đến</label>
+                                <select class="form-select">
+                                    <option>Trưởng phòng</option>
+                                    <option>Giám đốc</option>
+                                    <option>Admin hệ thống</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.nav-tabs-custom {
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.nav-tabs-custom .nav-link {
+    border: none;
+    color: #666;
+    padding: 1rem 1.5rem;
+    border-bottom: 3px solid transparent;
+}
+
+.nav-tabs-custom .nav-link:hover {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.nav-tabs-custom .nav-link.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: transparent;
+}
+
+.stat-item {
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -26px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.workflow-canvas {
+    min-height: 400px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 2rem;
+    overflow-x: auto;
+}
+
+.workflow-builder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+
+.workflow-start,
+.workflow-end {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.workflow-start i,
+.workflow-end i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.workflow-connector {
+    width: 3px;
+    height: 40px;
+    background: linear-gradient(to bottom, #667eea, #764ba2);
+    position: relative;
+}
+
+.workflow-connector::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid #764ba2;
+}
+
+.workflow-step-node {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1rem;
+    width: 350px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.workflow-step-node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.step-node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.step-number {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.step-actions-mini {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: #666;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: #f0f0f0;
+    color: #667eea;
+}
+
+.step-node-body h6 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+}
+
+.step-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.condition-item {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.condition-label {
+    font-weight: 600;
+    color: #667eea;
+    padding: 0 0.5rem;
+}
+</style>
+
+<script>
+function saveWorkflow() {
+    const formData = new FormData(document.getElementById('generalForm'));
+    const workflowData = Object.fromEntries(formData);
+    
+    fetch('/workflows/{{workflow.WorkflowID}}/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(workflowData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Đã lưu workflow thành công!');
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Có lỗi xảy ra!');
+    });
+}
+
+function addStep() {
+    window.location.href = '/workflows/{{workflow.WorkflowID}}/steps?action=add';
+}
+
+function editStepConfig(stepId) {
+    window.location.href = '/workflows/{{workflow.WorkflowID}}/steps/' + stepId + '/edit';
+}
+
+function deleteStepConfirm(stepId) {
+    if (confirm('Bạn có chắc chắn muốn xóa bước này?')) {
+        // Delete step logic
+    }
+}
+
+function addCondition() {
+    // Add new condition row
+    console.log('Adding condition...');
+}
+</script>

@@ -1,0 +1,472 @@
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="page-title">
+                <i class="fas fa-user-cog me-2"></i>
+                Quản lý Người dùng
+            </h2>
+            <p class="text-muted">Quản lý tài khoản người dùng, phân quyền và trạng thái</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="fas fa-plus me-2"></i>Thêm người dùng
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card stat-card-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Tổng người dùng</p>
+                            <h3 class="mb-0">{{stats.totalUsers}}</h3>
+                            <small class="text-muted">Đã đăng ký</small>
+                        </div>
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card stat-card-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Đang hoạt động</p>
+                            <h3 class="mb-0">{{stats.activeUsers}}</h3>
+                            <small class="text-success">Online hiện tại</small>
+                        </div>
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card stat-card-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Quản trị viên</p>
+                            <h3 class="mb-0">{{stats.adminUsers}}</h3>
+                            <small class="text-muted">Admin</small>
+                        </div>
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card stat-card-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Bị khóa</p>
+                            <h3 class="mb-0">{{stats.blockedUsers}}</h3>
+                            <small class="text-danger">Tạm ngưng</small>
+                        </div>
+                        <div class="stat-icon bg-danger">
+                            <i class="fas fa-user-lock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="/users" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Tìm kiếm</label>
+                    <input type="text" class="form-control" name="search" 
+                           placeholder="Tên, email, username..." value="{{search}}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Vai trò</label>
+                    <select class="form-select" name="role">
+                        <option value="">Tất cả</option>
+                        <option value="Admin" {{#ifEquals role 'Admin'}}selected{{/ifEquals}}>Admin</option>
+                        <option value="User" {{#ifEquals role 'User'}}selected{{/ifEquals}}>User</option>
+                        <option value="Manager" {{#ifEquals role 'Manager'}}selected{{/ifEquals}}>Manager</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Trạng thái</label>
+                    <select class="form-select" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="active" {{#ifEquals status 'active'}}selected{{/ifEquals}}>Hoạt động</option>
+                        <option value="inactive" {{#ifEquals status 'inactive'}}selected{{/ifEquals}}>Không hoạt động</option>
+                        <option value="blocked" {{#ifEquals status 'blocked'}}selected{{/ifEquals}}>Bị khóa</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Phòng ban</label>
+                    <select class="form-select" name="department">
+                        <option value="">Tất cả</option>
+                        {{#each departments}}
+                        <option value="{{DepartmentID}}">{{Name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="fas fa-search me-2"></i>Tìm kiếm
+                        </button>
+                        <a href="/users" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>
+                Danh sách người dùng
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Người dùng</th>
+                            <th>Email</th>
+                            <th>Phòng ban</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Lần đăng nhập cuối</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#if users.length}}
+                        {{#each users}}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-md me-3">
+                                        {{#if Avatar}}
+                                        <img src="{{Avatar}}" alt="{{UserName}}" class="rounded-circle">
+                                        {{else}}
+                                        <div class="avatar-placeholder bg-primary text-white rounded-circle">
+                                            {{substring UserName 0 1}}
+                                        </div>
+                                        {{/if}}
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{UserName}}</div>
+                                        <small class="text-muted">@{{UserName}}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{Email}}</td>
+                            <td>
+                                {{#if DepartmentName}}
+                                <span class="badge bg-light text-dark">
+                                    <i class="fas fa-building me-1"></i>{{DepartmentName}}
+                                </span>
+                                {{else}}
+                                <span class="text-muted">Chưa phân</span>
+                                {{/if}}
+                            </td>
+                            <td>
+                                {{#if IsAdmin}}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-user-shield me-1"></i>Admin
+                                </span>
+                                {{else}}
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-user me-1"></i>User
+                                </span>
+                                {{/if}}
+                            </td>
+                            <td>
+                                {{#if IsActive}}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Hoạt động
+                                </span>
+                                {{else}}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-ban me-1"></i>Khóa
+                                </span>
+                                {{/if}}
+                            </td>
+                            <td>
+                                <small>{{formatDate CreatedAt}}</small>
+                            </td>
+                            <td>
+                                {{#if LastLoginAt}}
+                                <small>{{formatDate LastLoginAt}}</small>
+                                {{else}}
+                                <span class="text-muted">Chưa đăng nhập</span>
+                                {{/if}}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" 
+                                            onclick="viewUser('{{Id}}')" 
+                                            title="Xem chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-warning" 
+                                            onclick="editUser('{{Id}}')" 
+                                            title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-outline-info" 
+                                            onclick="resetPassword('{{Id}}')" 
+                                            title="Đặt lại mật khẩu">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                    {{#if IsActive}}
+                                    <button class="btn btn-outline-danger" 
+                                            onclick="toggleUserStatus('{{Id}}', false)" 
+                                            title="Khóa tài khoản">
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                    {{else}}
+                                    <button class="btn btn-outline-success" 
+                                            onclick="toggleUserStatus('{{Id}}', true)" 
+                                            title="Mở khóa">
+                                        <i class="fas fa-unlock"></i>
+                                    </button>
+                                    {{/if}}
+                                </div>
+                            </td>
+                        </tr>
+                        {{/each}}
+                        {{else}}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <i class="fas fa-users fa-3x text-muted mb-3 d-block"></i>
+                                <p class="text-muted">Không tìm thấy người dùng nào</p>
+                            </td>
+                        </tr>
+                        {{/if}}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {{#if pagination}}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {{#if pagination.isFirst}}disabled{{/if}}">
+                        <a class="page-link" href="?page={{pagination.prevPage}}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {{#each pagination.pages}}
+                    <li class="page-item {{#if active}}active{{/if}}">
+                        <a class="page-link" href="?page={{page}}">{{page}}</a>
+                    </li>
+                    {{/each}}
+                    <li class="page-item {{#if pagination.isLast}}disabled{{/if}}">
+                        <a class="page-link" href="?page={{pagination.nextPage}}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {{/if}}
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>Thêm người dùng mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addUserForm" method="POST" action="/users/add">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên đăng nhập *</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mật khẩu *</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Xác nhận mật khẩu *</label>
+                            <input type="password" class="form-control" name="confirmPassword" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Họ tên</label>
+                            <input type="text" class="form-control" name="fullName">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" name="phone">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phòng ban</label>
+                            <select class="form-select" name="department">
+                                <option value="">-- Chọn phòng ban --</option>
+                                {{#each departments}}
+                                <option value="{{DepartmentID}}">{{Name}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Vai trò</label>
+                            <select class="form-select" name="role">
+                                <option value="User">User</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="isActive" id="isActive" checked>
+                                <label class="form-check-label" for="isActive">
+                                    Kích hoạt tài khoản
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Thêm người dùng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-md {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-md img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.stat-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+</style>
+
+<script>
+function viewUser(userId) {
+    window.location.href = `/users/${userId}`;
+}
+
+function editUser(userId) {
+    // Open edit modal or redirect to edit page
+    window.location.href = `/users/${userId}/edit`;
+}
+
+function resetPassword(userId) {
+    if (confirm('Bạn có chắc chắn muốn đặt lại mật khẩu cho người dùng này?')) {
+        fetch(`/users/${userId}/reset-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Đã gửi email đặt lại mật khẩu!');
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Có lỗi xảy ra!');
+        });
+    }
+}
+
+function toggleUserStatus(userId, activate) {
+    const action = activate ? 'mở khóa' : 'khóa';
+    if (confirm(`Bạn có chắc chắn muốn ${action} tài khoản này?`)) {
+        fetch(`/users/${userId}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ isActive: activate })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Có lỗi xảy ra!');
+        });
+    }
+}
+</script>

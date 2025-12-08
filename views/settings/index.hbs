@@ -1,0 +1,538 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Cài đặt hệ thống</h1>
+        <p class="page-subtitle">Quản lý cấu hình và tùy chọn hệ thống</p>
+    </div>
+</div>
+
+{{#if success}}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{{/if}}
+
+{{#if error}}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{{/if}}
+
+<div class="row">
+    <!-- Settings Navigation -->
+    <div class="col-lg-3 mb-4">
+        <div class="card">
+            <div class="list-group list-group-flush">
+                <a href="#general" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                    <i class="fas fa-cog me-2"></i>Cài đặt chung
+                </a>
+                <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-bell me-2"></i>Thông báo
+                </a>
+                <a href="#email" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-envelope me-2"></i>Email
+                </a>
+                <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-shield-alt me-2"></i>Bảo mật
+                </a>
+                <a href="#workflow" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-project-diagram me-2"></i>Workflow
+                </a>
+                <a href="#backup" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-database me-2"></i>Sao lưu
+                </a>
+                <a href="#advanced" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="fas fa-sliders-h me-2"></i>Nâng cao
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Content -->
+    <div class="col-lg-9">
+        <div class="tab-content">
+            <!-- General Settings -->
+            <div class="tab-pane fade show active" id="general">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Cài đặt chung</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/settings/update/general" method="POST">
+                            <div class="mb-3">
+                                <label for="systemName" class="form-label">Tên hệ thống</label>
+                                <input type="text" class="form-control" id="systemName" name="systemName" 
+                                       value="{{settings.systemName}}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="systemDescription" class="form-label">Mô tả</label>
+                                <textarea class="form-control" id="systemDescription" name="systemDescription" 
+                                          rows="3">{{settings.systemDescription}}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="language" class="form-label">Ngôn ngữ</label>
+                                <select class="form-select" id="language" name="language">
+                                    <option value="vi" {{#ifEquals settings.language 'vi'}}selected{{/ifEquals}}>Tiếng Việt</option>
+                                    <option value="en" {{#ifEquals settings.language 'en'}}selected{{/ifEquals}}>English</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="timezone" class="form-label">Múi giờ</label>
+                                <select class="form-select" id="timezone" name="timezone">
+                                    <option value="Asia/Ho_Chi_Minh" {{#ifEquals settings.timezone 'Asia/Ho_Chi_Minh'}}selected{{/ifEquals}}>GMT+7 (Việt Nam)</option>
+                                    <option value="Asia/Bangkok" {{#ifEquals settings.timezone 'Asia/Bangkok'}}selected{{/ifEquals}}>GMT+7 (Bangkok)</option>
+                                    <option value="Asia/Singapore" {{#ifEquals settings.timezone 'Asia/Singapore'}}selected{{/ifEquals}}>GMT+8 (Singapore)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dateFormat" class="form-label">Định dạng ngày</label>
+                                <select class="form-select" id="dateFormat" name="dateFormat">
+                                    <option value="DD/MM/YYYY" {{#ifEquals settings.dateFormat 'DD/MM/YYYY'}}selected{{/ifEquals}}>DD/MM/YYYY</option>
+                                    <option value="MM/DD/YYYY" {{#ifEquals settings.dateFormat 'MM/DD/YYYY'}}selected{{/ifEquals}}>MM/DD/YYYY</option>
+                                    <option value="YYYY-MM-DD" {{#ifEquals settings.dateFormat 'YYYY-MM-DD'}}selected{{/ifEquals}}>YYYY-MM-DD</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="tab-pane fade" id="notifications">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Cài đặt thông báo</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/settings/update/notifications" method="POST">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="enableNotifications" 
+                                       name="enableNotifications" {{#if settings.enableNotifications}}checked{{/if}}>
+                                <label class="form-check-label" for="enableNotifications">
+                                    Bật thông báo hệ thống
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="emailNotifications" 
+                                       name="emailNotifications" {{#if settings.emailNotifications}}checked{{/if}}>
+                                <label class="form-check-label" for="emailNotifications">
+                                    Gửi thông báo qua Email
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="browserNotifications" 
+                                       name="browserNotifications" {{#if settings.browserNotifications}}checked{{/if}}>
+                                <label class="form-check-label" for="browserNotifications">
+                                    Thông báo trình duyệt
+                                </label>
+                            </div>
+                            <hr>
+                            <h6 class="mb-3">Loại thông báo</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="notifyRequestCreated" 
+                                       name="notifyRequestCreated" {{#if settings.notifyRequestCreated}}checked{{/if}}>
+                                <label class="form-check-label" for="notifyRequestCreated">
+                                    Yêu cầu mới được tạo
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="notifyRequestAssigned" 
+                                       name="notifyRequestAssigned" {{#if settings.notifyRequestAssigned}}checked{{/if}}>
+                                <label class="form-check-label" for="notifyRequestAssigned">
+                                    Được giao yêu cầu
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="notifyRequestUpdated" 
+                                       name="notifyRequestUpdated" {{#if settings.notifyRequestUpdated}}checked{{/if}}>
+                                <label class="form-check-label" for="notifyRequestUpdated">
+                                    Yêu cầu được cập nhật
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="notifyCommentAdded" 
+                                       name="notifyCommentAdded" {{#if settings.notifyCommentAdded}}checked{{/if}}>
+                                <label class="form-check-label" for="notifyCommentAdded">
+                                    Có bình luận mới
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Settings -->
+            <div class="tab-pane fade" id="email">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Cấu hình Email</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/settings/update/email" method="POST">
+                            <div class="mb-3">
+                                <label for="smtpHost" class="form-label">SMTP Host</label>
+                                <input type="text" class="form-control" id="smtpHost" name="smtpHost" 
+                                       value="{{settings.smtpHost}}" placeholder="smtp.gmail.com">
+                            </div>
+                            <div class="mb-3">
+                                <label for="smtpPort" class="form-label">SMTP Port</label>
+                                <input type="number" class="form-control" id="smtpPort" name="smtpPort" 
+                                       value="{{settings.smtpPort}}" placeholder="587">
+                            </div>
+                            <div class="mb-3">
+                                <label for="smtpUser" class="form-label">SMTP Username</label>
+                                <input type="email" class="form-control" id="smtpUser" name="smtpUser" 
+                                       value="{{settings.smtpUser}}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="smtpPassword" class="form-label">SMTP Password</label>
+                                <input type="password" class="form-control" id="smtpPassword" name="smtpPassword" 
+                                       placeholder="••••••••">
+                                <small class="text-muted">Để trống nếu không muốn thay đổi</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="emailFrom" class="form-label">Email gửi từ</label>
+                                <input type="email" class="form-control" id="emailFrom" name="emailFrom" 
+                                       value="{{settings.emailFrom}}">
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="smtpSecure" 
+                                       name="smtpSecure" {{#if settings.smtpSecure}}checked{{/if}}>
+                                <label class="form-check-label" for="smtpSecure">
+                                    Sử dụng SSL/TLS
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="testEmail()">
+                                <i class="fas fa-paper-plane me-2"></i>Gửi email thử nghiệm
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="tab-pane fade" id="security">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Cài đặt bảo mật</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/settings/update/security" method="POST">
+                            <div class="mb-3">
+                                <label for="passwordMinLength" class="form-label">Độ dài mật khẩu tối thiểu</label>
+                                <input type="number" class="form-control" id="passwordMinLength" name="passwordMinLength" 
+                                       value="{{settings.passwordMinLength}}" min="6" max="20">
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="requireUppercase" 
+                                       name="requireUppercase" {{#if settings.requireUppercase}}checked{{/if}}>
+                                <label class="form-check-label" for="requireUppercase">
+                                    Yêu cầu chữ hoa
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="requireLowercase" 
+                                       name="requireLowercase" {{#if settings.requireLowercase}}checked{{/if}}>
+                                <label class="form-check-label" for="requireLowercase">
+                                    Yêu cầu chữ thường
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="requireDigit" 
+                                       name="requireDigit" {{#if settings.requireDigit}}checked{{/if}}>
+                                <label class="form-check-label" for="requireDigit">
+                                    Yêu cầu số
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="requireSpecialChar" 
+                                       name="requireSpecialChar" {{#if settings.requireSpecialChar}}checked{{/if}}>
+                                <label class="form-check-label" for="requireSpecialChar">
+                                    Yêu cầu ký tự đặc biệt
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="sessionTimeout" class="form-label">Thời gian timeout phiên (phút)</label>
+                                <input type="number" class="form-control" id="sessionTimeout" name="sessionTimeout" 
+                                       value="{{settings.sessionTimeout}}" min="5" max="1440">
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="twoFactorAuth" 
+                                       name="twoFactorAuth" {{#if settings.twoFactorAuth}}checked{{/if}}>
+                                <label class="form-check-label" for="twoFactorAuth">
+                                    Bật xác thực hai yếu tố
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow Settings -->
+            <div class="tab-pane fade" id="workflow">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Cài đặt Workflow</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/settings/update/workflow" method="POST">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="autoAssignment" 
+                                       name="autoAssignment" {{#if settings.autoAssignment}}checked{{/if}}>
+                                <label class="form-check-label" for="autoAssignment">
+                                    Tự động phân công yêu cầu
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="requireApproval" 
+                                       name="requireApproval" {{#if settings.requireApproval}}checked{{/if}}>
+                                <label class="form-check-label" for="requireApproval">
+                                    Yêu cầu phê duyệt
+                                </label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="defaultPriority" class="form-label">Độ ưu tiên mặc định</label>
+                                <select class="form-select" id="defaultPriority" name="defaultPriority">
+                                    <option value="1" {{#ifEquals settings.defaultPriority 1}}selected{{/ifEquals}}>Thấp</option>
+                                    <option value="2" {{#ifEquals settings.defaultPriority 2}}selected{{/ifEquals}}>Trung bình</option>
+                                    <option value="3" {{#ifEquals settings.defaultPriority 3}}selected{{/ifEquals}}>Cao</option>
+                                    <option value="4" {{#ifEquals settings.defaultPriority 4}}selected{{/ifEquals}}>Khẩn cấp</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dueDateDays" class="form-label">Số ngày hạn mặc định</label>
+                                <input type="number" class="form-control" id="dueDateDays" name="dueDateDays" 
+                                       value="{{settings.dueDateDays}}" min="1" max="365">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup Settings -->
+            <div class="tab-pane fade" id="backup">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Sao lưu dữ liệu</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h6>Sao lưu tự động</h6>
+                            <form action="/settings/update/backup" method="POST">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="autoBackup" 
+                                           name="autoBackup" {{#if settings.autoBackup}}checked{{/if}}>
+                                    <label class="form-check-label" for="autoBackup">
+                                        Bật sao lưu tự động
+                                    </label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="backupFrequency" class="form-label">Tần suất sao lưu</label>
+                                    <select class="form-select" id="backupFrequency" name="backupFrequency">
+                                        <option value="daily" {{#ifEquals settings.backupFrequency 'daily'}}selected{{/ifEquals}}>Hàng ngày</option>
+                                        <option value="weekly" {{#ifEquals settings.backupFrequency 'weekly'}}selected{{/ifEquals}}>Hàng tuần</option>
+                                        <option value="monthly" {{#ifEquals settings.backupFrequency 'monthly'}}selected{{/ifEquals}}>Hàng tháng</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Lưu thay đổi
+                                </button>
+                            </form>
+                        </div>
+                        <hr>
+                        <div>
+                            <h6>Sao lưu thủ công</h6>
+                            <p class="text-muted">Tạo bản sao lưu dữ liệu ngay bây giờ</p>
+                            <button type="button" class="btn btn-success" onclick="createBackup()">
+                                <i class="fas fa-download me-2"></i>Tạo bản sao lưu
+                            </button>
+                        </div>
+                        {{#if backups.length}}
+                        <hr>
+                        <div>
+                            <h6>Các bản sao lưu</h6>
+                            <div class="list-group">
+                                {{#each backups}}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{name}}</strong>
+                                        <br>
+                                        <small class="text-muted">{{formatDate createdAt}} - {{size}}</small>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="downloadBackup('{{id}}')">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteBackup('{{id}}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {{/each}}
+                            </div>
+                        </div>
+                        {{/if}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Settings -->
+            <div class="tab-pane fade" id="advanced">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Cài đặt nâng cao</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/settings/update/advanced" method="POST">
+                            <div class="mb-3">
+                                <label for="maxFileSize" class="form-label">Kích thước file tối đa (MB)</label>
+                                <input type="number" class="form-control" id="maxFileSize" name="maxFileSize" 
+                                       value="{{settings.maxFileSize}}" min="1" max="100">
+                            </div>
+                            <div class="mb-3">
+                                <label for="allowedFileTypes" class="form-label">Loại file cho phép</label>
+                                <input type="text" class="form-control" id="allowedFileTypes" name="allowedFileTypes" 
+                                       value="{{settings.allowedFileTypes}}" 
+                                       placeholder=".pdf,.doc,.docx,.jpg,.png">
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="enableLogging" 
+                                       name="enableLogging" {{#if settings.enableLogging}}checked{{/if}}>
+                                <label class="form-check-label" for="enableLogging">
+                                    Bật ghi log hệ thống
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="maintenanceMode" 
+                                       name="maintenanceMode" {{#if settings.maintenanceMode}}checked{{/if}}>
+                                <label class="form-check-label" for="maintenanceMode">
+                                    Chế độ bảo trì
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card border-danger mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0">Vùng nguy hiểm</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Các thao tác này không thể hoàn tác. Hãy thận trọng!</p>
+                        <button type="button" class="btn btn-outline-danger me-2" onclick="clearCache()">
+                            <i class="fas fa-broom me-2"></i>Xóa cache
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="resetSettings()">
+                            <i class="fas fa-undo me-2"></i>Đặt lại cài đặt mặc định
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testEmail() {
+    if (confirm('Gửi email thử nghiệm đến địa chỉ email của bạn?')) {
+        fetch('/settings/test-email', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Email thử nghiệm đã được gửi thành công!');
+                } else {
+                    alert('Lỗi khi gửi email: ' + data.message);
+                }
+            })
+            .catch(err => alert('Lỗi: ' + err.message));
+    }
+}
+
+function createBackup() {
+    if (confirm('Tạo bản sao lưu dữ liệu ngay bây giờ?')) {
+        fetch('/settings/create-backup', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Đã tạo bản sao lưu thành công!');
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(err => alert('Lỗi: ' + err.message));
+    }
+}
+
+function downloadBackup(id) {
+    window.location.href = '/settings/download-backup/' + id;
+}
+
+function deleteBackup(id) {
+    if (confirm('Xóa bản sao lưu này?')) {
+        fetch('/settings/delete-backup/' + id, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Đã xóa bản sao lưu!');
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(err => alert('Lỗi: ' + err.message));
+    }
+}
+
+function clearCache() {
+    if (confirm('Xóa toàn bộ cache hệ thống?')) {
+        fetch('/settings/clear-cache', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Đã xóa cache thành công!');
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(err => alert('Lỗi: ' + err.message));
+    }
+}
+
+function resetSettings() {
+    if (confirm('CẢNH BÁO: Đặt lại tất cả cài đặt về mặc định? Thao tác này không thể hoàn tác!')) {
+        if (confirm('Bạn có chắc chắn không? Nhấn OK để tiếp tục.')) {
+            fetch('/settings/reset', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Đã đặt lại cài đặt thành công!');
+                        location.reload();
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(err => alert('Lỗi: ' + err.message));
+        }
+    }
+}
+</script>

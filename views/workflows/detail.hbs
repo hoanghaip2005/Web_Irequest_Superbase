@@ -1,0 +1,311 @@
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="page-title">
+                <i class="fas fa-sitemap me-2"></i>
+                {{workflow.WorkflowName}}
+            </h2>
+            <p class="text-muted">Chi tiết workflow và theo dõi tiến độ</p>
+        </div>
+        <div class="col-auto">
+            <a href="/workflows" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </a>
+            <a href="/workflows/{{workflow.WorkflowID}}/setup" class="btn btn-primary me-2">
+                <i class="fas fa-cogs me-2"></i>Thiết lập
+            </a>
+            <a href="/workflows/{{workflow.WorkflowID}}/steps" class="btn btn-info">
+                <i class="fas fa-list-ol me-2"></i>Quản lý bước
+            </a>
+        </div>
+    </div>
+
+    <!-- Workflow Info -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Thông tin workflow
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Tên workflow:</strong>
+                            <p>{{workflow.WorkflowName}}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Mức ưu tiên:</strong>
+                            <p>
+                                {{#if workflow.PriorityName}}
+                                <span class="badge bg-info">{{workflow.PriorityName}}</span>
+                                {{else}}
+                                <span class="text-muted">Chưa đặt</span>
+                                {{/if}}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Trạng thái:</strong>
+                            <p>
+                                {{#if workflow.IsActive}}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Đang hoạt động
+                                </span>
+                                {{else}}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-pause-circle me-1"></i>Tạm dừng
+                                </span>
+                                {{/if}}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Số bước:</strong>
+                            <p>{{length steps}} bước</p>
+                        </div>
+                    </div>
+                    {{#if workflow.Description}}
+                    <div class="row">
+                        <div class="col-12">
+                            <strong>Mô tả:</strong>
+                            <p>{{workflow.Description}}</p>
+                        </div>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Thống kê
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="stat-item mb-3">
+                        <div class="stat-label">Tổng yêu cầu</div>
+                        <div class="stat-value text-primary">{{length requests}}</div>
+                    </div>
+                    <div class="stat-item mb-3">
+                        <div class="stat-label">Tổng số bước</div>
+                        <div class="stat-value text-info">{{length steps}}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">ID Workflow</div>
+                        <div class="stat-value text-muted">#{{workflow.WorkflowID}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workflow Steps -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list-ol me-2"></i>Các bước xử lý ({{length steps}})
+                    </h5>
+                    <a href="/workflows/{{workflow.WorkflowID}}/steps" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-2"></i>Thêm bước
+                    </a>
+                </div>
+                <div class="card-body">
+                    {{#if steps}}
+                    <div class="workflow-steps-timeline">
+                        {{#each steps}}
+                        <div class="step-timeline-item">
+                            <div class="step-timeline-marker">{{StepOrder}}</div>
+                            <div class="step-timeline-content">
+                                <h6 class="mb-2">{{StepName}}</h6>
+                                {{#if StepDescription}}
+                                <p class="text-muted mb-2">{{StepDescription}}</p>
+                                {{/if}}
+                                <div class="step-meta">
+                                    {{#if AssignedRoleName}}
+                                    <span class="badge bg-primary me-2">
+                                        <i class="fas fa-user-tag me-1"></i>{{AssignedRoleName}}
+                                    </span>
+                                    {{/if}}
+                                    {{#if StatusName}}
+                                    <span class="badge bg-info me-2">
+                                        <i class="fas fa-info-circle me-1"></i>{{StatusName}}
+                                    </span>
+                                    {{/if}}
+                                    {{#if RequiresApproval}}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-check-double me-1"></i>Yêu cầu phê duyệt
+                                    </span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                    {{else}}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Workflow này chưa có bước nào. 
+                        <a href="/workflows/{{workflow.WorkflowID}}/steps">Thêm bước đầu tiên</a>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Requests -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>Yêu cầu gần đây ({{length requests}})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{#if requests}}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Người tạo</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each requests}}
+                                <tr>
+                                    <td>#{{RequestID}}</td>
+                                    <td>{{Title}}</td>
+                                    <td>
+                                        {{#if UserName}}
+                                        {{UserName}}
+                                        {{else}}
+                                        <span class="text-muted">N/A</span>
+                                        {{/if}}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{#ifEquals StatusName 'Hoàn thành'}}success{{else}}{{#ifEquals StatusName 'Đang xử lý'}}warning{{else}}secondary{{/ifEquals}}{{/ifEquals}}">
+                                            {{StatusName}}
+                                        </span>
+                                    </td>
+                                    <td>{{formatDate CreatedAt}}</td>
+                                    <td>
+                                        <a href="/requests/{{RequestID}}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{else}}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Chưa có yêu cầu nào sử dụng workflow này
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-item {
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.workflow-steps-timeline {
+    position: relative;
+    padding-left: 40px;
+}
+
+.workflow-steps-timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+}
+
+.step-timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.step-timeline-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.step-timeline-marker {
+    position: absolute;
+    left: -40px;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.step-timeline-content {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+}
+
+.step-timeline-content h6 {
+    color: #333;
+    margin: 0;
+}
+
+.step-meta {
+    margin-top: 0.5rem;
+}
+</style>
+
+{{#if success}}
+<script>
+    setTimeout(() => {
+        const alert = document.querySelector('.alert-success');
+        if (alert) alert.remove();
+    }, 3000);
+</script>
+{{/if}}

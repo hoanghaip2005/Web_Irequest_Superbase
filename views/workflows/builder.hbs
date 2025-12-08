@@ -1,0 +1,989 @@
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="page-title">
+                <i class="fas fa-project-diagram me-2"></i>
+                Thiết kế Quy trình
+            </h2>
+            <p class="text-muted mb-2">Tạo workflow mới với giao diện kéo thả trực quan</p>
+            <div class="alert alert-info py-2">
+                <small>
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Hướng dẫn:</strong> 
+                    Kéo component vào canvas → Các bước sẽ tự động đánh số và nối với nhau → 
+                    Cấu hình thông tin cho từng bước → Lưu workflow
+                </small>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-center">
+                    <div class="text-muted small">Tổng bước</div>
+                    <div class="h4 mb-0 text-primary" id="stepCounter">0</div>
+                </div>
+                <a href="/workflows" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Hủy
+                </a>
+                <button class="btn btn-success" onclick="saveNewWorkflow()">
+                    <i class="fas fa-save me-2"></i>Lưu workflow
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Panel - Workflow Settings -->
+        <div class="col-lg-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>Cài đặt
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="workflowForm">
+                        <div class="mb-3">
+                            <label class="form-label">Tên workflow *</label>
+                            <input type="text" class="form-control" name="workflowName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mức ưu tiên</label>
+                            <select class="form-select" name="priorityId">
+                                <option value="">Chọn mức ưu tiên</option>
+                                {{#each priorities}}
+                                <option value="{{PriorityID}}">{{PriorityName}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="isActive" id="isActive" checked>
+                            <label class="form-check-label" for="isActive">
+                                Kích hoạt
+                            </label>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-puzzle-piece me-2"></i>Thành phần
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Kéo thả vào canvas để thêm
+                    </p>
+                    <div class="component-list">
+                        <div class="component-item" draggable="true" data-type="step">
+                            <i class="fas fa-tasks text-primary"></i>
+                            <div>
+                                <strong>Bước xử lý</strong>
+                                <small class="d-block text-muted">Xử lý yêu cầu</small>
+                            </div>
+                        </div>
+                        <div class="component-item" draggable="true" data-type="approval">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>Phê duyệt</strong>
+                                <small class="d-block text-muted">Duyệt/từ chối</small>
+                            </div>
+                        </div>
+                        <div class="component-item" draggable="true" data-type="condition">
+                            <i class="fas fa-code-branch text-warning"></i>
+                            <div>
+                                <strong>Điều kiện</strong>
+                                <small class="d-block text-muted">Phân nhánh logic</small>
+                            </div>
+                        </div>
+                        <div class="component-item" draggable="true" data-type="notification">
+                            <i class="fas fa-bell text-info"></i>
+                            <div>
+                                <strong>Thông báo</strong>
+                                <small class="d-block text-muted">Gửi thông báo</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center - Canvas -->
+        <div class="col-lg-6">
+            <div class="card workflow-canvas-card">
+                <div class="card-body">
+                    <svg id="connectionLayer" class="connection-layer"></svg>
+                    <div id="workflowCanvas" class="workflow-canvas">
+                        <div class="canvas-placeholder">
+                            <i class="fas fa-hand-pointer fa-3x mb-3 text-muted"></i>
+                            <p class="text-muted">Kéo thả các thành phần từ bên trái để bắt đầu thiết kế</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Step Properties -->
+        <div class="col-lg-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-sliders-h me-2"></i>Thuộc tính
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="stepProperties" class="step-properties">
+                        <p class="text-muted text-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Chọn một bước để xem thuộc tính
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.workflow-canvas-card {
+    height: calc(100vh - 200px);
+    min-height: 600px;
+}
+
+.workflow-canvas {
+    height: 100%;
+    min-height: 550px;
+    width: 100%;
+    min-width: 1200px;
+    background: 
+        linear-gradient(90deg, #f0f0f0 1px, transparent 1px),
+        linear-gradient(#f0f0f0 1px, transparent 1px);
+    background-size: 20px 20px;
+    border-radius: 8px;
+    position: relative;
+    overflow: auto;
+    padding: 20px;
+}
+
+.workflow-canvas-card .card-body {
+    padding: 0;
+    height: 100%;
+    overflow: auto;
+    position: relative;
+}
+
+.connection-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.workflow-canvas {
+    position: relative;
+    z-index: 2;
+}
+
+.canvas-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.component-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.component-item {
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: move;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.component-item:hover {
+    background: white;
+    border-color: #667eea;
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.component-item i {
+    font-size: 1.5rem;
+    min-width: 24px;
+}
+
+.component-item strong {
+    font-size: 0.95rem;
+}
+
+.component-item small {
+    font-size: 0.75rem;
+}
+
+.step-properties {
+    min-height: 400px;
+}
+
+.workflow-step {
+    position: absolute;
+    width: 220px;
+    padding: 1rem;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 12px;
+    cursor: move;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.workflow-step.selected {
+    border-color: #4caf50;
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+    transform: scale(1.05);
+}
+
+.workflow-step.type-step {
+    border-color: #667eea;
+}
+
+.workflow-step.type-approval {
+    border-color: #28a745;
+}
+
+.workflow-step.type-condition {
+    border-color: #ffc107;
+}
+
+.workflow-step.type-notification {
+    border-color: #17a2b8;
+}
+
+.workflow-step .step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    flex-wrap: wrap;
+}
+
+.workflow-step .step-header .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.workflow-step .step-info {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.workflow-step .step-name {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.workflow-step .step-role {
+    font-size: 0.8rem;
+    color: #495057;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.workflow-step .connection-point {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    cursor: crosshair;
+}
+
+.workflow-step .connection-point.input {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.workflow-step .connection-point.output {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.workflow-step .connection-point:hover {
+    background: currentColor;
+    transform: translateX(-50%) scale(1.3);
+}
+
+.connection-line {
+    stroke: #667eea;
+    stroke-width: 2;
+    fill: none;
+    marker-end: url(#arrowhead);
+}
+
+.connection-line.selected {
+    stroke: #4caf50;
+    stroke-width: 3;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.pulse {
+    animation: pulse 0.3s ease-in-out;
+}
+</style>
+
+<script>
+let steps = [];
+let connections = [];
+let selectedStep = null;
+let connectingFrom = null;
+
+// Initialize SVG for connections
+function initSVG() {
+    const svg = document.getElementById('connectionLayer');
+    svg.innerHTML = `
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="10" 
+                    refX="9" refY="3" orient="auto">
+                <polygon points="0 0, 10 3, 0 6" fill="#667eea" />
+            </marker>
+        </defs>
+    `;
+}
+
+initSVG();
+
+// Drag and drop functionality
+document.querySelectorAll('.component-item').forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('componentType', item.dataset.type);
+    });
+});
+
+const canvas = document.getElementById('workflowCanvas');
+canvas.addEventListener('dragover', (e) => {
+    e.preventDefault();
+});
+
+canvas.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const componentType = e.dataTransfer.getData('componentType');
+    
+    // Remove placeholder if exists
+    const placeholder = canvas.querySelector('.canvas-placeholder');
+    if (placeholder) {
+        placeholder.remove();
+    }
+    
+    // Get canvas scroll position
+    const canvasRect = canvas.getBoundingClientRect();
+    const scrollLeft = canvas.scrollLeft;
+    const scrollTop = canvas.scrollTop;
+    
+    // Auto-position: if there are existing steps, position below the last one
+    let x, y;
+    if (steps.length > 0) {
+        const lastStep = steps[steps.length - 1];
+        x = lastStep.x;
+        y = lastStep.y + 150; // Position 150px below the last step
+    } else {
+        // First step: center position
+        x = 200;
+        y = 100;
+    }
+    
+    // Create new step
+    const step = createStep(componentType, x, y);
+    canvas.appendChild(step);
+    
+    // Calculate step order number
+    const stepOrder = steps.length + 1;
+    
+    // Add to steps array
+    const stepData = {
+        id: step.id,
+        type: componentType,
+        x: x,
+        y: y,
+        order: stepOrder,
+        name: `Bước ${stepOrder}`,
+        description: ''
+    };
+    steps.push(stepData);
+    
+    // Update step counter
+    updateStepCounter();
+    
+    // Auto-connect to previous step
+    if (steps.length > 1) {
+        const previousStep = steps[steps.length - 2];
+        connections.push({
+            from: previousStep.id,
+            to: step.id
+        });
+        drawConnections();
+    }
+    
+    // Auto focus on the newly created step
+    setTimeout(() => {
+        showStepProperties(step.id);
+        // Scroll to the new step
+        step.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+});
+
+function createStep(type, x, y) {
+    const step = document.createElement('div');
+    step.className = `workflow-step type-${type}`;
+    step.id = `step-${Date.now()}`;
+    step.style.left = x + 'px';
+    step.style.top = y + 'px';
+    
+    // Calculate step number
+    const stepNumber = steps.length + 1;
+    
+    let icon = '';
+    let iconColor = '';
+    let label = '';
+    let description = '';
+    
+    switch(type) {
+        case 'step':
+            icon = 'fa-tasks';
+            iconColor = 'text-primary';
+            label = 'Bước xử lý';
+            description = 'Xử lý yêu cầu';
+            break;
+        case 'approval':
+            icon = 'fa-check-circle';
+            iconColor = 'text-success';
+            label = 'Phê duyệt';
+            description = 'Duyệt/từ chối';
+            break;
+        case 'condition':
+            icon = 'fa-code-branch';
+            iconColor = 'text-warning';
+            label = 'Điều kiện';
+            description = 'Phân nhánh logic';
+            break;
+        case 'notification':
+            icon = 'fa-bell';
+            iconColor = 'text-info';
+            label = 'Thông báo';
+            description = 'Gửi thông báo';
+            break;
+    }
+    
+    step.innerHTML = `
+        <div class="connection-point input" data-step-id="${step.id}" data-point="input"></div>
+        <div class="step-header">
+            <span class="badge bg-secondary me-2">#${stepNumber}</span>
+            <i class="fas ${icon} ${iconColor}"></i>
+            <strong>${label}</strong>
+        </div>
+        <div class="step-info">
+            <div class="step-name" style="font-weight: 600; color: #495057;">Bước ${stepNumber}</div>
+            <small class="text-muted">${description}</small>
+        </div>
+        <div class="step-role">
+            <i class="fas fa-user-tag"></i>
+            <span class="role-name">Chưa chỉ định</span>
+        </div>
+        <div class="connection-point output" data-step-id="${step.id}" data-point="output"></div>
+    `;
+    
+    // Make draggable within canvas
+    makeDraggable(step);
+    
+    // Add connection point handlers
+    addConnectionHandlers(step);
+    
+    return step;
+}
+
+function makeDraggable(element) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    let isDragging = false;
+    
+    element.onmousedown = dragMouseDown;
+    
+    function dragMouseDown(e) {
+        // Don't interfere with text selection or input interactions or connection points
+        if (e.target.tagName === 'INPUT' || 
+            e.target.tagName === 'TEXTAREA' || 
+            e.target.tagName === 'SELECT' ||
+            e.target.classList.contains('connection-point')) {
+            return;
+        }
+        
+        e.preventDefault();
+        e.stopPropagation();
+        isDragging = false;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+    }
+    
+    function elementDrag(e) {
+        e.preventDefault();
+        isDragging = true;
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        
+        // Update position
+        const newTop = element.offsetTop - pos2;
+        const newLeft = element.offsetLeft - pos1;
+        
+        element.style.top = Math.max(0, newTop) + "px";
+        element.style.left = Math.max(0, newLeft) + "px";
+        
+        // Update step position in array
+        const stepData = steps.find(s => s.id === element.id);
+        if (stepData) {
+            stepData.x = newLeft;
+            stepData.y = newTop;
+        }
+        
+        // Redraw connections
+        drawConnections();
+    }
+    
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+        
+        // If it was just a click (not dragging), show properties
+        if (!isDragging) {
+            showStepProperties(element.id);
+        }
+        isDragging = false;
+    }
+}
+
+// Connection handlers
+function addConnectionHandlers(step) {
+    const connectionPoints = step.querySelectorAll('.connection-point');
+    connectionPoints.forEach(point => {
+        point.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            const stepId = point.dataset.stepId;
+            const pointType = point.dataset.point;
+            
+            if (pointType === 'output') {
+                // Start connecting
+                connectingFrom = stepId;
+                point.style.background = '#4caf50';
+            }
+        });
+        
+        point.addEventListener('mouseup', (e) => {
+            e.stopPropagation();
+            const stepId = point.dataset.stepId;
+            const pointType = point.dataset.point;
+            
+            if (pointType === 'input' && connectingFrom && connectingFrom !== stepId) {
+                // Create connection
+                connections.push({
+                    from: connectingFrom,
+                    to: stepId
+                });
+                drawConnections();
+            }
+            
+            // Reset
+            if (connectingFrom) {
+                const fromStep = document.getElementById(connectingFrom);
+                if (fromStep) {
+                    const outputPoint = fromStep.querySelector('.connection-point.output');
+                    if (outputPoint) outputPoint.style.background = 'white';
+                }
+            }
+            connectingFrom = null;
+        });
+    });
+}
+
+// Draw connections
+function drawConnections() {
+    const svg = document.getElementById('connectionLayer');
+    const canvas = document.getElementById('workflowCanvas');
+    const canvasRect = canvas.getBoundingClientRect();
+    
+    // Clear existing lines
+    const existingLines = svg.querySelectorAll('.connection-line');
+    existingLines.forEach(line => line.remove());
+    
+    // Draw each connection
+    connections.forEach((conn, index) => {
+        const fromElement = document.getElementById(conn.from);
+        const toElement = document.getElementById(conn.to);
+        
+        if (!fromElement || !toElement) return;
+        
+        const fromRect = fromElement.getBoundingClientRect();
+        const toRect = toElement.getBoundingClientRect();
+        
+        const x1 = fromRect.left - canvasRect.left + fromRect.width / 2 + canvas.scrollLeft;
+        const y1 = fromRect.bottom - canvasRect.top + canvas.scrollTop - 6;
+        const x2 = toRect.left - canvasRect.left + toRect.width / 2 + canvas.scrollLeft;
+        const y2 = toRect.top - canvasRect.top + canvas.scrollTop + 6;
+        
+        // Create curved path
+        const midY = (y1 + y2) / 2;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('class', 'connection-line');
+        path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`);
+        path.style.cursor = 'pointer';
+        path.dataset.index = index;
+        
+        // Click to delete connection
+        path.addEventListener('click', () => {
+            if (confirm('Xóa kết nối này?')) {
+                connections.splice(index, 1);
+                drawConnections();
+            }
+        });
+        
+        svg.appendChild(path);
+    });
+}
+
+function showStepProperties(stepId) {
+    const step = steps.find(s => s.id === stepId);
+    if (!step) return;
+    
+    selectedStep = stepId;
+    document.querySelectorAll('.workflow-step').forEach(s => s.classList.remove('selected'));
+    document.getElementById(stepId).classList.add('selected');
+    
+    const propertiesPanel = document.getElementById('stepProperties');
+    
+    // Get type label
+    let typeLabel = '';
+    switch(step.type) {
+        case 'step': typeLabel = 'Bước xử lý'; break;
+        case 'approval': typeLabel = 'Phê duyệt'; break;
+        case 'condition': typeLabel = 'Điều kiện'; break;
+        case 'notification': typeLabel = 'Thông báo'; break;
+    }
+    
+    propertiesPanel.innerHTML = `
+        <div class="mb-3">
+            <div class="alert alert-info py-2 px-3">
+                <small><i class="fas fa-info-circle me-2"></i>${typeLabel}</small>
+            </div>
+        </div>
+        <form id="stepPropertiesForm">
+            <div class="mb-3">
+                <label class="form-label">Tên bước *</label>
+                <input type="text" class="form-control" id="stepName" value="${step.name || ''}" 
+                       placeholder="Nhập tên bước" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mô tả</label>
+                <textarea class="form-control" id="stepDescription" rows="3" 
+                          placeholder="Mô tả chi tiết về bước này">${step.description || ''}</textarea>
+            </div>
+            ${step.type !== 'notification' ? `
+            <div class="mb-3">
+                <label class="form-label">Vai trò xử lý *</label>
+                <select class="form-select" id="stepRoleId" required>
+                    <option value="">-- Chọn vai trò --</option>
+                    {{#each roles}}
+                    <option value="{{Id}}" ${step.roleId == '{{Id}}' ? 'selected' : ''}>{{Name}}</option>
+                    {{/each}}
+                </select>
+                <small class="text-muted">Vai trò được giao xử lý bước này</small>
+            </div>
+            ` : ''}
+            ${step.type === 'approval' ? `
+            <div class="mb-3">
+                <label class="form-label">Trạng thái khi duyệt</label>
+                <select class="form-select" id="stepApproveStatus">
+                    <option value="">-- Chọn trạng thái --</option>
+                    {{#each statuses}}
+                    <option value="{{StatusID}}" ${step.approveStatusId == '{{StatusID}}' ? 'selected' : ''}>{{StatusName}}</option>
+                    {{/each}}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Trạng thái khi từ chối</label>
+                <select class="form-select" id="stepRejectStatus">
+                    <option value="">-- Chọn trạng thái --</option>
+                    {{#each statuses}}
+                    <option value="{{StatusID}}" ${step.rejectStatusId == '{{StatusID}}' ? 'selected' : ''}>{{StatusName}}</option>
+                    {{/each}}
+                </select>
+            </div>
+            ` : ''}
+            ${step.type === 'condition' ? `
+            <div class="mb-3">
+                <label class="form-label">Điều kiện</label>
+                <textarea class="form-control" id="stepCondition" rows="2" 
+                          placeholder="VD: priority == 'Cao'">${step.condition || ''}</textarea>
+                <small class="text-muted">Biểu thức điều kiện để phân nhánh</small>
+            </div>
+            ` : ''}
+            <div class="mb-3">
+                <label class="form-label">Thời gian xử lý (giờ)</label>
+                <input type="number" class="form-control" id="stepDuration" value="${step.duration || ''}" 
+                       placeholder="VD: 24" min="1">
+                <small class="text-muted">Thời gian dự kiến hoàn thành</small>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-primary" onclick="saveStepProperties()">
+                    <i class="fas fa-check me-2"></i>Lưu thông tin
+                </button>
+                <button type="button" class="btn btn-outline-danger" onclick="deleteStep('${stepId}')">
+                    <i class="fas fa-trash me-2"></i>Xóa bước
+                </button>
+            </div>
+        </form>
+    `;
+}
+
+function saveStepProperties() {
+    if (!selectedStep) return;
+    
+    const step = steps.find(s => s.id === selectedStep);
+    if (!step) return;
+    
+    // Get form values
+    const name = document.getElementById('stepName').value.trim();
+    const description = document.getElementById('stepDescription').value.trim();
+    const roleId = document.getElementById('stepRoleId')?.value;
+    const duration = document.getElementById('stepDuration').value;
+    
+    // Validation
+    if (!name) {
+        alert('Vui lòng nhập tên bước');
+        return;
+    }
+    
+    if (step.type !== 'notification' && !roleId) {
+        alert('Vui lòng chọn vai trò xử lý');
+        return;
+    }
+    
+    // Update step data
+    step.name = name;
+    step.description = description;
+    step.roleId = roleId;
+    step.duration = duration;
+    
+    if (step.type === 'approval') {
+        step.approveStatusId = document.getElementById('stepApproveStatus').value;
+        step.rejectStatusId = document.getElementById('stepRejectStatus').value;
+    }
+    
+    if (step.type === 'condition') {
+        step.condition = document.getElementById('stepCondition').value;
+    }
+    
+    // Update visual display
+    const stepElement = document.getElementById(selectedStep);
+    if (stepElement) {
+        // Update step name
+        const stepNameDiv = stepElement.querySelector('.step-name');
+        if (stepNameDiv) {
+            stepNameDiv.textContent = name;
+        }
+        
+        // Update role
+        if (roleId) {
+            const roleSelect = document.getElementById('stepRoleId');
+            const roleName = roleSelect.options[roleSelect.selectedIndex].text;
+            const roleSpan = stepElement.querySelector('.role-name');
+            if (roleSpan) {
+                roleSpan.textContent = roleName;
+                roleSpan.style.fontWeight = '600';
+                roleSpan.style.color = '#28a745';
+            }
+        }
+    }
+    
+    // Show success message
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show mt-3';
+    alert.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>Đã lưu thông tin bước!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.getElementById('stepPropertiesForm').insertAdjacentElement('afterend', alert);
+    
+    setTimeout(() => alert.remove(), 3000);
+}
+
+function deleteStep(stepId) {
+    if (!confirm('Bạn có chắc muốn xóa bước này?')) return;
+    
+    // Remove from DOM
+    const element = document.getElementById(stepId);
+    if (element) {
+        element.remove();
+    }
+    
+    // Remove from steps array
+    steps = steps.filter(s => s.id !== stepId);
+    
+    // Remove connections involving this step
+    connections = connections.filter(c => c.from !== stepId && c.to !== stepId);
+    drawConnections();
+    
+    // Update step counter
+    updateStepCounter();
+    
+    // Renumber remaining steps
+    renumberSteps();
+    
+    // Clear properties panel
+    document.getElementById('stepProperties').innerHTML = `
+        <p class="text-muted text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            Chọn một bước để xem thuộc tính
+        </p>
+    `;
+    
+    selectedStep = null;
+}
+
+function updateStepCounter() {
+    const counter = document.getElementById('stepCounter');
+    if (counter) {
+        counter.textContent = steps.length;
+        counter.classList.add('pulse');
+        setTimeout(() => counter.classList.remove('pulse'), 300);
+    }
+}
+
+function renumberSteps() {
+    steps.forEach((step, index) => {
+        step.order = index + 1;
+        const stepElement = document.getElementById(step.id);
+        if (stepElement) {
+            const badge = stepElement.querySelector('.badge');
+            if (badge) {
+                badge.textContent = `#${step.order}`;
+            }
+        }
+    });
+}
+
+function saveNewWorkflow() {
+    const formData = new FormData(document.getElementById('workflowForm'));
+    const workflowName = formData.get('workflowName');
+    
+    // Validation
+    if (!workflowName || !workflowName.trim()) {
+        alert('❌ Vui lòng nhập tên workflow');
+        return;
+    }
+    
+    if (steps.length === 0) {
+        alert('❌ Vui lòng thêm ít nhất một bước cho workflow');
+        return;
+    }
+    
+    // Check if all steps have names and roles
+    const incompleteSteps = steps.filter(s => {
+        if (!s.name || !s.name.trim()) return true;
+        if (s.type !== 'notification' && !s.roleId) return true;
+        return false;
+    });
+    
+    if (incompleteSteps.length > 0) {
+        alert(`❌ Có ${incompleteSteps.length} bước chưa hoàn thiện!\nVui lòng cấu hình đầy đủ tên và vai trò cho tất cả các bước.`);
+        return;
+    }
+    
+    // Prepare workflow data
+    const workflowData = {
+        workflowName: workflowName.trim(),
+        description: formData.get('description')?.trim() || '',
+        priorityId: formData.get('priorityId') || null,
+        isActive: formData.get('isActive') === 'on',
+        steps: steps.map((s, index) => ({
+            stepOrder: index + 1,
+            stepName: s.name,
+            description: s.description || '',
+            assignedRoleId: s.roleId || null,
+            expectedDuration: s.duration || null,
+            statusId: s.statusId || null,
+            isApprovalStep: s.type === 'approval',
+            type: s.type,
+            condition: s.condition || null,
+            approveStatusId: s.approveStatusId || null,
+            rejectStatusId: s.rejectStatusId || null,
+            x: s.x,
+            y: s.y
+        })),
+        connections: connections
+    };
+    
+    console.log('Saving workflow:', workflowData);
+    
+    // Show loading
+    const saveBtn = event.target;
+    const originalText = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang lưu...';
+    
+    fetch('/workflows/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(workflowData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Đã tạo workflow thành công!');
+            window.location.href = '/workflows';
+        } else {
+            alert('❌ Lỗi: ' + (data.message || 'Không thể tạo workflow'));
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('❌ Có lỗi xảy ra khi tạo workflow');
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+    });
+}
+</script>
