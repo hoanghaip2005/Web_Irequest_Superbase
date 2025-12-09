@@ -1,4 +1,5 @@
-<div class="container-fluid">
+<div class="container-fluid py-4">
+    <!-- Header -->
     <div class="row mb-4">
         <div class="col">
             <h2 class="page-title">
@@ -8,84 +9,90 @@
             <p class="text-muted">Tổng quan về các chỉ số và xu hướng của hệ thống</p>
         </div>
         <div class="col-auto">
-            <div class="btn-group">
-                <button class="btn btn-outline-primary active" data-period="week">7 ngày</button>
-                <button class="btn btn-outline-primary" data-period="month">30 ngày</button>
-                <button class="btn btn-outline-primary" data-period="quarter">90 ngày</button>
-                <button class="btn btn-outline-primary" data-period="year">1 năm</button>
-            </div>
+            <select id="periodFilter" class="form-select me-2" style="display: inline-block; width: auto;">
+                <option value="7" {{#if (eq period '7')}}selected{{/if}}>7 ngày</option>
+                <option value="30" {{#if (eq period '30')}}selected{{/if}}>30 ngày</option>
+                <option value="90" {{#if (eq period '90')}}selected{{/if}}>90 ngày</option>
+                <option value="365" {{#if (eq period '365')}}selected{{/if}}>1 năm</option>
+            </select>
+            <button id="exportExcel" class="btn btn-success">
+                <i class="fas fa-file-excel me-2"></i>Xuất Excel
+            </button>
+            <button id="exportPdf" class="btn btn-danger ms-2">
+                <i class="fas fa-file-pdf me-2"></i>Xuất PDF
+            </button>
         </div>
     </div>
 
     <!-- Key Metrics -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <div class="card stat-card stat-card-primary">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <p class="text-muted mb-1">Tổng yêu cầu</p>
+                            <p class="text-muted mb-1 small">Tổng yêu cầu</p>
                             <h3 class="mb-0">{{stats.totalRequests}}</h3>
-                            <small class="text-success">
-                                <i class="fas fa-arrow-up"></i> +12% so với tháng trước
-                            </small>
-                        </div>
-                        <div class="stat-icon bg-primary">
-                            <i class="fas fa-clipboard-list"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stat-card stat-card-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1">Đã hoàn thành</p>
-                            <h3 class="mb-0">{{stats.completedRequests}}</h3>
-                            <small class="text-success">
-                                <i class="fas fa-arrow-up"></i> +8% so với tháng trước
-                            </small>
-                        </div>
-                        <div class="stat-icon bg-success">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stat-card stat-card-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1">Đang xử lý</p>
-                            <h3 class="mb-0">{{stats.inProgressRequests}}</h3>
                             <small class="text-muted">
-                                <i class="fas fa-minus"></i> Không đổi
+                                <i class="fas fa-calendar me-1"></i>{{period}} ngày qua
                             </small>
                         </div>
-                        <div class="stat-icon bg-warning">
-                            <i class="fas fa-spinner"></i>
+                        <div class="stat-icon" style="background: rgba(0, 82, 204, 0.1); color: #0052CC; padding: 15px; border-radius: 10px;">
+                            <i class="fas fa-clipboard-list fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card stat-card stat-card-info">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <p class="text-muted mb-1">Thời gian trung bình</p>
-                            <h3 class="mb-0">{{stats.avgCompletionTime}}</h3>
-                            <small class="text-success">
-                                <i class="fas fa-arrow-down"></i> -5% nhanh hơn
+                            <p class="text-muted mb-1 small">Đã hoàn thành</p>
+                            <h3 class="mb-0 text-success">{{stats.completedRequests}}</h3>
+                            <small class="text-muted">
+                                Tỷ lệ: {{#if stats.totalRequests}}{{math stats.completedRequests '*' 100 '/' stats.totalRequests}}%{{else}}0%{{/if}}
                             </small>
                         </div>
-                        <div class="stat-icon bg-info">
-                            <i class="fas fa-clock"></i>
+                        <div class="stat-icon" style="background: rgba(54, 179, 126, 0.1); color: #36B37E; padding: 15px; border-radius: 10px;">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Đang xử lý</p>
+                            <h3 class="mb-0 text-warning">{{stats.inProgressRequests}}</h3>
+                            <small class="text-muted">
+                                Cần theo dõi
+                            </small>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(255, 153, 31, 0.1); color: #FF991F; padding: 15px; border-radius: 10px;">
+                            <i class="fas fa-spinner fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Thời gian trung bình</p>
+                            <h3 class="mb-0 text-info">{{stats.avgCompletionTime}}</h3>
+                            <small class="text-muted">
+                                Để hoàn thành
+                            </small>
+                        </div>
+                        <div class="stat-icon" style="background: rgba(0, 184, 217, 0.1); color: #00B8D9; padding: 15px; border-radius: 10px;">
+                            <i class="fas fa-clock fa-2x"></i>
                         </div>
                     </div>
                 </div>
@@ -93,222 +100,220 @@
         </div>
     </div>
 
-    <!-- Charts Row -->
+    <!-- Charts Row 1 -->
     <div class="row g-3 mb-4">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-area me-2"></i>
-                        Xu hướng yêu cầu
+                        <i class="fas fa-chart-line text-primary me-2"></i>
+                        Xu hướng yêu cầu theo thời gian
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="requestTrendChart" height="80"></canvas>
+                    <canvas id="analyticsTrendChart" style="height: 300px;"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>
-                        Trạng thái yêu cầu
+                        <i class="fas fa-chart-pie text-success me-2"></i>
+                        Phân bố trạng thái
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="requestStatusChart" height="200"></canvas>
+                    <canvas id="analyticsStatusChart" style="height: 300px;"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Performance Metrics -->
+    <!-- Charts Row 2 -->
     <div class="row g-3 mb-4">
         <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-users me-2"></i>
-                        Hiệu suất theo phòng ban
+                        <i class="fas fa-chart-bar text-warning me-2"></i>
+                        Phân bố mức độ ưu tiên
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="departmentPerformanceChart" height="120"></canvas>
+                    <canvas id="analyticsPriorityChart" style="height: 300px;"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-star me-2"></i>
+                        <i class="fas fa-building text-purple me-2"></i>
+                        Phân bố theo phòng ban
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="analyticsDepartmentChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performers -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-trophy text-warning me-2"></i>
                         Top nhân viên xuất sắc
                     </h5>
                 </div>
                 <div class="card-body">
+                    {{#if topEmployees.length}}
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>Nhân viên</th>
-                                    <th>Hoàn thành</th>
-                                    <th>Đánh giá</th>
+                                    <th class="text-center">Đã xử lý</th>
+                                    <th class="text-center">Hoàn thành</th>
+                                    <th class="text-center">Đánh giá</th>
+                                    <th class="text-center">Thời gian TB</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {{#each topEmployees}}
                                 <tr>
-                                    <td>{{@index}}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar avatar-sm me-2">
-                                                {{#if Avatar}}
-                                                <img src="{{Avatar}}" alt="{{UserName}}">
-                                                {{else}}
-                                                <span>{{substring UserName 0 1}}</span>
-                                                {{/if}}
+                                            {{#if this.Avatar}}
+                                            <img src="{{this.Avatar}}" alt="{{this.UserName}}" class="rounded-circle me-2" width="32" height="32">
+                                            {{else}}
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                {{substring this.UserName 0 1}}
                                             </div>
-                                            <span>{{UserName}}</span>
+                                            {{/if}}
+                                            <div>
+                                                <div class="fw-bold">{{this.UserName}}</div>
+                                                <small class="text-muted">{{this.Email}}</small>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td><span class="badge bg-success">{{completedCount}}</span></td>
-                                    <td>
-                                        <div class="rating">
-                                            <i class="fas fa-star text-warning"></i>
-                                            <span>{{rating}}</span>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{this.totalHandled}}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">{{this.completedCount}}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="text-warning">
+                                            {{#each (range this.avgRating)}}
+                                            <i class="fas fa-star"></i>
+                                            {{/each}}
+                                            <span class="text-muted ms-1">{{this.avgRating}}</span>
                                         </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-muted">{{this.avgResponseTime}}h</span>
                                     </td>
                                 </tr>
                                 {{/each}}
                             </tbody>
                         </table>
                     </div>
+                    {{else}}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-user-slash fa-3x mb-3"></i>
+                        <p>Chưa có dữ liệu nhân viên</p>
+                    </div>
+                    {{/if}}
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Response Time Analysis -->
-    <div class="row g-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+        <!-- Department Statistics -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-stopwatch me-2"></i>
-                        Phân tích thời gian phản hồi
+                        <i class="fas fa-chart-pie text-info me-2"></i>
+                        Thống kê theo phòng ban
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="responseTimeChart" height="60"></canvas>
+                    {{#if departmentStats.length}}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Phòng ban</th>
+                                    <th class="text-center">Tổng</th>
+                                    <th class="text-center">Hoàn thành</th>
+                                    <th class="text-center">Tỷ lệ</th>
+                                    <th class="text-center">Thời gian TB</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each departmentStats}}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-building text-muted me-2"></i>
+                                        {{this.departmentName}}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{this.totalRequests}}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">{{this.completed}}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-success" role="progressbar" 
+                                                 style="width: {{#if this.totalRequests}}{{math this.completed '*' 100 '/' this.totalRequests}}{{else}}0{{/if}}%" 
+                                                 aria-valuenow="{{#if this.totalRequests}}{{math this.completed '*' 100 '/' this.totalRequests}}{{else}}0{{/if}}" 
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                                {{#if this.totalRequests}}{{math this.completed '*' 100 '/' this.totalRequests}}{{else}}0{{/if}}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-muted">{{this.avgHours}}h</span>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{else}}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-building fa-3x mb-3"></i>
+                        <p>Chưa có dữ liệu phòng ban</p>
+                    </div>
+                    {{/if}}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-.stat-card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 24px;
-}
-
-.avatar-sm {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #e0e0e0;
-    font-weight: 600;
-}
-
-.avatar-sm img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.rating {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-</style>
-
+<!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-// Chart.js configurations will be added here
-document.addEventListener('DOMContentLoaded', function() {
-    // Request Trend Chart
-    const trendCtx = document.getElementById('requestTrendChart');
-    if (trendCtx) {
-        new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
-                datasets: [{
-                    label: 'Yêu cầu mới',
-                    data: [12, 19, 15, 25, 22, 18, 14],
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.4
-                }, {
-                    label: 'Hoàn thành',
-                    data: [8, 15, 12, 20, 18, 16, 12],
-                    borderColor: 'rgb(54, 162, 235)',
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
-                }
-            }
-        });
-    }
 
-    // Status Pie Chart
-    const statusCtx = document.getElementById('requestStatusChart');
-    if (statusCtx) {
-        new Chart(statusCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Hoàn thành', 'Đang xử lý', 'Chờ duyệt', 'Từ chối'],
-                datasets: [{
-                    data: [45, 30, 20, 5],
-                    backgroundColor: [
-                        'rgb(75, 192, 192)',
-                        'rgb(255, 205, 86)',
-                        'rgb(54, 162, 235)',
-                        'rgb(255, 99, 132)'
-                    ]
-                }]
-            }
-        });
+<!-- Analytics Script -->
+<script src="/js/analytics.js"></script>
+
+<style>
+    .stat-icon {
+        transition: all 0.3s ease;
     }
-});
-</script>
+    
+    .card:hover .stat-icon {
+        transform: scale(1.1);
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 82, 204, 0.05);
+    }
+</style>

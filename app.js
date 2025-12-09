@@ -50,6 +50,7 @@ app.use(cookieParser());
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Session configuration
 app.use(
@@ -274,6 +275,7 @@ const employeeRoutes = require('./routes/employees');
 const analyticsRoutes = require('./routes/analytics');
 const reportsRoutes = require('./routes/reports');
 const activityLogRoutes = require('./routes/activity-log');
+const calendarRoutes = require('./routes/calendar');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -289,6 +291,7 @@ app.use('/employees', employeeRoutes);
 app.use('/analytics', analyticsRoutes);
 app.use('/reports', reportsRoutes);
 app.use('/activity-log', activityLogRoutes);
+app.use('/calendar', calendarRoutes);
 
 // 404 Error handler
 app.use((req, res) => {

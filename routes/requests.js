@@ -120,12 +120,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
 // Route cho "Yêu cầu của tôi"
 // Redirect /my to /my/kanban (Kanban is default view now)
-router.get('/my', authenticateToken, (req, res) => {
-  res.redirect('/requests/my/kanban');
-});
-
-// List view (alternative to Kanban)
-router.get('/my/list', authenticateToken, async (req, res) => {
+router.get('/my', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -205,6 +200,16 @@ router.get('/my/list', authenticateToken, async (req, res) => {
       pagination: { currentPage: 1, totalPages: 0, totalRecords: 0 },
     });
   }
+});
+
+// List view (redirect to main /my route)
+router.get('/my/list', authenticateToken, (req, res) => {
+  // Preserve query parameters
+  const queryString = new URLSearchParams(req.query).toString();
+  const redirectUrl = queryString
+    ? `/requests/my?${queryString}`
+    : '/requests/my';
+  res.redirect(redirectUrl);
 });
 
 // Route Kanban Board cho "Yêu cầu của tôi"
@@ -463,6 +468,185 @@ router.get('/create', authenticateToken, async (req, res) => {
       priorities: [],
       workflows: [],
       workflowsJSON: '[]',
+    });
+  }
+});
+
+// Trang chỉnh sửa request
+router.get('/:id/edit', authenticateToken, async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const userId = req.user.Id;
+
+    // Get request details
+    const request = await Request.findById(requestId);
+
+    if (!request) {
+      return res.status(404).render('errors/404', {
+        title: 'Không tìm thấy',
+        message: 'Yêu cầu không tồn tại',
+      });
+    }
+
+    // Debug logging
+    console.log('Edit permission check:', {
+      requestUsersId: request.UsersId,
+      currentUserId: userId,
+      userIdType: typeof userId,
+      requestUserIdType: typeof request.UsersId,
+      isAdmin: req.user.isAdmin, // lowercase
+      IsAdmin: req.user.IsAdmin, // uppercase
+      userRole: req.user.Role,
+      roles: req.user.roles,
+      areEqual: request.UsersId == userId,
+      areStrictEqual: request.UsersId === userId,
+    });
+
+    // Check permissions - only creator or admin can edit
+    // Use loose equality (==) to handle string/number type mismatch
+    if (request.UsersId != userId && !req.user.isAdmin) {
+      return res.status(403).render('errors/404', {
+        title: 'Không có quyền',
+        message: 'Bạn không có quyền chỉnh sửa yêu cầu này',
+      });
+    }
+
+    // Get priorities and workflows
+    const [priorities, workflows] = await Promise.all([
+      Request.getPriorities(),
+      Request.getWorkflows(),
+    ]);
+
+    // Get FormSchema for each workflow
+    const workflowsWithSchema = await Promise.all(
+      workflows.map(async (workflow) => {
+        try {
+          const formSchema = workflow.FormSchema
+            ? typeof workflow.FormSchema === 'string'
+              ? JSON.parse(workflow.FormSchema)
+              : workflow.FormSchema
+            : [];
+          return { ...workflow, formFields: formSchema };
+        } catch (e) {
+          console.error(
+            `Error parsing FormSchema for workflow ${workflow.WorkflowID}:`,
+            e
+          );
+          return { ...workflow, formFields: [] };
+        }
+      })
+    );
+
+    res.render('requests/edit', {
+      title: `Chỉnh sửa yêu cầu #${requestId}`,
+      request,
+      priorities,
+      workflows: workflowsWithSchema,
+      workflowsJSON: JSON.stringify(workflowsWithSchema),
+    });
+  } catch (error) {
+    console.error('Error loading edit form:', error);
+    res.status(500).render('errors/500', {
+      title: 'Lỗi',
+      error: error.message,
+    });
+  }
+});
+
+// Xử lý cập nhật request
+router.post(
+  '/:id/edit',
+  authenticateToken,
+  upload.single('attachment'),
+  async (req, res) => {
+    try {
+      const requestId = req.params.id;
+      const userId = req.user.Id;
+
+      // Get existing request
+      const existingRequest = await Request.findById(requestId);
+
+      if (!existingRequest) {
+        return res.status(404).json({
+          success: false,
+          error: 'Yêu cầu không tồn tại',
+        });
+      }
+
+      // Check permissions - use loose equality (==) to handle type mismatch
+      if (existingRequest.UsersId != userId && !req.user.isAdmin) {
+        return res.status(403).json({
+          success: false,
+          error: 'Bạn không có quyền chỉnh sửa yêu cầu này',
+        });
+      }
+
+      const { title, description, priorityId, workflowId, formData } = req.body;
+
+      // Update request
+      await Request.update(requestId, {
+        Title: title,
+        Description: description,
+        PriorityID: priorityId,
+        WorkflowID: workflowId,
+        FormData: formData ? JSON.parse(formData) : null,
+      });
+
+      // Handle file attachment if uploaded
+      if (req.file) {
+        // TODO: Implement file attachment handling
+      }
+
+      res.redirect(
+        `/requests/${requestId}?success=Cập nhật yêu cầu thành công`
+      );
+    } catch (error) {
+      console.error('Error updating request:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Không thể cập nhật yêu cầu',
+      });
+    }
+  }
+);
+
+// Xóa request
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const userId = req.user.Id;
+
+    // Get request details
+    const request = await Request.findById(requestId);
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        error: 'Yêu cầu không tồn tại',
+      });
+    }
+
+    // Check permissions - only creator or admin can delete
+    if (request.UsersId != userId && !req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        error: 'Bạn không có quyền xóa yêu cầu này',
+      });
+    }
+
+    // Hard delete (temporary until IsActive column is added)
+    // TODO: Change to soft delete after running migration: ALTER TABLE "Requests" ADD COLUMN "IsActive" BOOLEAN NOT NULL DEFAULT TRUE;
+    await query(`DELETE FROM "Requests" WHERE "RequestID" = $1`, [requestId]);
+
+    res.json({
+      success: true,
+      message: 'Đã xóa yêu cầu thành công',
+    });
+  } catch (error) {
+    console.error('Error deleting request:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể xóa yêu cầu',
     });
   }
 });
@@ -1037,12 +1221,19 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
 
     await query(updateQuery, updateParams);
 
-    // Log to RequestHistories
+    // Log to RequestHistories (StepID is required, use CurrentStepOrder or default to 1)
+    const stepId = request.CurrentStepOrder || 1;
     await query(
       `INSERT INTO "RequestHistories" 
-       ("RequestID", "UserID", "Status", "Note", "StartTime")
-       VALUES ($1, $2, $3, $4, NOW())`,
-      [requestId, req.user.Id, newStatus.StatusName, rejectionReason || note]
+       ("RequestID", "StepID", "UserID", "Status", "Note", "StartTime")
+       VALUES ($1, $2, $3, $4, $5, NOW())`,
+      [
+        requestId,
+        stepId,
+        req.user.Id,
+        newStatus.StatusName,
+        rejectionReason || note,
+      ]
     );
 
     // Create notification for request creator (if not the same user)
@@ -1784,5 +1975,279 @@ router.delete(
     }
   }
 );
+
+// API: Get requests as calendar events
+router.get('/api/calendar-events', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.Id;
+    const start = req.query.start;
+    const end = req.query.end;
+
+    let eventsQuery = `
+      SELECT 
+        r."RequestID" as id,
+        r."Title" as title,
+        r."Description" as description,
+        r."CreatedAt" as start,
+        r."ClosedAt" as "end",
+        CASE 
+          WHEN s."IsFinal" = true THEN r."ClosedAt"
+          ELSE NULL
+        END as "actualEnd",
+        s."StatusName" as status,
+        s."IsFinal" as "isFinal",
+        p."PriorityName" as priority,
+        CASE 
+          WHEN p."PriorityName" = 'Cao' THEN '#f56565'
+          WHEN p."PriorityName" = 'Trung bình' THEN '#ed8936'
+          WHEN p."PriorityName" = 'Thấp' THEN '#48bb78'
+          WHEN s."IsFinal" = true THEN '#38b2ac'
+          ELSE '#3788d8'
+        END as color,
+        creator."FullName" as "createdByName",
+        assignee."FullName" as "assignedToName",
+        r."UsersId" as "createdBy",
+        r."AssignedUserId" as "assignedTo"
+      FROM "Requests" r
+      LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+      LEFT JOIN "Priority" p ON r."PriorityID" = p."PriorityID"
+      LEFT JOIN "Users" creator ON r."UsersId" = creator."Id"
+      LEFT JOIN "Users" assignee ON r."AssignedUserId" = assignee."Id"
+      WHERE (r."UsersId" = $1 OR r."AssignedUserId" = $1)
+    `;
+
+    const params = [userId];
+
+    if (start && end) {
+      eventsQuery += ` AND r."CreatedAt" <= $3 AND (r."ClosedAt" >= $2 OR r."ClosedAt" IS NULL)`;
+      params.push(start, end);
+    }
+
+    eventsQuery += ` ORDER BY r."CreatedAt" DESC`;
+
+    const result = await query(eventsQuery, params);
+
+    const events = result.rows.map((request) => ({
+      id: request.id,
+      title: `#${request.id} - ${request.title}`,
+      start: request.start,
+      end: request.actualEnd || request.start,
+      allDay: !request.actualEnd,
+      backgroundColor: request.color,
+      borderColor: request.color,
+      extendedProps: {
+        description: request.description,
+        status: request.status,
+        priority: request.priority,
+        isFinal: request.isFinal,
+        createdByName: request.createdByName,
+        assignedToName: request.assignedToName,
+        createdBy: request.createdBy,
+        assignedTo: request.assignedTo,
+        requestId: request.id,
+      },
+    }));
+
+    res.json(events);
+  } catch (error) {
+    console.error('Get calendar events error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy danh sách yêu cầu: ' + error.message,
+    });
+  }
+});
+
+// POST /requests/:id/rate - Rate a completed request
+router.post('/:id/rate', authenticateToken, async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const userId = req.user.Id;
+    const {
+      overallRating,
+      qualityRating,
+      responseTimeRating,
+      solutionRating,
+      comment,
+      isAnonymous,
+    } = req.body;
+
+    // Validate ratings
+    if (!overallRating || overallRating < 1 || overallRating > 5) {
+      return res.status(400).json({
+        success: false,
+        error: 'Đánh giá phải từ 1 đến 5 sao',
+      });
+    }
+
+    // Check if user is the creator of the request
+    const requestCheckQuery = `
+      SELECT r."RequestID", r."UsersId", s."IsFinal"
+      FROM "Requests" r
+      LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+      WHERE r."RequestID" = $1
+    `;
+
+    const requestResult = await query(requestCheckQuery, [requestId]);
+
+    if (requestResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Không tìm thấy yêu cầu',
+      });
+    }
+
+    const request = requestResult.rows[0];
+
+    // Only creator can rate
+    if (request.UsersId !== userId) {
+      return res.status(403).json({
+        success: false,
+        error: 'Chỉ người tạo yêu cầu mới có thể đánh giá',
+      });
+    }
+
+    // Only rate completed requests
+    if (!request.IsFinal) {
+      return res.status(400).json({
+        success: false,
+        error: 'Chỉ có thể đánh giá yêu cầu đã hoàn thành',
+      });
+    }
+
+    // Check if already rated
+    const existingRatingQuery = `
+      SELECT "RatingID" FROM "RequestRatings"
+      WHERE "RequestID" = $1 AND "UserId" = $2
+    `;
+
+    const existingRating = await query(existingRatingQuery, [
+      requestId,
+      userId,
+    ]);
+
+    if (existingRating.rows.length > 0) {
+      // Update existing rating
+      const updateQuery = `
+        UPDATE "RequestRatings"
+        SET 
+          "OverallRating" = $1,
+          "QualityRating" = $2,
+          "ResponseTimeRating" = $3,
+          "SolutionRating" = $4,
+          "Comment" = $5,
+          "IsAnonymous" = $6,
+          "UpdatedAt" = NOW()
+        WHERE "RequestID" = $7 AND "UserId" = $8
+        RETURNING "RatingID"
+      `;
+
+      await query(updateQuery, [
+        overallRating,
+        qualityRating || null,
+        responseTimeRating || null,
+        solutionRating || null,
+        comment || null,
+        isAnonymous || false,
+        requestId,
+        userId,
+      ]);
+
+      return res.json({
+        success: true,
+        message: 'Cập nhật đánh giá thành công',
+      });
+    } else {
+      // Create new rating
+      const insertQuery = `
+        INSERT INTO "RequestRatings" (
+          "RequestID",
+          "UserId",
+          "OverallRating",
+          "QualityRating",
+          "ResponseTimeRating",
+          "SolutionRating",
+          "Comment",
+          "IsAnonymous",
+          "CreatedAt",
+          "UpdatedAt"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        RETURNING "RatingID"
+      `;
+
+      await query(insertQuery, [
+        requestId,
+        userId,
+        overallRating,
+        qualityRating || null,
+        responseTimeRating || null,
+        solutionRating || null,
+        comment || null,
+        isAnonymous || false,
+      ]);
+
+      return res.json({
+        success: true,
+        message: 'Đánh giá thành công',
+      });
+    }
+  } catch (error) {
+    console.error('Rate request error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Lỗi khi đánh giá: ' + error.message,
+    });
+  }
+});
+
+// GET /requests/:id/rating - Get rating for a request
+router.get('/:id/rating', authenticateToken, async (req, res) => {
+  try {
+    const requestId = req.params.id;
+
+    const ratingQuery = `
+      SELECT 
+        rr."RatingID",
+        rr."OverallRating",
+        rr."QualityRating",
+        rr."ResponseTimeRating",
+        rr."SolutionRating",
+        rr."Comment",
+        rr."IsAnonymous",
+        rr."CreatedAt",
+        u."UserName" as "RatedBy"
+      FROM "RequestRatings" rr
+      LEFT JOIN "Users" u ON rr."UserId" = u."Id"
+      WHERE rr."RequestID" = $1
+    `;
+
+    const result = await query(ratingQuery, [requestId]);
+
+    if (result.rows.length === 0) {
+      return res.json({
+        success: true,
+        rating: null,
+      });
+    }
+
+    const rating = result.rows[0];
+
+    // Hide user name if anonymous
+    if (rating.IsAnonymous) {
+      rating.RatedBy = 'Ẩn danh';
+    }
+
+    res.json({
+      success: true,
+      rating,
+    });
+  } catch (error) {
+    console.error('Get rating error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Lỗi khi lấy đánh giá: ' + error.message,
+    });
+  }
+});
 
 module.exports = router;

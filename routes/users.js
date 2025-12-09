@@ -2,6 +2,43 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const User = require('../models/User');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { query } = require('../config/database');
+
+// Configure multer for avatar upload
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads/avatars');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Chỉ chấp nhận file hình ảnh (jpeg, jpg, png, gif)!'));
+    }
+  },
+});
 
 // Danh sách users (admin only - tạm thời cho phép tất cả user xem)
 router.get('/', authenticateToken, async (req, res) => {
@@ -47,9 +84,9 @@ router.get('/profile', authenticateToken, async (req, res) => {
 
     // Get user information with department and roles
     const userQuery = `
-      SELECT u.*, d."DepartmentName" as "Department"
+      SELECT u.*, d."Name" as "Department"
       FROM "Users" u
-      LEFT JOIN "Departments" d ON u."DepartmentId" = d."DepartmentID"
+      LEFT JOIN "Departments" d ON u."DepartmentID" = d."DepartmentID"
       WHERE u."Id" = $1
     `;
     const userResult = await query(userQuery, [req.user.Id]);
@@ -70,7 +107,9 @@ router.get('/profile', authenticateToken, async (req, res) => {
       SELECT 
         (SELECT COUNT(*) FROM "Requests" WHERE "UsersId" = $1) as "createdRequests",
         (SELECT COUNT(*) FROM "Requests" WHERE "AssignedUserId" = $1) as "assignedRequests",
-        (SELECT COUNT(*) FROM "Requests" WHERE "AssignedUserId" = $1 AND "IsFinal" = true) as "completedRequests"
+        (SELECT COUNT(*) FROM "Requests" r 
+         LEFT JOIN "Status" s ON r."StatusID" = s."StatusID" 
+         WHERE r."AssignedUserId" = $1 AND s."IsFinal" = true) as "completedRequests"
     `;
     const statsResult = await query(statsQuery, [req.user.Id]);
     const stats = statsResult.rows[0];
@@ -452,11 +491,11 @@ router.get('/:userId', authenticateToken, async (req, res) => {
     const userQuery = `
       SELECT 
         u.*,
-        d."DepartmentName",
+        d."Name" as "DepartmentName",
         (SELECT COUNT(*) FROM "Requests" WHERE "CreatedBy" = u."Id") as "requestCount",
         (SELECT COUNT(*) FROM "Requests" WHERE "AssignedTo" = u."Id") as "assignedCount"
       FROM "Users" u
-      LEFT JOIN "Departments" d ON u."DepartmentId" = d."DepartmentID"
+      LEFT JOIN "Departments" d ON u."DepartmentID" = d."DepartmentID"
       WHERE u."Id" = $1
     `;
 
@@ -591,5 +630,79 @@ router.get('/api/:id', authenticateToken, async (req, res) => {
     });
   }
 });
+
+// Upload avatar
+router.post(
+  '/upload-avatar',
+  authenticateToken,
+  upload.single('avatar'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'Không có file nào được tải lên',
+        });
+      }
+
+      const userId = req.user.Id;
+      const avatarPath = '/uploads/avatars/' + req.file.filename;
+
+      // Get old avatar to delete
+      const oldAvatarQuery = `SELECT "Avatar" FROM "Users" WHERE "Id" = $1`;
+      const oldAvatarResult = await query(oldAvatarQuery, [userId]);
+      const oldAvatar = oldAvatarResult.rows[0]?.Avatar;
+
+      // Update avatar in database
+      const updateQuery = `
+      UPDATE "Users" 
+      SET "Avatar" = $1 
+      WHERE "Id" = $2
+      RETURNING *
+    `;
+      const result = await query(updateQuery, [avatarPath, userId]);
+
+      // Delete old avatar file if exists
+      if (oldAvatar && oldAvatar.startsWith('/uploads/avatars/')) {
+        const oldAvatarFullPath = path.join(__dirname, '..', oldAvatar);
+        if (fs.existsSync(oldAvatarFullPath)) {
+          fs.unlinkSync(oldAvatarFullPath);
+        }
+      }
+
+      if (result.rows.length > 0) {
+        res.json({
+          success: true,
+          message: 'Cập nhật avatar thành công!',
+          avatarUrl: avatarPath,
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'Không tìm thấy người dùng',
+        });
+      }
+    } catch (error) {
+      console.error('Upload avatar error:', error);
+
+      // Delete uploaded file if database update fails
+      if (req.file) {
+        const filePath = path.join(
+          __dirname,
+          '../uploads/avatars',
+          req.file.filename
+        );
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+
+      res.status(500).json({
+        success: false,
+        message: 'Lỗi khi upload avatar: ' + error.message,
+      });
+    }
+  }
+);
 
 module.exports = router;

@@ -1,0 +1,441 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-calendar-alt me-2"></i>Lịch làm việc
+        </h1>
+        <p class="page-subtitle">Quản lý lịch làm việc và sự kiện của bạn</p>
+    </div>
+    <div>
+        <button type="button" class="btn btn-primary" id="addEventBtn">
+            <i class="fas fa-plus me-2"></i>Thêm sự kiện
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <!-- Calendar toolbar -->
+                <div class="calendar-toolbar mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary" id="prevBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="todayBtn">Hôm nay</button>
+                        <button type="button" class="btn btn-outline-secondary" id="nextBtn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <h4 class="mb-0" id="calendarTitle"></h4>
+                    
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary" data-view="dayGridMonth">Tháng</button>
+                        <button type="button" class="btn btn-outline-secondary" data-view="timeGridWeek">Tuần</button>
+                        <button type="button" class="btn btn-outline-secondary" data-view="timeGridDay">Ngày</button>
+                        <button type="button" class="btn btn-outline-secondary" data-view="listWeek">Danh sách</button>
+                    </div>
+                </div>
+
+                <!-- Calendar -->
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Event Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalTitle">Thêm sự kiện mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <input type="hidden" id="eventId">
+                    
+                    <div class="mb-3">
+                        <label for="eventTitle" class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="eventTitle" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="eventDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="eventDescription" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="eventStart" class="form-label">Bắt đầu <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="eventStart" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="eventEnd" class="form-label">Kết thúc <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="eventEnd" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="eventAllDay">
+                        <label class="form-check-label" for="eventAllDay">Cả ngày</label>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="eventLocation" class="form-label">Địa điểm</label>
+                            <input type="text" class="form-control" id="eventLocation" placeholder="Phòng họp, địa chỉ...">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="eventType" class="form-label">Loại sự kiện</label>
+                            <select class="form-select" id="eventType">
+                                <option value="">-- Chọn loại --</option>
+                                <option value="meeting">Họp</option>
+                                <option value="deadline">Deadline</option>
+                                <option value="task">Công việc</option>
+                                <option value="event">Sự kiện</option>
+                                <option value="other">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="eventColor" class="form-label">Màu sắc</label>
+                            <select class="form-select" id="eventColor">
+                                <option value="#3788d8">Xanh dương</option>
+                                <option value="#48bb78">Xanh lá</option>
+                                <option value="#f56565">Đỏ</option>
+                                <option value="#ed8936">Cam</option>
+                                <option value="#9f7aea">Tím</option>
+                                <option value="#38b2ac">Xanh ngọc</option>
+                                <option value="#ed64a6">Hồng</option>
+                                <option value="#718096">Xám</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="eventReminder" class="form-label">Nhắc nhở trước</label>
+                            <select class="form-select" id="eventReminder">
+                                <option value="">Không nhắc</option>
+                                <option value="5">5 phút</option>
+                                <option value="15">15 phút</option>
+                                <option value="30">30 phút</option>
+                                <option value="60">1 giờ</option>
+                                <option value="1440">1 ngày</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="deleteEventBtn" style="display: none;">
+                    <i class="fas fa-trash me-2"></i>Xóa
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveEventBtn">
+                    <i class="fas fa-save me-2"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Event Modal -->
+<div class="modal fade" id="viewEventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewEventTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="viewEventContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="editEventBtn">
+                    <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<link rel="stylesheet" href="/css/calendar.css">
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+    const viewEventModal = new bootstrap.Modal(document.getElementById('viewEventModal'));
+    let currentEvent = null;
+
+    // Initialize calendar
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: false,
+        locale: 'vi',
+        buttonText: {
+            today: 'Hôm nay',
+            month: 'Tháng',
+            week: 'Tuần',
+            day: 'Ngày',
+            list: 'Danh sách'
+        },
+        firstDay: 1,
+        height: 'auto',
+        navLinks: true,
+        editable: true,
+        selectable: true,
+        selectMirror: true,
+        dayMaxEvents: true,
+        weekNumbers: false,
+        events: '/calendar/api/events',
+        
+        select: function(info) {
+            openEventModal(null, info.start, info.end, info.allDay);
+        },
+        
+        eventClick: function(info) {
+            showEventDetails(info.event);
+        },
+        
+        eventDrop: function(info) {
+            updateEventDates(info.event);
+        },
+        
+        eventResize: function(info) {
+            updateEventDates(info.event);
+        },
+        
+        datesSet: function(info) {
+            document.getElementById('calendarTitle').textContent = info.view.title;
+        }
+    });
+
+    calendar.render();
+
+    // Toolbar buttons
+    document.getElementById('prevBtn').addEventListener('click', () => calendar.prev());
+    document.getElementById('nextBtn').addEventListener('click', () => calendar.next());
+    document.getElementById('todayBtn').addEventListener('click', () => calendar.today());
+    
+    document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            calendar.changeView(this.dataset.view);
+            document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Add event button
+    document.getElementById('addEventBtn').addEventListener('click', function() {
+        openEventModal();
+    });
+
+    // Save event
+    document.getElementById('saveEventBtn').addEventListener('click', async function() {
+        const form = document.getElementById('eventForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const eventId = document.getElementById('eventId').value;
+        const eventData = {
+            title: document.getElementById('eventTitle').value,
+            description: document.getElementById('eventDescription').value,
+            start: document.getElementById('eventStart').value,
+            end: document.getElementById('eventEnd').value,
+            allDay: document.getElementById('eventAllDay').checked,
+            location: document.getElementById('eventLocation').value,
+            color: document.getElementById('eventColor').value,
+            eventType: document.getElementById('eventType').value,
+            reminderMinutes: document.getElementById('eventReminder').value || null
+        };
+
+        try {
+            const url = eventId ? `/calendar/api/events/${eventId}` : '/calendar/api/events';
+            const method = eventId ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                eventModal.hide();
+                calendar.refetchEvents();
+                showAlert('success', result.message);
+            } else {
+                showAlert('danger', result.message);
+            }
+        } catch (error) {
+            console.error('Save event error:', error);
+            showAlert('danger', 'Có lỗi xảy ra khi lưu sự kiện');
+        }
+    });
+
+    // Delete event
+    document.getElementById('deleteEventBtn').addEventListener('click', async function() {
+        if (!confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) return;
+
+        const eventId = document.getElementById('eventId').value;
+        
+        try {
+            const response = await fetch(`/calendar/api/events/${eventId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                eventModal.hide();
+                calendar.refetchEvents();
+                showAlert('success', result.message);
+            } else {
+                showAlert('danger', result.message);
+            }
+        } catch (error) {
+            console.error('Delete event error:', error);
+            showAlert('danger', 'Có lỗi xảy ra khi xóa sự kiện');
+        }
+    });
+
+    // Edit event from view modal
+    document.getElementById('editEventBtn').addEventListener('click', function() {
+        if (currentEvent) {
+            viewEventModal.hide();
+            openEventModal(currentEvent);
+        }
+    });
+
+    function openEventModal(event = null, start = null, end = null, allDay = false) {
+        const form = document.getElementById('eventForm');
+        form.reset();
+        
+        if (event) {
+            document.getElementById('eventModalTitle').textContent = 'Chỉnh sửa sự kiện';
+            document.getElementById('eventId').value = event.id;
+            document.getElementById('eventTitle').value = event.title;
+            document.getElementById('eventDescription').value = event.extendedProps.description || '';
+            document.getElementById('eventStart').value = formatDateForInput(event.start);
+            document.getElementById('eventEnd').value = formatDateForInput(event.end || event.start);
+            document.getElementById('eventAllDay').checked = event.allDay;
+            document.getElementById('eventLocation').value = event.extendedProps.location || '';
+            document.getElementById('eventType').value = event.extendedProps.eventType || '';
+            document.getElementById('eventColor').value = event.backgroundColor;
+            document.getElementById('eventReminder').value = event.extendedProps.reminderMinutes || '';
+            document.getElementById('deleteEventBtn').style.display = 'block';
+        } else {
+            document.getElementById('eventModalTitle').textContent = 'Thêm sự kiện mới';
+            document.getElementById('deleteEventBtn').style.display = 'none';
+            
+            if (start) {
+                document.getElementById('eventStart').value = formatDateForInput(start);
+                document.getElementById('eventEnd').value = formatDateForInput(end || start);
+                document.getElementById('eventAllDay').checked = allDay;
+            }
+        }
+        
+        eventModal.show();
+    }
+
+    function showEventDetails(event) {
+        currentEvent = event;
+        document.getElementById('viewEventTitle').textContent = event.title;
+        
+        let content = `
+            ${event.extendedProps.description ? `<p><strong>Mô tả:</strong><br>${event.extendedProps.description}</p>` : ''}
+            <p><strong>Thời gian:</strong><br>
+                ${formatDate(event.start)} ${!event.allDay ? formatTime(event.start) : ''} - 
+                ${formatDate(event.end || event.start)} ${!event.allDay && event.end ? formatTime(event.end) : ''}
+                ${event.allDay ? ' (Cả ngày)' : ''}
+            </p>
+            ${event.extendedProps.location ? `<p><strong>Địa điểm:</strong> ${event.extendedProps.location}</p>` : ''}
+            ${event.extendedProps.eventType ? `<p><strong>Loại:</strong> ${getEventTypeName(event.extendedProps.eventType)}</p>` : ''}
+            ${event.extendedProps.createdByName ? `<p><strong>Người tạo:</strong> ${event.extendedProps.createdByName}</p>` : ''}
+        `;
+        
+        document.getElementById('viewEventContent').innerHTML = content;
+        viewEventModal.show();
+    }
+
+    async function updateEventDates(event) {
+        try {
+            const response = await fetch(`/calendar/api/events/${event.id}/move`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    start: event.start.toISOString(),
+                    end: event.end ? event.end.toISOString() : event.start.toISOString(),
+                    allDay: event.allDay
+                })
+            });
+
+            const result = await response.json();
+            
+            if (!result.success) {
+                showAlert('danger', result.message);
+                calendar.refetchEvents();
+            }
+        } catch (error) {
+            console.error('Update event error:', error);
+            calendar.refetchEvents();
+        }
+    }
+
+    function formatDateForInput(date) {
+        if (!date) return '';
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    function formatDate(date) {
+        if (!date) return '';
+        const d = new Date(date);
+        return d.toLocaleDateString('vi-VN');
+    }
+
+    function formatTime(date) {
+        if (!date) return '';
+        const d = new Date(date);
+        return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getEventTypeName(type) {
+        const types = {
+            'meeting': 'Họp',
+            'deadline': 'Deadline',
+            'task': 'Công việc',
+            'event': 'Sự kiện',
+            'other': 'Khác'
+        };
+        return types[type] || type;
+    }
+
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 5000);
+    }
+});
+</script>

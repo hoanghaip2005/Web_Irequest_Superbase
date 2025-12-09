@@ -1,0 +1,154 @@
+/* Star Rating Styles */
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.star-rating.read-only {
+  cursor: default;
+}
+
+.star {
+  font-size: 24px;
+  color: #ddd;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.star-rating:not(.read-only) .star:hover {
+  transform: scale(1.2);
+}
+
+.star.hover,
+.star.selected {
+  color: #ffd700;
+}
+
+.star.selected {
+  animation: starPulse 0.3s ease;
+}
+
+@keyframes starPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Rating Modal */
+.rating-modal .modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.rating-category {
+  margin-bottom: 20px;
+}
+
+.rating-category label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Rating Display */
+.rating-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-display .star-rating {
+  font-size: 18px;
+}
+
+.rating-number {
+  font-weight: 600;
+  color: #666;
+}
+
+/* Rating Summary */
+.rating-summary {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.rating-summary .rating-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.rating-summary .rating-item:last-child {
+  margin-bottom: 0;
+}
+
+.rating-summary .rating-label {
+  font-weight: 500;
+  flex: 1;
+}
+
+.rating-summary .rating-stars {
+  flex: 0 0 auto;
+  margin: 0 15px;
+}
+
+.rating-summary .rating-score {
+  font-weight: 700;
+  color: #0052cc;
+  font-size: 18px;
+}
+
+/* Rating Badge */
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rating-badge.excellent {
+  background: #d4edda;
+  color: #155724;
+}
+
+.rating-badge.good {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.rating-badge.average {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.rating-badge.poor {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .star {
+    font-size: 20px;
+  }
+
+  .rating-summary .rating-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

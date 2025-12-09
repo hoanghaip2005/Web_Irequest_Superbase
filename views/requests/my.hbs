@@ -1,14 +1,22 @@
 <div class="content-header">
     <div>
-        <h1 class="page-title">My Requests - List View</h1>
-        <p class="page-subtitle">Manage requests you have created</p>
+        <h1 class="page-title" id="pageTitle">Yêu cầu của tôi</h1>
+        <p class="page-subtitle">Quản lý các yêu cầu bạn đã tạo</p>
     </div>
     <div class="content-actions">
-        <a href="/requests/my/kanban" class="btn btn-outline-secondary me-2">
-            <i class="fas fa-th me-2"></i>Kanban Board
-        </a>
+        <div class="d-inline-flex gap-2 me-2">
+            <button type="button" class="btn btn-outline-secondary active" id="listViewBtn" data-view="list">
+                <i class="fas fa-list me-2"></i>Danh sách
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="kanbanViewBtn" data-view="kanban">
+                <i class="fas fa-th me-2"></i>Kanban
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="calendarViewBtn" data-view="calendar">
+                <i class="fas fa-calendar-alt me-2"></i>Lịch
+            </button>
+        </div>
         <a href="/requests/create" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Create New Request
+            <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
         </a>
     </div>
 </div>
@@ -147,8 +155,39 @@
     </div>
 </div>
 
+<!-- Calendar View -->
+<div id="calendarView" style="display: none;">
+    <div class="card">
+        <div class="card-body">
+            <!-- Calendar toolbar -->
+            <div class="calendar-toolbar mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="calPrevBtn">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="calTodayBtn">Hôm nay</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="calNextBtn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <h4 class="mb-0" id="calendarTitle"></h4>
+                
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary btn-sm active" data-cal-view="dayGridMonth">Tháng</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-cal-view="timeGridWeek">Tuần</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-cal-view="listWeek">Danh sách</button>
+                </div>
+            </div>
+
+            <!-- Calendar -->
+            <div id="requestsCalendar"></div>
+        </div>
+    </div>
+</div>
+
 <!-- Requests Table -->
-<div class="card">
+<div class="card" id="listView">
     <div class="card-header">
         <h5 class="card-title mb-0">
             <i class="fas fa-clipboard-list me-2"></i>My Request List
@@ -286,13 +325,322 @@
     </div>
 </div>
 
+<!-- Request Detail Modal (for Calendar) -->
+<div class="modal fade" id="requestDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="requestDetailTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="requestDetailContent">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <a href="#" class="btn btn-primary" id="viewRequestDetailBtn">
+                    <i class="fas fa-eye me-2"></i>Xem chi tiết
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<link rel="stylesheet" href="/css/calendar.css">
+
 <script>
-// Auto refresh mỗi 30 giây để cập nhật trạng thái
-setInterval(() => {
-    const currentUrl = new URL(window.location);
-    const hasFilters = currentUrl.searchParams.toString();
-    if (!hasFilters) {
-        window.location.reload();
+// View toggle functionality
+let currentView = 'list';
+let calendar = null;
+
+// Initialize immediately when DOM is ready
+(function() {
+    'use strict';
+    
+    console.log('Script loaded');
+    
+    // Wait for DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
     }
-}, 30000);
+    
+    function init() {
+        console.log('Initializing...');
+        
+        const listViewBtn = document.getElementById('listViewBtn');
+        const kanbanViewBtn = document.getElementById('kanbanViewBtn');
+        const calendarViewBtn = document.getElementById('calendarViewBtn');
+        const listView = document.getElementById('listView');
+        const calendarView = document.getElementById('calendarView');
+        
+        console.log('Elements found:', {
+            listViewBtn: !!listViewBtn,
+            kanbanViewBtn: !!kanbanViewBtn,
+            calendarViewBtn: !!calendarViewBtn,
+            listView: !!listView,
+            calendarView: !!calendarView
+        });
+        
+        if (!listViewBtn || !kanbanViewBtn || !calendarViewBtn || !listView || !calendarView) {
+            console.error('Missing required elements!');
+            return;
+        }
+        
+        // Initialize view from URL or default to list
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewParam = urlParams.get('view');
+        
+        if (viewParam === 'calendar') {
+            switchToCalendar();
+        } else {
+            currentView = 'list';
+            listView.style.display = 'block';
+            calendarView.style.display = 'none';
+            listViewBtn.classList.add('active');
+            kanbanViewBtn.classList.remove('active');
+            calendarViewBtn.classList.remove('active');
+        }
+        
+        // Add event listeners
+        listViewBtn.onclick = function(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            console.log('List view clicked');
+            
+            currentView = 'list';
+            listView.style.display = 'block';
+            calendarView.style.display = 'none';
+            
+            listViewBtn.classList.add('active');
+            kanbanViewBtn.classList.remove('active');
+            calendarViewBtn.classList.remove('active');
+            
+            updateURL('list');
+            return false;
+        };
+        
+        kanbanViewBtn.onclick = function(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            console.log('Kanban view clicked - redirecting to /requests/my/kanban');
+            window.location.href = '/requests/my/kanban';
+            return false;
+        };
+        
+        calendarViewBtn.onclick = function(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            console.log('=== CALENDAR BUTTON CLICKED ===');
+            console.log('Current view before switch:', currentView);
+            console.log('About to call switchToCalendar()');
+            
+            try {
+                switchToCalendar();
+                console.log('switchToCalendar() completed successfully');
+                console.log('Current view after switch:', currentView);
+            } catch (error) {
+                console.error('Error in switchToCalendar:', error);
+            }
+            return false;
+        };
+        
+        function switchToCalendar() {
+            console.log('Switching to calendar view...');
+            currentView = 'calendar';
+            
+            listView.style.display = 'none';
+            calendarView.style.display = 'block';
+            
+            listViewBtn.classList.remove('active');
+            kanbanViewBtn.classList.remove('active');
+            calendarViewBtn.classList.add('active');
+            
+            updateURL('calendar');
+            
+            if (!calendar) {
+                console.log('Initializing calendar...');
+                initializeCalendar();
+            } else {
+                console.log('Calendar already exists, just showing it');
+            }
+        }
+        
+        function updateURL(view) {
+            const url = new URL(window.location);
+            url.searchParams.set('view', view);
+            window.history.pushState({}, '', url);
+        }
+        
+        function initializeCalendar() {
+            const calendarEl = document.getElementById('requestsCalendar');
+            
+            if (!calendarEl) {
+                console.error('Calendar element not found!');
+                return;
+            }
+            
+            console.log('Creating calendar instance...');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: false,
+                locale: 'vi',
+                firstDay: 1,
+                height: 'auto',
+                navLinks: true,
+                editable: false,
+                selectable: false,
+                dayMaxEvents: true,
+                events: '/requests/api/calendar-events',
+                
+                eventClick: function(info) {
+                    showRequestDetail(info.event);
+                },
+                
+                datesSet: function(info) {
+                    const titleEl = document.getElementById('calendarTitle');
+                    if (titleEl) {
+                        titleEl.textContent = info.view.title;
+                    }
+                },
+                
+                eventContent: function(arg) {
+                    let content = arg.event.title;
+                    if (arg.event.extendedProps.priority) {
+                        content = `<i class="fas fa-flag me-1"></i>${content}`;
+                    }
+                    return { html: content };
+                },
+                
+                loading: function(isLoading) {
+                    console.log('Calendar loading:', isLoading);
+                }
+            });
+
+            console.log('Rendering calendar...');
+            calendar.render();
+            console.log('Calendar rendered');
+
+            // Calendar toolbar buttons
+            const prevBtn = document.getElementById('calPrevBtn');
+            const nextBtn = document.getElementById('calNextBtn');
+            const todayBtn = document.getElementById('calTodayBtn');
+            
+            if (prevBtn) prevBtn.onclick = () => calendar.prev();
+            if (nextBtn) nextBtn.onclick = () => calendar.next();
+            if (todayBtn) todayBtn.onclick = () => calendar.today();
+            
+            document.querySelectorAll('[data-cal-view]').forEach(btn => {
+                btn.onclick = function() {
+                    calendar.changeView(this.dataset.calView);
+                    document.querySelectorAll('[data-cal-view]').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                };
+            });
+        }
+        
+        function showRequestDetail(event) {
+            const requestId = event.extendedProps.requestId;
+            const modal = bootstrap.Modal.getInstance(document.getElementById('requestDetailModal')) || 
+                          new bootstrap.Modal(document.getElementById('requestDetailModal'));
+            
+            document.getElementById('requestDetailTitle').textContent = event.title;
+            document.getElementById('viewRequestDetailBtn').href = `/requests/${requestId}`;
+            
+            const content = `
+                <div class="request-detail-info">
+                    ${event.extendedProps.description ? `
+                        <div class="mb-3">
+                            <strong>Mô tả:</strong>
+                            <p class="mb-0 mt-1">${event.extendedProps.description}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Trạng thái:</strong>
+                            <span class="badge ${event.extendedProps.isFinal ? 'bg-success' : 'bg-warning'} ms-2">
+                                ${event.extendedProps.status || 'N/A'}
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Ưu tiên:</strong>
+                            <span class="badge bg-secondary ms-2">
+                                ${event.extendedProps.priority || 'N/A'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Người tạo:</strong>
+                            <p class="mb-0 mt-1">${event.extendedProps.createdByName || 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Người xử lý:</strong>
+                            <p class="mb-0 mt-1">${event.extendedProps.assignedToName || 'Chưa phân công'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Ngày tạo:</strong>
+                        <p class="mb-0 mt-1">${formatDateTime(event.start)}</p>
+                    </div>
+                    
+                    ${event.end && event.extendedProps.isFinal ? `
+                        <div class="mb-3">
+                            <strong>Ngày hoàn thành:</strong>
+                            <p class="mb-0 mt-1">${formatDateTime(event.end)}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.getElementById('requestDetailContent').innerHTML = content;
+            modal.show();
+        }
+        
+        function formatDateTime(date) {
+            if (!date) return 'N/A';
+            const d = new Date(date);
+            return d.toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Auto refresh
+        setInterval(() => {
+            if (currentView === 'list') {
+                const currentUrl = new URL(window.location);
+                const hasFilters = currentUrl.searchParams.get('search') || 
+                                  currentUrl.searchParams.get('status') || 
+                                  currentUrl.searchParams.get('priority');
+                if (!hasFilters) {
+                    window.location.reload();
+                }
+            } else if (currentView === 'calendar' && calendar) {
+                calendar.refetchEvents();
+            }
+        }, 30000);
+    }
+})();
 </script>

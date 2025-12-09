@@ -1,0 +1,154 @@
+<div class='content-header'>
+  <div>
+    <h1 class='page-title'>Chỉnh sửa yêu cầu #{{request.RequestID}}</h1>
+    <p class='page-subtitle'>Cập nhật thông tin yêu cầu của bạn</p>
+  </div>
+</div>
+
+<div class='row'>
+  <div class='col-xl-8 col-lg-10 mx-auto'>
+    <form
+      id='editRequestForm'
+      action='/requests/{{request.RequestID}}/edit'
+      method='POST'
+      enctype='multipart/form-data'
+    >
+      <div class='card'>
+        <div class='card-header'>
+          <h5 class='card-title mb-0'>
+            <i class='fas fa-edit me-2'></i>Thông tin yêu cầu
+          </h5>
+        </div>
+        <div class='card-body'>
+          <!-- Title -->
+          <div class='mb-4'>
+            <label for='title' class='form-label required'>Tiêu đề yêu cầu</label>
+            <input
+              type='text'
+              class='form-control'
+              id='title'
+              name='title'
+              required
+              value='{{request.Title}}'
+              placeholder='Nhập tiêu đề mô tả ngắn gọn về yêu cầu...'
+              maxlength='100'
+            />
+            <div class='form-text'>Tiêu đề ngắn gọn, rõ ràng (3-100 ký tự)</div>
+          </div>
+
+          <!-- Description -->
+          <div class='mb-4'>
+            <label for='description' class='form-label required'>Mô tả chi tiết</label>
+            <textarea
+              class='form-control'
+              id='description'
+              name='description'
+              rows='6'
+              required
+              placeholder='Mô tả chi tiết về vấn đề hoặc yêu cầu của bạn...'
+            >{{request.Description}}</textarea>
+            <div class='form-text'>Mô tả chi tiết giúp chúng tôi hiểu và xử lý
+              yêu cầu nhanh hơn (tối thiểu 10 ký tự)</div>
+          </div>
+
+          <div class='row'>
+            <!-- Priority -->
+            <div class='col-md-6 mb-4'>
+              <label for='priorityId' class='form-label'>Độ ưu tiên</label>
+              <select class='form-select' id='priorityId' name='priorityId'>
+                <option value=''>Chọn độ ưu tiên</option>
+                {{#each priorities}}
+                  <option
+                    value='{{PriorityID}}'
+                    {{#if (eq PriorityID ../request.PriorityID)}}selected{{/if}}
+                    data-color='{{ColorCode}}'
+                    title='{{Description}}'
+                  >
+                    {{PriorityName}}
+                  </option>
+                {{/each}}
+              </select>
+              <div class='form-text'>Chọn mức độ ưu tiên phù hợp với yêu cầu</div>
+            </div>
+
+            <!-- Workflow -->
+            <div class='col-md-6 mb-4'>
+              <label for='workflowId' class='form-label'>Quy trình xử lý</label>
+              <select class='form-select' id='workflowId' name='workflowId'>
+                <option value=''>Để hệ thống tự chọn</option>
+                {{#each workflows}}
+                  <option 
+                    value='{{WorkflowID}}'
+                    {{#if (eq WorkflowID ../request.WorkflowID)}}selected{{/if}}
+                    title='{{Description}}'
+                  >
+                    {{WorkflowName}}
+                  </option>
+                {{/each}}
+              </select>
+              <div class='form-text'>Chọn quy trình xử lý phù hợp (tùy chọn)</div>
+            </div>
+          </div>
+
+          <!-- Attachment (optional) -->
+          <div class='mb-4'>
+            <label for='attachment' class='form-label'>Tệp đính kèm</label>
+            <input
+              type='file'
+              class='form-control'
+              id='attachment'
+              name='attachment'
+              accept='image/*,application/pdf,.doc,.docx,.xls,.xlsx'
+            />
+            <div class='form-text'>
+              Tệp hỗ trợ: hình ảnh, PDF, Word, Excel (Tối đa 10MB)
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class='card mt-3'>
+        <div class='card-body'>
+          <div class='d-flex justify-content-between'>
+            <a href='/requests/{{request.RequestID}}' class='btn btn-outline-secondary'>
+              <i class='fas fa-times me-2'></i>Hủy
+            </a>
+            <button type='submit' class='btn btn-primary'>
+              <i class='fas fa-save me-2'></i>Cập nhật yêu cầu
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('editRequestForm').addEventListener('submit', function(e) {
+  const title = document.getElementById('title').value.trim();
+  const description = document.getElementById('description').value.trim();
+  
+  if (title.length < 3) {
+    e.preventDefault();
+    alert('Tiêu đề phải có ít nhất 3 ký tự');
+    return false;
+  }
+  
+  if (description.length < 10) {
+    e.preventDefault();
+    alert('Mô tả phải có ít nhất 10 ký tự');
+    return false;
+  }
+  
+  return true;
+});
+</script>
+
+<style>
+.required::after {
+  content: ' *';
+  color: #dc3545;
+}
+</style>

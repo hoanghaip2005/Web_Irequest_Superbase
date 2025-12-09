@@ -284,7 +284,7 @@ class Request {
       const existingView = await query(
         `
                 SELECT "RequestViewId" FROM "RequestViews" 
-                WHERE "RequestID" = $1 AND "Id" = $2
+                WHERE "RequestID" = $1 AND "UserId" = $2
             `,
         [requestId, userId]
       );
@@ -293,7 +293,7 @@ class Request {
       if (existingView.rows.length === 0) {
         await query(
           `
-                    INSERT INTO "RequestViews" ("RequestID", "Id", "ViewedAt")
+                    INSERT INTO "RequestViews" ("RequestID", "UserId", "ViewedAt")
                     VALUES ($1, $2, $3)
                 `,
           [requestId, userId, new Date()]
@@ -320,7 +320,7 @@ class Request {
       `
       SELECT c.*, u."UserName", u."Avatar"
       FROM "Comments" c
-      JOIN "Users" u ON c."Id" = u."Id"
+      JOIN "Users" u ON c."UserId" = u."Id"
       WHERE c."RequestId" = $1
       ORDER BY c."CreatedAt" ASC
     `,

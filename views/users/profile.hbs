@@ -24,11 +24,24 @@
     <div class="col-lg-4 mb-4">
         <div class="card">
             <div class="card-body text-center">
-                <div class="avatar-xl mb-3">
+                <div class="avatar-xl mb-3 position-relative">
+                    {{#if user.avatar}}
+                    <img src="{{user.avatar}}" alt="{{user.FullName}}" id="avatarPreview"
+                         class="rounded-circle mx-auto d-block" 
+                         style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #f0f0f0;">
+                    {{else}}
                     <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" 
-                         style="width: 120px; height: 120px; font-size: 3rem;">
+                         id="avatarPreview"
+                         style="width: 120px; height: 120px; font-size: 3rem; border: 3px solid #f0f0f0;">
                         {{substring user.UserName 0 1}}
                     </div>
+                    {{/if}}
+                    <button type="button" class="btn btn-primary btn-sm position-absolute" 
+                            style="bottom: 0; right: calc(50% - 70px);" 
+                            onclick="document.getElementById('avatarInput').click()">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
                 </div>
                 <h4 class="mb-1">{{user.FullName}}</h4>
                 <p class="text-muted mb-2">@{{user.UserName}}</p>
@@ -273,6 +286,78 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle avatar upload
+    const avatarInput = document.getElementById('avatarInput');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Vui lòng chọn file hình ảnh!');
+                return;
+            }
+
+            // Validate file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Kích thước file không được vượt quá 2MB!');
+                return;
+            }
+
+            // Preview image
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const avatarPreview = document.getElementById('avatarPreview');
+                if (avatarPreview.tagName === 'IMG') {
+                    avatarPreview.src = event.target.result;
+                } else {
+                    // Replace div with img
+                    const img = document.createElement('img');
+                    img.id = 'avatarPreview';
+                    img.src = event.target.result;
+                    img.alt = '{{user.FullName}}';
+                    img.className = 'rounded-circle mx-auto d-block';
+                    img.style.cssText = 'width: 120px; height: 120px; object-fit: cover; border: 3px solid #f0f0f0;';
+                    avatarPreview.parentNode.replaceChild(img, avatarPreview);
+                }
+            };
+            reader.readAsDataURL(file);
+
+            // Upload file
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            try {
+                const response = await fetch('/users/upload-avatar', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>${result.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.querySelector('.content-header').insertAdjacentElement('afterend', alertDiv);
+                    
+                    // Auto dismiss after 3 seconds
+                    setTimeout(() => alertDiv.remove(), 3000);
+                } else {
+                    alert('Lỗi: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Có lỗi xảy ra khi upload avatar!');
+            }
+        });
+    }
+
     // Validate password confirmation
     const changePasswordForm = document.getElementById('changePasswordForm');
     if (changePasswordForm) {
