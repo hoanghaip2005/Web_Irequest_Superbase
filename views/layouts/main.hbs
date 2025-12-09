@@ -45,6 +45,75 @@
             color: #334155;
         }
 
+        /* Global white background for cards and forms */
+        .card {
+            background-color: #ffffff !important;
+            border: 1px solid #dee2e6 !important;
+        }
+
+        .card-header {
+            background-color: #f8f9fa !important;
+            border-bottom: 1px solid #dee2e6 !important;
+            color: #212529 !important;
+        }
+
+        .card-body {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+        }
+
+        .card-footer {
+            background-color: #f8f9fa !important;
+            border-top: 1px solid #dee2e6 !important;
+        }
+
+        .form-control, .form-select {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+            border: 1px solid #ced4da !important;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+        }
+
+        .form-label {
+            color: #212529 !important;
+        }
+
+        .table {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+        }
+
+        .table thead {
+            background-color: #f8f9fa !important;
+            color: #212529 !important;
+        }
+
+        .table tbody tr {
+            background-color: #ffffff !important;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa !important;
+        }
+
+        .modal-content {
+            background-color: #ffffff !important;
+        }
+
+        .modal-header {
+            background-color: #f8f9fa !important;
+            color: #212529 !important;
+        }
+
+        .modal-body {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+        }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -585,6 +654,12 @@
                     <a class="nav-link {{#ifEquals page 'my-requests'}}active{{/ifEquals}}" href="/requests/my">
                         <i class="fas fa-user-check"></i>
                         <span class="nav-text">Yêu cầu của tôi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{#ifEquals page 'drafts'}}active{{/ifEquals}}" href="/requests/drafts">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="nav-text">Bản nháp</span>
                     </a>
                 </li>
                 <li class="nav-item">

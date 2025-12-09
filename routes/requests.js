@@ -658,6 +658,7 @@ router.post(
   upload.single('attachment'),
   async (req, res) => {
     try {
+      console.log('POST /requests/create called');
       const {
         title,
         description,
@@ -739,6 +740,154 @@ router.post(
     }
   }
 );
+
+// Xử lý lưu nháp request
+router.post(
+  '/draft',
+  authenticateToken,
+  upload.single('attachment'),
+  async (req, res) => {
+    try {
+      console.log('POST /requests/draft called');
+      const {
+        title,
+        description,
+        priorityId,
+        workflowId,
+        issueType,
+        formData,
+      } = req.body;
+
+      // Draft status ID - MUST exist
+      let draftStatusId;
+      try {
+        const draftStatus = await query(
+          'SELECT "StatusID" FROM "Status" WHERE "StatusName" = $1 LIMIT 1',
+          ['Nháp']
+        );
+        draftStatusId = draftStatus.rows[0]?.StatusID;
+        
+        // If draft status doesn't exist, return error
+        if (!draftStatusId) {
+          console.error('Draft status "Nháp" not found in database');
+          return res.status(500).json({
+            success: false,
+            message: 'Không tìm thấy trạng thái "Nháp". Vui lòng chạy migration 006.',
+          });
+        }
+      } catch (e) {
+        console.error('Error getting draft status:', e);
+        return res.status(500).json({
+          success: false,
+          message: 'Lỗi khi lấy trạng thái nháp',
+        });
+      }
+
+      const requestData = {
+        title: title?.trim() || 'Bản nháp chưa có tiêu đề',
+        description: description?.trim() || '',
+        userId: req.user.Id,
+        priorityId: priorityId || 2,
+        statusId: draftStatusId,
+        workflowId: workflowId || 1,
+        issueType: issueType || 'General',
+        attachmentURL: req.file ? `/uploads/${req.file.filename}` : null,
+        attachmentFileName: req.file ? req.file.originalname : null,
+        attachmentFileSize: req.file ? req.file.size : null,
+        attachmentFileType: req.file ? req.file.mimetype : null,
+        formData: formData || null,
+      };
+
+      const draftRequest = await Request.create(requestData);
+
+      res.json({
+        success: true,
+        message: 'Đã lưu nháp thành công',
+        requestId: draftRequest.RequestID,
+        isDraft: true,
+      });
+    } catch (error) {
+      console.error('Draft save error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Không thể lưu nháp. Vui lòng thử lại.',
+      });
+    }
+  }
+);
+
+// Danh sách bản nháp
+router.get('/drafts', authenticateToken, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const [drafts, totalCount] = await Promise.all([
+      Request.getDrafts(req.user.Id, page, limit),
+      Request.countDrafts(req.user.Id),
+    ]);
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.render('requests/drafts', {
+      title: 'Bản nháp',
+      page: 'drafts',
+      drafts,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalRecords: totalCount,
+        showPagination: totalPages > 1,
+        hasPrevious: page > 1,
+        hasNext: page < totalPages,
+      },
+    });
+  } catch (error) {
+    console.error('Drafts list error:', error);
+    res.render('requests/drafts', {
+      title: 'Bản nháp',
+      page: 'drafts',
+      error: 'Không thể tải danh sách bản nháp',
+      drafts: [],
+      pagination: { currentPage: 1, totalPages: 0, totalRecords: 0 },
+    });
+  }
+});
+
+// Publish draft (chuyển draft thành request chính thức)
+router.post('/drafts/:id/publish', authenticateToken, async (req, res) => {
+  try {
+    const draftId = parseInt(req.params.id);
+    
+    if (isNaN(draftId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID bản nháp không hợp lệ',
+      });
+    }
+
+    const result = await Request.publishDraft(draftId, req.user.Id);
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy bản nháp',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Đã gửi yêu cầu thành công',
+      requestId: result.RequestID,
+    });
+  } catch (error) {
+    console.error('Publish draft error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Không thể gửi yêu cầu',
+    });
+  }
+});
 
 // Chi tiết request
 router.get(

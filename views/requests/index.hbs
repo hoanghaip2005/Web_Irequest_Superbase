@@ -11,17 +11,19 @@
 </div>
 
 <!-- Filters -->
-<div class="card mb-4">
-    <div class="card-body">
+<div class="card mb-4" style="background-color: #ffffff; border: 1px solid #dee2e6;">
+    <div class="card-body" style="background-color: #ffffff;">
         <form method="GET" action="/requests" class="row g-3">
             <div class="col-md-4">
-                <label for="search" class="form-label">Tìm kiếm</label>
+                <label for="search" class="form-label" style="color: #212529;">Tìm kiếm</label>
                 <input type="text" class="form-control" id="search" name="search" 
-                       value="{{filters.search}}" placeholder="Nhập tiêu đề hoặc mô tả...">
+                       value="{{filters.search}}" placeholder="Nhập tiêu đề hoặc mô tả..."
+                       style="background-color: #ffffff; color: #212529; border: 1px solid #ced4da;">
             </div>
             <div class="col-md-3">
-                <label for="status" class="form-label">Trạng thái</label>
-                <select class="form-select" id="status" name="status">
+                <label for="status" class="form-label" style="color: #212529;">Trạng thái</label>
+                <select class="form-select" id="status" name="status"
+                        style="background-color: #ffffff; color: #212529; border: 1px solid #ced4da;">
                     <option value="">Tất cả trạng thái</option>
                     {{#each statuses}}
                     <option value="{{StatusID}}" {{#ifEquals StatusID ../filters.status}}selected{{/ifEquals}}>
@@ -31,8 +33,9 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="priority" class="form-label">Độ ưu tiên</label>
-                <select class="form-select" id="priority" name="priority">
+                <label for="priority" class="form-label" style="color: #212529;">Độ ưu tiên</label>
+                <select class="form-select" id="priority" name="priority"
+                        style="background-color: #ffffff; color: #212529; border: 1px solid #ced4da;">
                     <option value="">Tất cả độ ưu tiên</option>
                     {{#each priorities}}
                     <option value="{{PriorityID}}" {{#ifEquals PriorityID ../filters.priority}}selected{{/ifEquals}}>
@@ -51,14 +54,14 @@
 </div>
 
 <!-- Requests Table -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title mb-0">
+<div class="card" style="background-color: #ffffff; border: 1px solid #dee2e6;">
+    <div class="card-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+        <h5 class="card-title mb-0" style="color: #212529;">
             <i class="fas fa-clipboard-list me-2"></i>
             Danh sách yêu cầu ({{pagination.totalRecords}} kết quả)
         </h5>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-0" style="background-color: #ffffff;">
         {{#if requests.length}}
         <div class="table-responsive">
             <table class="table table-hover mb-0">

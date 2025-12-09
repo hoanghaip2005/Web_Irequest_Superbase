@@ -90,6 +90,9 @@ class Request {
     const params = [];
     let paramCount = 1;
 
+    // IMPORTANT: Exclude draft status from main list
+    conditions.push(`s."StatusName" != 'Nháp'`);
+
     // Build WHERE conditions
     if (filters.userId) {
       conditions.push(
@@ -172,6 +175,9 @@ class Request {
     const conditions = [];
     const params = [];
     let paramCount = 1;
+
+    // IMPORTANT: Exclude draft status from main list
+    conditions.push(`"StatusID" != (SELECT "StatusID" FROM "Status" WHERE "StatusName" = 'Nháp' LIMIT 1)`);
 
     if (filters.userId) {
       conditions.push(
@@ -406,7 +412,7 @@ class Request {
   // Lấy yêu cầu được tạo bởi user
   static async getByCreator(page = 1, limit = 10, filters = {}) {
     const offset = (page - 1) * limit;
-    let whereConditions = ['r."UsersId" = $1'];
+    let whereConditions = ['r."UsersId" = $1', 's."StatusName" != \'Nháp\''];
     let queryParams = [filters.creatorId];
     let paramIndex = 2;
 
@@ -462,7 +468,7 @@ class Request {
 
   // Đếm yêu cầu được tạo bởi user
   static async countByCreator(filters = {}) {
-    let whereConditions = ['r."UsersId" = $1'];
+    let whereConditions = ['r."UsersId" = $1', 's."StatusName" != \'Nháp\''];
     let queryParams = [filters.creatorId];
     let paramIndex = 2;
 
@@ -492,6 +498,7 @@ class Request {
       `
             SELECT COUNT(*) as count
             FROM "Requests" r
+            LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
             WHERE ${whereClause}
         `,
       queryParams
@@ -725,6 +732,9 @@ class Request {
       paramCount++;
     }
 
+    // Exclude drafts from assigned requests
+    conditions.push(`s."StatusName" != 'Nháp'`);
+
     const whereClause = `WHERE ${conditions.join(' AND ')}`;
     params.push(limit, offset);
 
@@ -769,35 +779,41 @@ class Request {
 
   // Đếm requests được gán cho user
   static async countAssignedRequests(userId, filters = {}) {
-    const conditions = [`"AssignedUserId" = $1`];
+    const conditions = [`r."AssignedUserId" = $1`];
     const params = [userId];
     let paramCount = 2;
 
     if (filters.statusId) {
-      conditions.push(`"StatusID" = $${paramCount}`);
+      conditions.push(`r."StatusID" = $${paramCount}`);
       params.push(filters.statusId);
       paramCount++;
     }
 
     if (filters.priorityId) {
-      conditions.push(`"PriorityID" = $${paramCount}`);
+      conditions.push(`r."PriorityID" = $${paramCount}`);
       params.push(filters.priorityId);
       paramCount++;
     }
 
     if (filters.search) {
       conditions.push(
-        `("Title" ILIKE $${paramCount} OR "Description" ILIKE $${paramCount})`
+        `(r."Title" ILIKE $${paramCount} OR r."Description" ILIKE $${paramCount})`
       );
       params.push(`%${filters.search}%`);
       paramCount++;
     }
 
+    // Exclude drafts from assigned requests
+    conditions.push(`s."StatusName" != 'Nháp'`);
+
     const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
     const result = await query(
       `
-            SELECT COUNT(*) as total FROM "Requests" ${whereClause}
+            SELECT COUNT(*) as total 
+            FROM "Requests" r
+            LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+            ${whereClause}
         `,
       params
     );
@@ -915,6 +931,73 @@ class Request {
 
     const request = result.rows[0];
     return request.AssignedUserId === userId || request.UsersId === userId;
+  }
+
+  // Lấy danh sách bản nháp của user
+  static async getDrafts(userId, page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    
+    const result = await query(
+      `
+      SELECT 
+        r.*,
+        u."UserName" as "CreatedByUser",
+        s."StatusName",
+        p."PriorityName",
+        p."ColorCode" as "PriorityColor"
+      FROM "Requests" r
+      LEFT JOIN "Users" u ON r."UsersId" = u."Id"
+      LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+      LEFT JOIN "Priority" p ON r."PriorityID" = p."PriorityID"
+      WHERE r."UsersId" = $1 
+        AND s."StatusName" = 'Nháp'
+      ORDER BY r."UpdatedAt" DESC
+      LIMIT $2 OFFSET $3
+      `,
+      [userId, limit, offset]
+    );
+
+    return result.rows;
+  }
+
+  // Đếm số bản nháp của user
+  static async countDrafts(userId) {
+    const result = await query(
+      `
+      SELECT COUNT(*) as count
+      FROM "Requests" r
+      LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+      WHERE r."UsersId" = $1 
+        AND s."StatusName" = 'Nháp'
+      `,
+      [userId]
+    );
+
+    return parseInt(result.rows[0].count);
+  }
+
+  // Chuyển draft thành request chính thức
+  static async publishDraft(requestId, userId) {
+    // Get default "Mới" status
+    const statusResult = await query(
+      'SELECT "StatusID" FROM "Status" WHERE "StatusName" = $1 LIMIT 1',
+      ['Mới']
+    );
+    const statusId = statusResult.rows[0]?.StatusID || 1;
+
+    const result = await query(
+      `
+      UPDATE "Requests"
+      SET "StatusID" = $1,
+          "UpdatedAt" = NOW()
+      WHERE "RequestID" = $2 
+        AND "UsersId" = $3
+      RETURNING *
+      `,
+      [statusId, requestId, userId]
+    );
+
+    return result.rows[0];
   }
 
   // Lấy workflow steps của request

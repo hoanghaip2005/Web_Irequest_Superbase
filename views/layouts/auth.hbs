@@ -673,28 +673,57 @@
     <script src='/js/app.js'></script>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() { // Password
-      toggle functionality const toggleButtons =
-      document.querySelectorAll('.password-toggle');
-      toggleButtons.forEach(button => { button.addEventListener('click',
-      function() { const passwordInput =
-      this.parentElement.querySelector('input[type="password"],
-      input[type="text"]'); const icon = this.querySelector('i'); if
-      (passwordInput.type === 'password') { passwordInput.type = 'text';
-      icon.className = 'fas fa-eye-slash'; } else { passwordInput.type =
-      'password'; icon.className = 'fas fa-eye'; } }); }); // Form validation
-      and loading state const forms = document.querySelectorAll('form');
-      forms.forEach(form => { form.addEventListener('submit', function(e) {
-      const submitBtn = form.querySelector('button[type="submit"]'); const
-      originalText = submitBtn.innerHTML; submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử
-      lý...'; // Re-enable button after 10 seconds if form hasn't submitted
-      setTimeout(() => { if (!form.submitted) { submitBtn.disabled = false;
-      submitBtn.innerHTML = originalText; } }, 10000); }); }); // Auto-hide
-      alerts after 5 seconds const alerts = document.querySelectorAll('.alert');
-      alerts.forEach(alert => { setTimeout(() => { alert.style.transition =
-      'opacity 0.5s ease'; alert.style.opacity = '0'; setTimeout(() => {
-      alert.remove(); }, 500); }, 5000); }); });
+      document.addEventListener('DOMContentLoaded', function() {
+        // Password toggle functionality
+        const toggleButtons = document.querySelectorAll('.password-toggle');
+        
+        toggleButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const passwordInput = this.parentElement.querySelector('input[type="password"], input[type="text"]');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+              passwordInput.type = 'text';
+              icon.className = 'fas fa-eye-slash';
+            } else {
+              passwordInput.type = 'password';
+              icon.className = 'fas fa-eye';
+            }
+          });
+        });
+
+        // Form validation and loading state
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+          form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+            
+            // Re-enable button after 10 seconds if form hasn't submitted
+            setTimeout(() => {
+              if (!form.submitted) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+              }
+            }, 10000);
+          });
+        });
+
+        // Auto-hide alerts after 5 seconds
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+          setTimeout(() => {
+            alert.style.transition = 'opacity 0.5s ease';
+            alert.style.opacity = '0';
+            setTimeout(() => {
+              alert.remove();
+            }, 500);
+          }, 5000);
+        });
+      });
     </script>
   </body>
 </html>

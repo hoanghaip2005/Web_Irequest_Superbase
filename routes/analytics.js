@@ -10,24 +10,32 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const period = req.query.period || '30';
 
-    // Get comprehensive statistics
+    // Get comprehensive statistics with error handling
     const statsQuery = `
       SELECT 
         COUNT(*) as "totalRequests",
         COUNT(*) FILTER (WHERE s."IsFinal" = true) as "completedRequests",
         COUNT(*) FILTER (WHERE s."IsFinal" = false OR s."IsFinal" IS NULL) as "inProgressRequests",
         COUNT(*) FILTER (WHERE r."CreatedAt" >= NOW() - INTERVAL '7 days') as "newThisWeek",
-        AVG(EXTRACT(EPOCH FROM (r."UpdatedAt" - r."CreatedAt"))/3600) 
-          FILTER (WHERE s."IsFinal" = true) as "avgCompletionHours",
+        COALESCE(AVG(EXTRACT(EPOCH FROM (r."UpdatedAt" - r."CreatedAt"))/3600) 
+          FILTER (WHERE s."IsFinal" = true), 0) as "avgCompletionHours",
         COUNT(DISTINCT r."UsersId") as "uniqueUsers",
-        COUNT(DISTINCT r."AssignedUserId") as "activeAgents"
+        COUNT(DISTINCT r."AssignedUserId") FILTER (WHERE r."AssignedUserId" IS NOT NULL) as "activeAgents"
       FROM "Requests" r
       LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
       WHERE r."CreatedAt" >= NOW() - INTERVAL '${period} days'
     `;
 
     const statsResult = await query(statsQuery);
-    const stats = statsResult.rows[0];
+    const stats = statsResult.rows[0] || {
+      totalRequests: 0,
+      completedRequests: 0,
+      inProgressRequests: 0,
+      newThisWeek: 0,
+      avgCompletionHours: 0,
+      uniqueUsers: 0,
+      activeAgents: 0
+    };
 
     // Format average completion time
     const avgHours = parseFloat(stats.avgCompletionHours) || 0;
@@ -36,7 +44,7 @@ router.get('/', authenticateToken, async (req, res) => {
         ? `${Math.round(avgHours / 24)} ngày`
         : `${Math.round(avgHours)} giờ`;
 
-    // Get top employees by performance
+    // Get top employees by performance with error handling
     const topEmployeesQuery = `
       SELECT 
         u."Id",
@@ -46,8 +54,8 @@ router.get('/', authenticateToken, async (req, res) => {
         COUNT(r."RequestID") as "totalHandled",
         COUNT(r."RequestID") FILTER (WHERE s."IsFinal" = true) as "completedCount",
         COALESCE(AVG(rr."OverallRating"), 0) as "avgRating",
-        AVG(EXTRACT(EPOCH FROM (r."UpdatedAt" - r."CreatedAt"))/3600) 
-          FILTER (WHERE s."IsFinal" = true) as "avgResponseTime"
+        COALESCE(AVG(EXTRACT(EPOCH FROM (r."UpdatedAt" - r."CreatedAt"))/3600) 
+          FILTER (WHERE s."IsFinal" = true), 0) as "avgResponseTime"
       FROM "Users" u
       INNER JOIN "Requests" r ON r."AssignedUserId" = u."Id"
       LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
@@ -68,25 +76,25 @@ router.get('/', authenticateToken, async (req, res) => {
         : 0,
     }));
 
-    // Get department statistics
+    // Get department statistics with error handling
     const departmentStatsQuery = `
       SELECT 
         d."Name" as "departmentName",
         COUNT(r."RequestID") as "totalRequests",
         COUNT(r."RequestID") FILTER (WHERE s."IsFinal" = true) as "completed",
-        ROUND(AVG(EXTRACT(EPOCH FROM (r."UpdatedAt" - r."CreatedAt"))/3600)::numeric, 2) as "avgHours"
+        COALESCE(ROUND(AVG(EXTRACT(EPOCH FROM (r."UpdatedAt" - r."CreatedAt"))/3600)::numeric, 2), 0) as "avgHours"
       FROM "Departments" d
       LEFT JOIN "Users" u ON u."DepartmentID" = d."DepartmentID"
       LEFT JOIN "Requests" r ON r."AssignedUserId" = u."Id"
       LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
-      WHERE r."CreatedAt" >= NOW() - INTERVAL '${period} days' OR r."CreatedAt" IS NULL
+      WHERE (r."CreatedAt" >= NOW() - INTERVAL '${period} days' OR r."CreatedAt" IS NULL)
       GROUP BY d."DepartmentID", d."Name"
       HAVING COUNT(r."RequestID") > 0
       ORDER BY "totalRequests" DESC
     `;
 
     const deptStatsResult = await query(departmentStatsQuery);
-    const departmentStats = deptStatsResult.rows;
+    const departmentStats = deptStatsResult.rows || [];
 
     res.render('analytics/index', {
       title: 'Thống kê & Phân tích',

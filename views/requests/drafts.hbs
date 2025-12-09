@@ -1,0 +1,176 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Bản nháp</h1>
+        <p class="page-subtitle">Danh sách các yêu cầu đã lưu nháp</p>
+    </div>
+    <div class="content-actions">
+        <a href="/requests/create" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+        </a>
+    </div>
+</div>
+
+{{#if error}}
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+</div>
+{{/if}}
+
+<div class="card" style="background-color: #ffffff; border: 1px solid #dee2e6;">
+    <div class="card-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+        <h5 class="card-title mb-0" style="color: #212529;">
+            <i class="fas fa-file-alt me-2"></i>
+            Bản nháp ({{pagination.totalRecords}} bản nháp)
+        </h5>
+    </div>
+    <div class="card-body p-0" style="background-color: #ffffff;">
+        {{#if drafts.length}}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Tiêu đề</th>
+                        <th style="width: 120px;">Độ ưu tiên</th>
+                        <th style="width: 150px;">Cập nhật lúc</th>
+                        <th style="width: 200px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each drafts}}
+                    <tr>
+                        <td>
+                            <span class="badge bg-secondary">#{{RequestID}}</span>
+                        </td>
+                        <td>
+                            <div>
+                                <h6 class="mb-1">{{Title}}</h6>
+                                <small class="text-muted">{{substring Description 0 80}}...</small>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge" style="background-color: {{PriorityColor}};">
+                                {{PriorityName}}
+                            </span>
+                        </td>
+                        <td>
+                            <small>{{formatDate UpdatedAt}}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="/requests/{{RequestID}}" class="btn btn-sm btn-outline-primary" title="Xem">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="/requests/{{RequestID}}/edit" class="btn btn-sm btn-outline-secondary" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-success" 
+                                        onclick="publishDraft({{RequestID}})" title="Gửi yêu cầu">
+                                    <i class="fas fa-paper-plane"></i> Gửi
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteDraft({{RequestID}})" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {{#if pagination.showPagination}}
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+            <div class="text-muted">
+                Hiển thị {{pagination.totalRecords}} bản nháp
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item {{#unless pagination.hasPrevious}}disabled{{/unless}}">
+                        <a class="page-link" href="/requests/drafts?page={{subtract pagination.currentPage 1}}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item active">
+                        <span class="page-link">{{pagination.currentPage}}</span>
+                    </li>
+                    <li class="page-item {{#unless pagination.hasNext}}disabled{{/unless}}">
+                        <a class="page-link" href="/requests/drafts?page={{add pagination.currentPage 1}}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {{/if}}
+
+        {{else}}
+        <div class="text-center py-5">
+            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Chưa có bản nháp nào</h5>
+            <p class="text-muted">Khi bạn lưu nháp yêu cầu, chúng sẽ xuất hiện ở đây.</p>
+            <a href="/requests/create" class="btn btn-primary mt-3">
+                <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+            </a>
+        </div>
+        {{/if}}
+    </div>
+</div>
+
+<script>
+async function publishDraft(draftId) {
+    if (!confirm('Bạn có chắc muốn gửi yêu cầu này? Sau khi gửi, yêu cầu sẽ không còn ở dạng nháp.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/requests/drafts/${draftId}/publish`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            window.location.href = `/requests/${data.requestId}`;
+        } else {
+            alert(data.message || 'Có lỗi xảy ra');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi gửi yêu cầu');
+    }
+}
+
+async function deleteDraft(draftId) {
+    if (!confirm('Bạn có chắc muốn xóa bản nháp này?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/requests/${draftId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert(data.message || 'Có lỗi xảy ra');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi xóa bản nháp');
+    }
+}
+</script>
