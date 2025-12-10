@@ -34,7 +34,7 @@ router.get('/', authenticateToken, async (req, res) => {
       newThisWeek: 0,
       avgCompletionHours: 0,
       uniqueUsers: 0,
-      activeAgents: 0
+      activeAgents: 0,
     };
 
     // Format average completion time
@@ -53,7 +53,7 @@ router.get('/', authenticateToken, async (req, res) => {
         u."Email",
         COUNT(r."RequestID") as "totalHandled",
         COUNT(r."RequestID") FILTER (WHERE s."IsFinal" = true) as "completedCount",
-        COALESCE(AVG(rr."OverallRating"), 0) as "avgRating",
+        COALESCE(AVG(rr."Rating"), 0) as "avgRating",
         COALESCE(AVG(EXTRACT(EPOCH FROM (r."UpdatedAt" - r."CreatedAt"))/3600) 
           FILTER (WHERE s."IsFinal" = true), 0) as "avgResponseTime"
       FROM "Users" u

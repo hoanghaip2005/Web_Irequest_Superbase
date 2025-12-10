@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="/css/modern-table.css">
+
 <div class="content-header">
     <div>
         <h1 class="page-title" id="pageTitle">Yêu cầu của tôi</h1>
@@ -33,7 +35,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <div class="text-muted small">Total</div>
+                        <div class="text-muted small">Tổng số</div>
                         <div class="fs-5 fw-bold text-primary">{{stats.total}}</div>
                     </div>
                 </div>
@@ -50,7 +52,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <div class="text-muted small">Pending</div>
+                        <div class="text-muted small">Chờ xử lý</div>
                         <div class="fs-5 fw-bold text-warning">{{stats.pending}}</div>
                     </div>
                 </div>
@@ -67,7 +69,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <div class="text-muted small">In Progress</div>
+                        <div class="text-muted small">Đang xử lý</div>
                         <div class="fs-5 fw-bold text-info">{{stats.inProgress}}</div>
                     </div>
                 </div>
@@ -84,7 +86,7 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <div class="text-muted small">Completed</div>
+                        <div class="text-muted small">Hoàn thành</div>
                         <div class="fs-5 fw-bold text-success">{{stats.completed}}</div>
                     </div>
                 </div>
@@ -93,263 +95,243 @@
     </div>
 </div>
 
-<!-- Filters -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" action="/requests/my" class="row g-3">
-            <div class="col-md-3">
-                <label for="search" class="form-label">Search</label>
-                <input type="text" class="form-control" id="search" name="search" 
-                       value="{{filters.search}}" placeholder="Enter title or description...">
-            </div>
-            <div class="col-md-2">
-                <label for="status" class="form-label">Status</label>
-                <select class="form-select" id="status" name="status">
-                    <option value="">All Status</option>
-                    {{#each statuses}}
-                    <option value="{{StatusID}}" {{#ifEquals StatusID ../filters.status}}selected{{/ifEquals}}>
-                        {{StatusName}}
-                    </option>
-                    {{/each}}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label for="priority" class="form-label">Priority</label>
-                <select class="form-select" id="priority" name="priority">
-                    <option value="">All Priorities</option>
-                    {{#each priorities}}
-                    <option value="{{PriorityID}}" {{#ifEquals PriorityID ../filters.priority}}selected{{/ifEquals}}>
-                        {{PriorityName}}
-                    </option>
-                    {{/each}}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label for="workflow" class="form-label">Workflow</label>
-                <select class="form-select" id="workflow" name="workflow">
-                    <option value="">All Workflows</option>
-                    {{#each workflows}}
-                    <option value="{{WorkflowID}}" {{#ifEquals WorkflowID ../filters.workflow}}selected{{/ifEquals}}>
-                        {{WorkflowName}}
-                    </option>
-                    {{/each}}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label for="type" class="form-label">Type</label>
-                <select class="form-select" id="type" name="type">
-                    <option value="">All Types</option>
-                    {{#each requestTypes}}
-                    <option value="{{TypeId}}" {{#ifEquals TypeId ../filters.type}}selected{{/ifEquals}}>
-                        {{TypeName}}
-                    </option>
-                    {{/each}}
-                </select>
-            </div>
-            <div class="col-md-1 d-flex align-items-end">
-                <button type="submit" class="btn btn-outline-primary w-100">
-                    <i class="fas fa-search me-2"></i>Filter
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Calendar View -->
-<div id="calendarView" style="display: none;">
-    <div class="card">
-        <div class="card-body">
-            <!-- Calendar toolbar -->
-            <div class="calendar-toolbar mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="calPrevBtn">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="calTodayBtn">Hôm nay</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="calNextBtn">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-                
-                <h4 class="mb-0" id="calendarTitle"></h4>
-                
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-secondary btn-sm active" data-cal-view="dayGridMonth">Tháng</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-cal-view="timeGridWeek">Tuần</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-cal-view="listWeek">Danh sách</button>
-                </div>
-            </div>
-
-            <!-- Calendar -->
-            <div id="requestsCalendar"></div>
+<!-- Modern Table Container for List View -->
+<div class="modern-table-container" id="listView">
+    <!-- Filter Bar -->
+    <div class="table-filter-bar">
+        <div class="filter-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="tableSearch" name="search" value="{{filters.search}}" 
+                   placeholder="Tìm theo tiêu đề, mô tả...">
         </div>
-    </div>
-</div>
 
-<!-- Requests Table -->
-<div class="card" id="listView">
-    <div class="card-header">
-        <h5 class="card-title mb-0">
-            <i class="fas fa-clipboard-list me-2"></i>My Request List
-        </h5>
+        <select class="filter-select" id="statusFilter" name="status">
+            <option value="">Tất cả trạng thái</option>
+            {{#each statuses}}
+            <option value="{{StatusID}}" {{#ifEquals StatusID ../filters.status}}selected{{/ifEquals}}>
+                {{StatusName}}
+            </option>
+            {{/each}}
+        </select>
+
+        <select class="filter-select" id="priorityFilter" name="priority">
+            <option value="">Tất cả độ ưu tiên</option>
+            {{#each priorities}}
+            <option value="{{PriorityID}}" {{#ifEquals PriorityID ../filters.priority}}selected{{/ifEquals}}>
+                {{PriorityName}}
+            </option>
+            {{/each}}
+        </select>
+
+        <select class="filter-select" id="workflowFilter" name="workflow">
+            <option value="">Tất cả workflow</option>
+            {{#each workflows}}
+            <option value="{{WorkflowID}}" {{#ifEquals WorkflowID ../filters.workflow}}selected{{/ifEquals}}>
+                {{WorkflowName}}
+            </option>
+            {{/each}}
+        </select>
+
+        <button class="filter-btn" onclick="applyFilters()">
+            <i class="fas fa-filter"></i>
+            Lọc
+        </button>
+
+        <button class="filter-btn" onclick="clearFilters()">
+            <i class="fas fa-times"></i>
+            Xóa bộ lọc
+        </button>
     </div>
-    <div class="card-body p-0">
-        {{#if requests.length}}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Priority</th>
-                        <th>Workflow</th>
-                        <th>Assigned To</th>
-                        <th>Created Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each requests}}
-                    <tr>
-                        <td>
-                            <span class="fw-bold text-primary">#{{RequestID}}</span>
-                        </td>
-                        <td>
-                            <div class="fw-bold">{{Title}}</div>
-                            <small class="text-muted">{{substring Description 0 50}}{{#if Description}}...{{/if}}</small>
-                        </td>
-                        <td>
-                            <span class="badge bg-secondary">{{TypeName}}</span>
-                        </td>
-                        <td>
-                            <span class="status-badge status-{{toLowerCase StatusName}}">{{StatusName}}</span>
-                        </td>
-                        <td>
-                            <span class="priority-{{toLowerCase PriorityName}}">
-                                <i class="fas fa-circle"></i> {{PriorityName}}
-                            </span>
-                        </td>
-                        <td>
-                            {{#if WorkflowName}}
-                            <span class="badge bg-info">{{WorkflowName}}</span>
-                            {{else}}
-                            <span class="text-muted">No Workflow</span>
-                            {{/if}}
-                        </td>
-                        <td>
-                            {{#if AssignedUserName}}
-                            <div class="d-flex align-items-center">
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
-                                     style="width: 24px; height: 24px; font-size: 10px;">
-                                    {{substring AssignedUserName 0 1}}
-                                </div>
-                                {{AssignedUserName}}
+
+    {{#if requests.length}}
+    <div class="table-responsive">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">
+                        <input type="checkbox" class="table-checkbox" id="selectAll">
+                    </th>
+                    <th style="width: 80px;">ID</th>
+                    <th class="sortable" data-sort="title">Tiêu đề</th>
+                    <th style="width: 120px;">Loại</th>
+                    <th class="sortable text-center" style="width: 130px;" data-sort="status">Trạng thái</th>
+                    <th class="sortable text-center" style="width: 130px;" data-sort="priority">Độ ưu tiên</th>
+                    <th style="width: 150px;">Workflow</th>
+                    <th style="width: 150px;">Người xử lý</th>
+                    <th class="sortable" style="width: 140px;" data-sort="created">Ngày tạo</th>
+                    <th class="text-center" style="width: 140px;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each requests}}
+                <tr>
+                    <td>
+                        <input type="checkbox" class="table-checkbox" value="{{RequestID}}">
+                    </td>
+                    <td>
+                        <span class="table-cell-id">#{{RequestID}}</span>
+                    </td>
+                    <td>
+                        <div style="max-width: 350px;">
+                            <div class="table-cell-name">{{Title}}</div>
+                            {{#if Description}}
+                            <div class="table-cell-secondary" style="margin-top: 4px;">
+                                {{substring Description 0 70}}...
                             </div>
-                            {{else}}
-                            <span class="text-muted">Unassigned</span>
                             {{/if}}
-                        </td>
-                        <td>
-                            <small>{{formatDate CreatedAt}}</small>
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <a href="/requests/{{RequestID}}" class="btn btn-sm btn-outline-primary" title="View Details">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                {{#ifEquals ../user.Id UsersId}}
-                                <a href="/requests/{{RequestID}}/edit" class="btn btn-sm btn-outline-secondary" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                {{/ifEquals}}
+                        </div>
+                    </td>
+                    <td>
+                        {{#if TypeName}}
+                        <span class="table-status-badge status-info">
+                            <i class="fas fa-tag"></i>
+                            {{TypeName}}
+                        </span>
+                        {{else}}
+                        <span class="table-cell-secondary">-</span>
+                        {{/if}}
+                    </td>
+                    <td class="text-center">
+                        {{#if IsStatusFinal}}
+                        <span class="table-status-badge status-success">
+                            <i class="fas fa-circle"></i>
+                            {{StatusName}}
+                        </span>
+                        {{else}}
+                        <span class="table-status-badge status-warning">
+                            <i class="fas fa-circle"></i>
+                            {{StatusName}}
+                        </span>
+                        {{/if}}
+                    </td>
+                    <td class="text-center">
+                        {{#ifEquals PriorityName "Cao"}}
+                        <span class="table-status-badge status-danger">
+                            <i class="fas fa-circle"></i>
+                            {{PriorityName}}
+                        </span>
+                        {{else}}{{#ifEquals PriorityName "Trung bình"}}
+                        <span class="table-status-badge status-warning">
+                            <i class="fas fa-circle"></i>
+                            {{PriorityName}}
+                        </span>
+                        {{else}}
+                        <span class="table-status-badge status-info">
+                            <i class="fas fa-circle"></i>
+                            {{PriorityName}}
+                        </span>
+                        {{/ifEquals}}{{/ifEquals}}
+                    </td>
+                    <td>
+                        {{#if WorkflowName}}
+                        <span class="table-status-badge status-info">
+                            <i class="fas fa-sitemap"></i>
+                            {{WorkflowName}}
+                        </span>
+                        {{else}}
+                        <span class="table-cell-secondary">Không có</span>
+                        {{/if}}
+                    </td>
+                    <td>
+                        {{#if AssignedUserName}}
+                        <div class="table-cell-icon">
+                            <div style="width: 32px; height: 32px; background: var(--table-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">
+                                {{substring AssignedUserName 0 1}}
                             </div>
-                        </td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
+                            <span class="table-cell-secondary">{{AssignedUserName}}</span>
+                        </div>
+                        {{else}}
+                        <span class="table-cell-secondary">Chưa giao</span>
+                        {{/if}}
+                    </td>
+                    <td>
+                        <span class="table-cell-secondary">{{formatDate CreatedAt}}</span>
+                    </td>
+                    <td>
+                        <div class="table-actions-cell">
+                            <button class="table-action-btn action-view" title="Xem chi tiết" 
+                                    onclick="window.location.href='/requests/{{RequestID}}'">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            {{#ifEquals ../user.Id UsersId}}
+                            <button class="table-action-btn action-edit" title="Chỉnh sửa"
+                                    onclick="window.location.href='/requests/{{RequestID}}/edit'">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            {{/ifEquals}}
+                            <button class="table-action-btn action-print" title="In"
+                                    onclick="window.print()">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {{#if pagination.totalPages}}
+    <div class="table-pagination">
+        <div class="pagination-info">
+            <span>Hiển thị {{pagination.startRecord}} - {{pagination.endRecord}} trong {{pagination.totalRecords}} yêu cầu</span>
+            <i class="fas fa-sync-alt" onclick="location.reload()" 
+               style="margin-left: 12px; cursor: pointer; color: var(--table-text-secondary);" 
+               title="Làm mới"></i>
         </div>
-        
-        <!-- Pagination -->
-        {{#if pagination.totalPages}}
-        <div class="d-flex justify-content-between align-items-center p-3 border-top">
-            <small class="text-muted">
-                Showing {{pagination.startRecord}} - {{pagination.endRecord}} 
-                of {{pagination.totalRecords}} requests
-            </small>
+        <div class="pagination-controls">
+            <button class="pagination-btn" {{#unless pagination.hasPrevious}}disabled{{/unless}}
+                    onclick="goToPage({{pagination.previousPage}})">
+                <i class="fas fa-chevron-left"></i>
+            </button>
             
-            {{#if pagination.showPagination}}
-            <nav aria-label="Pagination">
-                <ul class="pagination pagination-sm mb-0">
-                    {{#if pagination.hasPrevious}}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{pagination.previousPage}}{{#if filters.search}}&search={{filters.search}}{{/if}}{{#if filters.status}}&status={{filters.status}}{{/if}}{{#if filters.priority}}&priority={{filters.priority}}{{/if}}">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                    </li>
-                    {{/if}}
-                    
-                    {{#each pagination.pages}}
-                    <li class="page-item {{#if active}}active{{/if}}">
-                        <a class="page-link" href="?page={{number}}{{#if ../filters.search}}&search={{../filters.search}}{{/if}}{{#if ../filters.status}}&status={{../filters.status}}{{/if}}{{#if ../filters.priority}}&priority={{../filters.priority}}{{/if}}">
-                            {{number}}
-                        </a>
-                    </li>
-                    {{/each}}
-                    
-                    {{#if pagination.hasNext}}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{pagination.nextPage}}{{#if filters.search}}&search={{filters.search}}{{/if}}{{#if filters.status}}&status={{filters.status}}{{/if}}{{#if filters.priority}}&priority={{filters.priority}}{{/if}}">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </li>
-                    {{/if}}
-                </ul>
-            </nav>
+            {{#each pagination.pages}}
+            <button class="pagination-btn {{#if active}}active{{/if}}"
+                    onclick="goToPage({{number}})">
+                {{number}}
+            </button>
+            {{/each}}
+            
+            <button class="pagination-btn" {{#unless pagination.hasNext}}disabled{{/unless}}
+                    onclick="goToPage({{pagination.nextPage}})">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <select class="pagination-select" id="itemsPerPage" onchange="changePageSize(this.value)">
+                <option value="10">10 hàng/trang</option>
+                <option value="20" selected>20 hàng/trang</option>
+                <option value="50">50 hàng/trang</option>
+            </select>
+        </div>
+    </div>
+    {{/if}}
+    {{else}}
+    <div class="table-empty-state">
+        <div class="table-empty-icon">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="table-empty-text">Không có yêu cầu nào</div>
+        <div class="table-empty-subtext">
+            {{#if filters.search}}
+            Không tìm thấy yêu cầu phù hợp với từ khóa "{{filters.search}}"
+            {{else}}
+            Bạn chưa tạo yêu cầu nào.
             {{/if}}
         </div>
-        {{/if}}
-        
-        {{else}}
-        <div class="text-center py-5">
-            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted">No Requests Found</h5>
-            <p class="text-muted mb-4">You haven't created any requests yet. Create your first request!</p>
-            <a href="/requests/create" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Create New Request
-            </a>
-        </div>
-        {{/if}}
+        <button class="btn-modern btn-modern-primary" style="margin-top: 20px;"
+                onclick="window.location.href='/requests/create'">
+            <i class="fas fa-plus"></i>
+            Tạo yêu cầu mới
+        </button>
     </div>
+    {{/if}}
 </div>
 
-<!-- Request Detail Modal (for Calendar) -->
-<div class="modal fade" id="requestDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="requestDetailTitle"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="requestDetailContent">
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Đang tải...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <a href="#" class="btn btn-primary" id="viewRequestDetailBtn">
-                    <i class="fas fa-eye me-2"></i>Xem chi tiết
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Calendar View (using partial) -->
+{{> calendar-view}}
 
+<!-- Calendar resources -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <link rel="stylesheet" href="/css/calendar.css">
@@ -474,7 +456,7 @@ let calendar = null;
             
             if (!calendar) {
                 console.log('Initializing calendar...');
-                initializeCalendar();
+                calendar = initializeCalendar();
             } else {
                 console.log('Calendar already exists, just showing it');
             }
@@ -484,147 +466,6 @@ let calendar = null;
             const url = new URL(window.location);
             url.searchParams.set('view', view);
             window.history.pushState({}, '', url);
-        }
-        
-        function initializeCalendar() {
-            const calendarEl = document.getElementById('requestsCalendar');
-            
-            if (!calendarEl) {
-                console.error('Calendar element not found!');
-                return;
-            }
-            
-            console.log('Creating calendar instance...');
-            
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: false,
-                locale: 'vi',
-                firstDay: 1,
-                height: 'auto',
-                navLinks: true,
-                editable: false,
-                selectable: false,
-                dayMaxEvents: true,
-                events: '/requests/api/calendar-events',
-                
-                eventClick: function(info) {
-                    showRequestDetail(info.event);
-                },
-                
-                datesSet: function(info) {
-                    const titleEl = document.getElementById('calendarTitle');
-                    if (titleEl) {
-                        titleEl.textContent = info.view.title;
-                    }
-                },
-                
-                eventContent: function(arg) {
-                    let content = arg.event.title;
-                    if (arg.event.extendedProps.priority) {
-                        content = `<i class="fas fa-flag me-1"></i>${content}`;
-                    }
-                    return { html: content };
-                },
-                
-                loading: function(isLoading) {
-                    console.log('Calendar loading:', isLoading);
-                }
-            });
-
-            console.log('Rendering calendar...');
-            calendar.render();
-            console.log('Calendar rendered');
-
-            // Calendar toolbar buttons
-            const prevBtn = document.getElementById('calPrevBtn');
-            const nextBtn = document.getElementById('calNextBtn');
-            const todayBtn = document.getElementById('calTodayBtn');
-            
-            if (prevBtn) prevBtn.onclick = () => calendar.prev();
-            if (nextBtn) nextBtn.onclick = () => calendar.next();
-            if (todayBtn) todayBtn.onclick = () => calendar.today();
-            
-            document.querySelectorAll('[data-cal-view]').forEach(btn => {
-                btn.onclick = function() {
-                    calendar.changeView(this.dataset.calView);
-                    document.querySelectorAll('[data-cal-view]').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                };
-            });
-        }
-        
-        function showRequestDetail(event) {
-            const requestId = event.extendedProps.requestId;
-            const modal = bootstrap.Modal.getInstance(document.getElementById('requestDetailModal')) || 
-                          new bootstrap.Modal(document.getElementById('requestDetailModal'));
-            
-            document.getElementById('requestDetailTitle').textContent = event.title;
-            document.getElementById('viewRequestDetailBtn').href = `/requests/${requestId}`;
-            
-            const content = `
-                <div class="request-detail-info">
-                    ${event.extendedProps.description ? `
-                        <div class="mb-3">
-                            <strong>Mô tả:</strong>
-                            <p class="mb-0 mt-1">${event.extendedProps.description}</p>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>Trạng thái:</strong>
-                            <span class="badge ${event.extendedProps.isFinal ? 'bg-success' : 'bg-warning'} ms-2">
-                                ${event.extendedProps.status || 'N/A'}
-                            </span>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Ưu tiên:</strong>
-                            <span class="badge bg-secondary ms-2">
-                                ${event.extendedProps.priority || 'N/A'}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>Người tạo:</strong>
-                            <p class="mb-0 mt-1">${event.extendedProps.createdByName || 'N/A'}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Người xử lý:</strong>
-                            <p class="mb-0 mt-1">${event.extendedProps.assignedToName || 'Chưa phân công'}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <strong>Ngày tạo:</strong>
-                        <p class="mb-0 mt-1">${formatDateTime(event.start)}</p>
-                    </div>
-                    
-                    ${event.end && event.extendedProps.isFinal ? `
-                        <div class="mb-3">
-                            <strong>Ngày hoàn thành:</strong>
-                            <p class="mb-0 mt-1">${formatDateTime(event.end)}</p>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-            
-            document.getElementById('requestDetailContent').innerHTML = content;
-            modal.show();
-        }
-        
-        function formatDateTime(date) {
-            if (!date) return 'N/A';
-            const d = new Date(date);
-            return d.toLocaleString('vi-VN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
         }
         
         // Auto refresh
@@ -641,6 +482,86 @@ let calendar = null;
                 calendar.refetchEvents();
             }
         }, 30000);
+
+        // Modern table functions
+        function getCurrentFilters() {
+            const params = new URLSearchParams();
+            const search = document.getElementById('tableSearch')?.value;
+            const status = document.getElementById('statusFilter')?.value;
+            const priority = document.getElementById('priorityFilter')?.value;
+            const workflow = document.getElementById('workflowFilter')?.value;
+            
+            if (search) params.set('search', search);
+            if (status) params.set('status', status);
+            if (priority) params.set('priority', priority);
+            if (workflow) params.set('workflow', workflow);
+            
+            return params;
+        }
+
+        window.applyFilters = function() {
+            const params = getCurrentFilters();
+            params.set('page', 1);
+            window.location.search = params.toString();
+        };
+
+        window.clearFilters = function() {
+            window.location.href = '/requests/my';
+        };
+
+        // Search on Enter
+        document.getElementById('tableSearch')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') applyFilters();
+        });
+
+        // Auto-submit on filter change
+        document.getElementById('statusFilter')?.addEventListener('change', applyFilters);
+        document.getElementById('priorityFilter')?.addEventListener('change', applyFilters);
+        document.getElementById('workflowFilter')?.addEventListener('change', applyFilters);
+
+        // Select all checkbox
+        document.getElementById('selectAll')?.addEventListener('change', function(e) {
+            const checkboxes = document.querySelectorAll('.modern-table tbody .table-checkbox');
+            checkboxes.forEach(cb => cb.checked = e.target.checked);
+        });
+
+        // Sorting
+        document.querySelectorAll('.sortable').forEach(th => {
+            th.addEventListener('click', function() {
+                const tbody = this.closest('table').querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                if (rows.length === 0 || rows[0].cells.length === 1) return;
+                
+                const isAsc = this.classList.contains('sorted-asc');
+                document.querySelectorAll('.sortable').forEach(t => {
+                    t.classList.remove('sorted-asc', 'sorted-desc');
+                });
+                this.classList.add(isAsc ? 'sorted-desc' : 'sorted-asc');
+                
+                const colIndex = Array.from(this.parentElement.children).indexOf(this);
+                rows.sort((a, b) => {
+                    const aText = a.cells[colIndex]?.textContent.trim() || '';
+                    const bText = b.cells[colIndex]?.textContent.trim() || '';
+                    return isAsc ? bText.localeCompare(aText) : aText.localeCompare(bText);
+                });
+                
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+
+        // Pagination functions
+        window.goToPage = function(page) {
+            const params = getCurrentFilters();
+            params.set('page', page);
+            window.location.search = params.toString();
+        };
+
+        window.changePageSize = function(size) {
+            const params = getCurrentFilters();
+            params.set('limit', size);
+            params.set('page', 1);
+            window.location.search = params.toString();
+        };
     }
 })();
 </script>

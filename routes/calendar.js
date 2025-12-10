@@ -39,7 +39,7 @@ router.get('/api/events', authenticateToken, async (req, res) => {
         e."RelatedRequestID" as "relatedRequestID",
         e."Attendees" as attendees,
         e."ReminderMinutes" as "reminderMinutes",
-        u."FullName" as "createdByName",
+        u."UserName" as "createdByName",
         u."Email" as "createdByEmail"
       FROM "Events" e
       LEFT JOIN "Users" u ON e."CreatedBy" = u."Id"

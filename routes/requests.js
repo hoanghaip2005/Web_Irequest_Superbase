@@ -766,13 +766,14 @@ router.post(
           ['Nháp']
         );
         draftStatusId = draftStatus.rows[0]?.StatusID;
-        
+
         // If draft status doesn't exist, return error
         if (!draftStatusId) {
           console.error('Draft status "Nháp" not found in database');
           return res.status(500).json({
             success: false,
-            message: 'Không tìm thấy trạng thái "Nháp". Vui lòng chạy migration 006.',
+            message:
+              'Không tìm thấy trạng thái "Nháp". Vui lòng chạy migration 006.',
           });
         }
       } catch (e) {
@@ -858,7 +859,7 @@ router.get('/drafts', authenticateToken, async (req, res) => {
 router.post('/drafts/:id/publish', authenticateToken, async (req, res) => {
   try {
     const draftId = parseInt(req.params.id);
-    
+
     if (isNaN(draftId)) {
       return res.status(400).json({
         success: false,
@@ -2153,8 +2154,8 @@ router.get('/api/calendar-events', authenticateToken, async (req, res) => {
           WHEN s."IsFinal" = true THEN '#38b2ac'
           ELSE '#3788d8'
         END as color,
-        creator."FullName" as "createdByName",
-        assignee."FullName" as "assignedToName",
+        creator."UserName" as "createdByName",
+        assignee."UserName" as "assignedToName",
         r."UsersId" as "createdBy",
         r."AssignedUserId" as "assignedTo"
       FROM "Requests" r

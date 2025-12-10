@@ -1,0 +1,281 @@
+<link rel="stylesheet" href="/css/modern-table.css">
+
+<!-- Table Header Section -->
+<div class="modern-table-container">
+    <div class="table-header-section">
+        <div class="table-title-wrapper">
+            <div>
+                <h2 class="table-title">
+                    <i class="fas fa-clipboard-list" style="color: var(--table-primary);"></i>
+                    Quản lý của hàng
+                </h2>
+                <p class="table-subtitle">Quản lý và theo dõi tất cả yêu cầu trong hệ thống</p>
+            </div>
+        </div>
+        <div class="table-actions">
+            <button class="btn-modern btn-modern-secondary">
+                <i class="fas fa-download"></i>
+                Xuất Excel
+            </button>
+            <button class="btn-modern btn-modern-primary" onclick="window.location.href='/requests/create'">
+                <i class="fas fa-plus"></i>
+                Thêm mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="table-filter-bar">
+        <div class="filter-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="tableSearch" placeholder="Tìm kiếm theo tên điểm hoặc thông tin khác...">
+        </div>
+
+        <select class="filter-select" id="statusFilter">
+            <option value="">Tất cả trạng thái</option>
+            {{#each statuses}}
+            <option value="{{StatusID}}">{{StatusName}}</option>
+            {{/each}}
+        </select>
+
+        <select class="filter-select" id="priorityFilter">
+            <option value="">Độ ưu tiên</option>
+            {{#each priorities}}
+            <option value="{{PriorityID}}">{{PriorityName}}</option>
+            {{/each}}
+        </select>
+
+        <select class="filter-select" id="industryFilter">
+            <option value="">Ngành</option>
+            <option value="it">IT</option>
+            <option value="marketing">Marketing</option>
+            <option value="sales">Sales</option>
+        </select>
+
+        <button class="filter-btn" id="filterBtn">
+            <i class="fas fa-filter"></i>
+            Lọc
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">
+                        <input type="checkbox" class="table-checkbox" id="selectAll">
+                    </th>
+                    <th class="sortable" data-sort="name">Tên cửa hàng</th>
+                    <th class="sortable" data-sort="industry">Ngành</th>
+                    <th class="sortable" data-sort="location">Tỉnh/Thành</th>
+                    <th class="sortable text-center" data-sort="attendance">% nhân viên chấm công đủ</th>
+                    <th class="sortable text-center" data-sort="employees">Số nhân viên</th>
+                    <th class="sortable text-center" data-sort="limit">Tổng số ca làm/tháng</th>
+                    <th class="sortable text-center" data-sort="shifts">Số tỉnh năng đang sử dụng</th>
+                    <th class="sortable text-center" data-sort="status">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#if requests.length}}
+                {{#each requests}}
+                <tr>
+                    <td>
+                        <input type="checkbox" class="table-checkbox" value="{{RequestID}}">
+                    </td>
+                    <td>
+                        <span class="table-cell-id">{{Title}}</span>
+                    </td>
+                    <td>
+                        <span class="table-cell-secondary">{{StatusName}}</span>
+                    </td>
+                    <td>
+                        <span class="table-cell-secondary">{{PriorityName}}</span>
+                    </td>
+                    <td class="text-center">
+                        <div class="table-progress">
+                            <div class="table-progress-bar">
+                                <div class="table-progress-fill" style="width: 85%;"></div>
+                            </div>
+                            <span class="table-progress-text">85%</span>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <span class="table-cell-secondary">{{#if AssignedUserId}}Đã giao{{else}}Chưa giao{{/if}}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="table-cell-secondary">480 ca</span>
+                    </td>
+                    <td class="text-center">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <span class="table-cell-secondary">5/8</span>
+                            <i class="fas fa-arrow-up table-trend-icon trend-up"></i>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-actions-cell">
+                            <button class="table-action-btn action-view" title="Xem chi tiết" 
+                                    onclick="window.location.href='/requests/{{RequestID}}'">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="table-action-btn action-edit" title="Chỉnh sửa"
+                                    onclick="window.location.href='/requests/{{RequestID}}/edit'">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button class="table-action-btn action-print" title="In"
+                                    onclick="window.print()">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button class="table-action-btn action-delete" title="Xóa"
+                                    onclick="confirmDelete({{RequestID}})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {{/each}}
+                {{else}}
+                <tr>
+                    <td colspan="9">
+                        <div class="table-empty-state">
+                            <div class="table-empty-icon">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <div class="table-empty-text">Không có dữ liệu</div>
+                            <div class="table-empty-subtext">Không tìm thấy yêu cầu nào phù hợp với điều kiện lọc</div>
+                        </div>
+                    </td>
+                </tr>
+                {{/if}}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {{#if pagination.total}}
+    <div class="table-pagination">
+        <div class="pagination-info">
+            <span>1 - 20 of {{pagination.totalRecords}}</span>
+            <i class="fas fa-sync-alt" style="margin-left: 8px; cursor: pointer; color: var(--table-text-secondary);"></i>
+        </div>
+        <div class="pagination-controls">
+            <button class="pagination-btn" {{#unless pagination.hasPrev}}disabled{{/unless}}
+                    onclick="goToPage({{pagination.prev}})">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            {{#each pagination.pages}}
+            <button class="pagination-btn {{#if active}}active{{/if}}"
+                    onclick="goToPage({{page}})">
+                {{page}}
+            </button>
+            {{/each}}
+            
+            <button class="pagination-btn" {{#unless pagination.hasNext}}disabled{{/unless}}
+                    onclick="goToPage({{pagination.next}})">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <select class="pagination-select" id="itemsPerPage" onchange="changePageSize(this.value)">
+                <option value="20" selected>20 hàng/trang</option>
+                <option value="50">50 hàng/trang</option>
+                <option value="100">100 hàng/trang</option>
+            </select>
+        </div>
+    </div>
+    {{/if}}
+</div>
+
+<script>
+// Search functionality
+document.getElementById('tableSearch')?.addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.modern-table tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Select all checkbox
+document.getElementById('selectAll')?.addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('.modern-table tbody .table-checkbox');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+});
+
+// Sorting
+document.querySelectorAll('.sortable').forEach(th => {
+    th.addEventListener('click', function() {
+        const sortKey = this.getAttribute('data-sort');
+        const tbody = this.closest('table').querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        // Toggle sort direction
+        const isAsc = this.classList.contains('sorted-asc');
+        document.querySelectorAll('.sortable').forEach(t => {
+            t.classList.remove('sorted-asc', 'sorted-desc');
+        });
+        this.classList.add(isAsc ? 'sorted-desc' : 'sorted-asc');
+        
+        // Sort rows (simple text-based sort for demo)
+        rows.sort((a, b) => {
+            const aText = a.cells[Array.from(this.parentElement.children).indexOf(this)].textContent.trim();
+            const bText = b.cells[Array.from(this.parentElement.children).indexOf(this)].textContent.trim();
+            return isAsc ? bText.localeCompare(aText) : aText.localeCompare(bText);
+        });
+        
+        rows.forEach(row => tbody.appendChild(row));
+    });
+});
+
+// Filter button
+document.getElementById('filterBtn')?.addEventListener('click', function() {
+    const status = document.getElementById('statusFilter').value;
+    const priority = document.getElementById('priorityFilter').value;
+    const industry = document.getElementById('industryFilter').value;
+    
+    const params = new URLSearchParams(window.location.search);
+    if (status) params.set('status', status);
+    else params.delete('status');
+    if (priority) params.set('priority', priority);
+    else params.delete('priority');
+    if (industry) params.set('industry', industry);
+    else params.delete('industry');
+    
+    window.location.search = params.toString();
+});
+
+// Pagination functions
+function goToPage(page) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', page);
+    window.location.search = params.toString();
+}
+
+function changePageSize(size) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('limit', size);
+    params.set('page', 1);
+    window.location.search = params.toString();
+}
+
+// Delete confirmation
+function confirmDelete(id) {
+    if (confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
+        fetch(`/requests/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Có lỗi xảy ra khi xóa yêu cầu');
+            }
+        });
+    }
+}
+</script>

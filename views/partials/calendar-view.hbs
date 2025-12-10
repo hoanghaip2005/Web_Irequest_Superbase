@@ -1,0 +1,294 @@
+<!-- Calendar View Section -->
+<div id="calendarView" class="modern-table-container" style="display: none;">
+    <!-- Calendar Header -->
+    <div class="table-header-section">
+        <div class="table-header-left">
+            <h2 class="table-title">
+                <i class="fas fa-calendar-alt"></i>
+                Lịch yêu cầu
+            </h2>
+            <p class="table-subtitle" id="calendarTitle">Tháng hiện tại</p>
+        </div>
+        <div class="table-header-actions">
+            <div class="calendar-nav-buttons">
+                <button class="btn-modern btn-modern-secondary" id="calPrevBtn" title="Tháng trước">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn-modern btn-modern-secondary" id="calTodayBtn">
+                    <i class="fas fa-calendar-day"></i>
+                    Hôm nay
+                </button>
+                <button class="btn-modern btn-modern-secondary" id="calNextBtn" title="Tháng sau">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar View Switcher -->
+    <div class="table-filter-bar">
+        <div class="calendar-view-switcher">
+            <button class="filter-btn active" data-cal-view="dayGridMonth">
+                <i class="fas fa-calendar"></i>
+                Tháng
+            </button>
+            <button class="filter-btn" data-cal-view="timeGridWeek">
+                <i class="fas fa-calendar-week"></i>
+                Tuần
+            </button>
+            <button class="filter-btn" data-cal-view="timeGridDay">
+                <i class="fas fa-calendar-day"></i>
+                Ngày
+            </button>
+            <button class="filter-btn" data-cal-view="listWeek">
+                <i class="fas fa-list"></i>
+                Danh sách
+            </button>
+        </div>
+        
+        <div style="color: var(--table-text-secondary); font-size: 14px;">
+            <i class="fas fa-info-circle"></i>
+            Click vào sự kiện để xem chi tiết
+        </div>
+    </div>
+
+    <!-- Calendar Content -->
+    <div class="calendar-content-wrapper">
+        <div id="requestsCalendar"></div>
+    </div>
+</div>
+
+<!-- Request Detail Modal -->
+<div class="modal fade" id="requestDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header" style="background: var(--table-header-bg); border-bottom: 1px solid var(--table-border); padding: 20px 24px;">
+                <h5 class="modal-title" style="color: var(--table-text-primary); font-weight: 600; font-size: 18px;">
+                    <i class="fas fa-file-alt" style="color: var(--table-primary); margin-right: 8px;"></i>
+                    <span id="requestDetailTitle"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="requestDetailContent" style="padding: 24px;">
+                <!-- Content will be populated dynamically -->
+            </div>
+            <div class="modal-footer" style="background: var(--table-header-bg); border-top: 1px solid var(--table-border); padding: 16px 24px;">
+                <button type="button" class="btn-modern btn-modern-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i>
+                    Đóng
+                </button>
+                <a href="#" class="btn-modern btn-modern-primary" id="viewRequestDetailBtn" target="_blank">
+                    <i class="fas fa-eye"></i>
+                    Xem chi tiết
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Calendar initialization function
+function initializeCalendar() {
+    const calendarEl = document.getElementById('requestsCalendar');
+    
+    if (!calendarEl) {
+        console.error('Calendar element not found!');
+        return null;
+    }
+    
+    console.log('Creating calendar instance...');
+    
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: false,
+        locale: 'vi',
+        firstDay: 1,
+        height: 650,
+        contentHeight: 600,
+        navLinks: true,
+        editable: false,
+        selectable: false,
+        dayMaxEvents: true,
+        events: '/requests/api/calendar-events',
+        
+        eventClick: function(info) {
+            showRequestDetail(info.event);
+        },
+        
+        datesSet: function(info) {
+            const titleEl = document.getElementById('calendarTitle');
+            if (titleEl) {
+                titleEl.textContent = info.view.title;
+            }
+        },
+        
+        eventContent: function(arg) {
+            let content = arg.event.title;
+            if (arg.event.extendedProps.priority) {
+                content = `<i class="fas fa-flag me-1"></i>${content}`;
+            }
+            return { html: content };
+        },
+        
+        loading: function(isLoading) {
+            console.log('Calendar loading:', isLoading);
+        },
+        
+        eventDidMount: function(info) {
+            console.log('Event mounted:', info.event.title);
+        },
+        
+        eventSourceSuccess: function(content, xhr) {
+            console.log('Events loaded successfully:', content);
+        },
+        
+        eventSourceFailure: function(error) {
+            console.error('Failed to load events:', error);
+        }
+    });
+
+    console.log('Rendering calendar...');
+    calendar.render();
+    console.log('Calendar rendered successfully');
+    
+    // Force calendar to render properly
+    setTimeout(() => {
+        calendar.updateSize();
+        console.log('Calendar size updated');
+    }, 100);
+
+    // Calendar toolbar buttons
+    const prevBtn = document.getElementById('calPrevBtn');
+    const nextBtn = document.getElementById('calNextBtn');
+    const todayBtn = document.getElementById('calTodayBtn');
+    
+    if (prevBtn) prevBtn.onclick = () => calendar.prev();
+    if (nextBtn) nextBtn.onclick = () => calendar.next();
+    if (todayBtn) todayBtn.onclick = () => calendar.today();
+    
+    document.querySelectorAll('[data-cal-view]').forEach(btn => {
+        btn.onclick = function() {
+            calendar.changeView(this.dataset.calView);
+            document.querySelectorAll('[data-cal-view]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        };
+    });
+    
+    return calendar;
+}
+
+// Show request detail in modal
+function showRequestDetail(event) {
+    const requestId = event.extendedProps.requestId;
+    const modal = bootstrap.Modal.getInstance(document.getElementById('requestDetailModal')) || 
+                  new bootstrap.Modal(document.getElementById('requestDetailModal'));
+    
+    document.getElementById('requestDetailTitle').textContent = event.title;
+    document.getElementById('viewRequestDetailBtn').href = `/requests/${requestId}`;
+    
+    const content = `
+        <div class="request-detail-info" style="color: var(--table-text-primary);">
+            ${event.extendedProps.description ? `
+                <div class="detail-section">
+                    <div class="detail-label">
+                        <i class="fas fa-align-left"></i>
+                        Mô tả
+                    </div>
+                    <div class="detail-value">${event.extendedProps.description}</div>
+                </div>
+            ` : ''}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <i class="fas fa-info-circle"></i>
+                            Trạng thái
+                        </div>
+                        <div class="detail-value">
+                            ${event.extendedProps.isFinal 
+                                ? '<span class="table-status-badge status-success"><i class="fas fa-check-circle"></i> ' + (event.extendedProps.status || 'N/A') + '</span>'
+                                : '<span class="table-status-badge status-warning"><i class="fas fa-clock"></i> ' + (event.extendedProps.status || 'N/A') + '</span>'
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <i class="fas fa-flag"></i>
+                            Độ ưu tiên
+                        </div>
+                        <div class="detail-value">
+                            <span class="table-status-badge status-info">
+                                <i class="fas fa-circle"></i>
+                                ${event.extendedProps.priority || 'N/A'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <i class="fas fa-user"></i>
+                            Người tạo
+                        </div>
+                        <div class="detail-value">${event.extendedProps.createdByName || 'N/A'}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <i class="fas fa-user-check"></i>
+                            Người xử lý
+                        </div>
+                        <div class="detail-value">${event.extendedProps.assignedToName || 'Chưa phân công'}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="detail-section">
+                        <div class="detail-label">
+                            <i class="fas fa-calendar-plus"></i>
+                            Ngày tạo
+                        </div>
+                        <div class="detail-value">${formatDateTime(event.start)}</div>
+                    </div>
+                </div>
+                ${event.end && event.extendedProps.isFinal ? `
+                    <div class="col-md-6">
+                        <div class="detail-section">
+                            <div class="detail-label">
+                                <i class="fas fa-calendar-check"></i>
+                                Ngày hoàn thành
+                            </div>
+                            <div class="detail-value">${formatDateTime(event.end)}</div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('requestDetailContent').innerHTML = content;
+    modal.show();
+}
+
+// Format datetime helper
+function formatDateTime(date) {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    return d.toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+</script>

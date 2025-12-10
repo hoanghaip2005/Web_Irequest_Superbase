@@ -251,6 +251,66 @@ const hbs = exphbs.create({
       }
       return result;
     },
+    // Helper for complex math operations (used in analytics)
+    math: function (lvalue, operator, rvalue, operator2, rvalue2) {
+      lvalue = parseFloat(lvalue);
+      rvalue = parseFloat(rvalue);
+
+      // Handle two operations (e.g., a * b / c)
+      if (operator2 && rvalue2) {
+        rvalue2 = parseFloat(rvalue2);
+        let intermediate;
+        switch (operator) {
+          case '+':
+            intermediate = lvalue + rvalue;
+            break;
+          case '-':
+            intermediate = lvalue - rvalue;
+            break;
+          case '*':
+            intermediate = lvalue * rvalue;
+            break;
+          case '/':
+            intermediate = rvalue !== 0 ? lvalue / rvalue : 0;
+            break;
+          case '%':
+            intermediate = lvalue % rvalue;
+            break;
+          default:
+            return 0;
+        }
+        switch (operator2) {
+          case '+':
+            return intermediate + rvalue2;
+          case '-':
+            return intermediate - rvalue2;
+          case '*':
+            return intermediate * rvalue2;
+          case '/':
+            return rvalue2 !== 0 ? intermediate / rvalue2 : 0;
+          case '%':
+            return intermediate % rvalue2;
+          default:
+            return intermediate;
+        }
+      }
+
+      // Handle single operation
+      switch (operator) {
+        case '+':
+          return lvalue + rvalue;
+        case '-':
+          return lvalue - rvalue;
+        case '*':
+          return lvalue * rvalue;
+        case '/':
+          return rvalue !== 0 ? lvalue / rvalue : 0;
+        case '%':
+          return lvalue % rvalue;
+        default:
+          return 0;
+      }
+    },
   },
 });
 

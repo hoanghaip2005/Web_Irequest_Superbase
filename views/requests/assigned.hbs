@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/assigned-requests.css">
+<link rel="stylesheet" href="/css/modern-table.css">
 
 <div class="assigned-requests-container">
     <!-- Header Section -->
@@ -76,411 +76,310 @@
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="card mb-4 filters-card">
-        <div class="card-body">
-            <form method="GET" action="/requests/assigned" class="row g-3">
-                <div class="col-md-4">
-                    <label for="search" class="form-label">Tìm kiếm</label>
-                    <input type="text" class="form-control" id="search" name="search" 
-                           value="{{filters.search}}" placeholder="Nhập tiêu đề hoặc mô tả...">
-                </div>
-                <div class="col-md-3">
-                    <label for="status" class="form-label">Trạng thái</label>
-                    <select class="form-select" id="status" name="status">
-                        <option value="">Tất cả trạng thái</option>
-                        {{#each statuses}}
-                        <option value="{{StatusID}}" {{#ifEquals StatusID ../filters.status}}selected{{/ifEquals}}>
-                            {{StatusName}}
-                        </option>
-                        {{/each}}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="priority" class="form-label">Độ ưu tiên</label>
-                    <select class="form-select" id="priority" name="priority">
-                        <option value="">Tất cả độ ưu tiên</option>
-                        {{#each priorities}}
-                        <option value="{{PriorityID}}" {{#ifEquals PriorityID ../filters.priority}}selected{{/ifEquals}}>
-                            {{PriorityName}}
-                        </option>
-                        {{/each}}
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-outline-primary w-100">
-                        <i class="fas fa-search me-2"></i>Lọc
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title mb-3">Thao tác nhanh</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="/requests/assigned?status=1" class="btn btn-outline-warning btn-sm">
-                            <i class="fas fa-clock me-2"></i>Yêu cầu mới
-                        </a>
-                        <a href="/requests/assigned?status=2" class="btn btn-outline-info btn-sm">
-                            <i class="fas fa-play me-2"></i>Đang xử lý
-                        </a>
-                        <a href="/requests/assigned?priority=4" class="btn btn-outline-danger btn-sm">
-                            <i class="fas fa-exclamation-triangle me-2"></i>Ưu tiên cao
-                        </a>
-                        <a href="/requests/assigned" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-list me-2"></i>Tất cả
-                        </a>
-                    </div>
+    <!-- Modern Table Container -->
+    <div class="modern-table-container">
+        <!-- Table Header -->
+        <div class="table-header-section">
+            <div class="table-title-wrapper">
+                <div>
+                    <h2 class="table-title">
+                        <i class="fas fa-user-check" style="color: var(--table-primary);"></i>
+                        Yêu cầu được giao
+                    </h2>
+                    <p class="table-subtitle">Danh sách yêu cầu được giao cho bạn xử lý</p>
                 </div>
             </div>
+            <div class="table-actions">
+                <button class="btn-modern btn-modern-secondary" onclick="exportToExcel()">
+                    <i class="fas fa-download"></i>
+                    Xuất Excel
+                </button>
+            </div>
         </div>
-    </div>
 
-    <!-- Assigned Requests Table -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-user-check me-2"></i>
-                Yêu cầu được giao ({{pagination.totalRecords}} kết quả)
-            </h5>
+        <!-- Filter Bar -->
+        <div class="table-filter-bar">
+            <div class="filter-search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="tableSearch" name="search" value="{{filters.search}}" 
+                       placeholder="Tìm kiếm theo tiêu đề, mô tả...">
+            </div>
+
+            <select class="filter-select" id="statusFilter" name="status">
+                <option value="">Tất cả trạng thái</option>
+                {{#each statuses}}
+                <option value="{{StatusID}}" {{#ifEquals StatusID ../filters.status}}selected{{/ifEquals}}>
+                    {{StatusName}}
+                </option>
+                {{/each}}
+            </select>
+
+            <select class="filter-select" id="priorityFilter" name="priority">
+                <option value="">Tất cả độ ưu tiên</option>
+                {{#each priorities}}
+                <option value="{{PriorityID}}" {{#ifEquals PriorityID ../filters.priority}}selected{{/ifEquals}}>
+                    {{PriorityName}}
+                </option>
+                {{/each}}
+            </select>
+
+            <button class="filter-btn" onclick="applyFilters()">
+                <i class="fas fa-filter"></i>
+                Lọc
+            </button>
+
+            <button class="filter-btn" onclick="clearFilters()">
+                <i class="fas fa-times"></i>
+                Xóa bộ lọc
+            </button>
         </div>
-        <div class="card-body p-0">
-            {{#if requests.length}}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 80px;">ID</th>
-                            <th>Tiêu đề</th>
-                            <th style="width: 150px;">Người tạo</th>
-                            <th style="width: 120px;">Trạng thái</th>
-                            <th style="width: 120px;">Độ ưu tiên</th>
-                            <th style="width: 150px;">Ngày tạo</th>
-                            <th style="width: 150px;">Ngày giao</th>
-                            <th style="width: 120px;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{#each requests}}
-                        <tr class="{{#if IsOverdue}}table-warning{{/if}}">
-                            <td>
-                                <span class="badge bg-secondary">#{{RequestID}}</span>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
+
+        <!-- Table -->
+        {{#if requests.length}}
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="table-checkbox" id="selectAll">
+                        </th>
+                        <th style="width: 80px;">ID</th>
+                        <th class="sortable" data-sort="title">Tiêu đề</th>
+                        <th style="width: 150px;">Người tạo</th>
+                        <th class="sortable text-center" style="width: 130px;" data-sort="status">Trạng thái</th>
+                        <th class="sortable text-center" style="width: 130px;" data-sort="priority">Độ ưu tiên</th>
+                        <th class="sortable" style="width: 140px;" data-sort="created">Ngày tạo</th>
+                        <th class="sortable" style="width: 140px;" data-sort="assigned">Ngày giao</th>
+                        <th class="text-center" style="width: 160px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each requests}}
+                    <tr {{#if IsOverdue}}style="background-color: #FFF3CD;"{{/if}}>
+                        <td>
+                            <input type="checkbox" class="table-checkbox" value="{{RequestID}}">
+                        </td>
+                        <td>
+                            <span class="table-cell-id">#{{RequestID}}</span>
+                        </td>
+                        <td>
+                            <div style="max-width: 350px;">
+                                <div class="table-cell-name">
                                     {{#if AttachmentURL}}
-                                    <i class="fas fa-paperclip text-muted me-2" title="Có đính kèm"></i>
+                                    <i class="fas fa-paperclip" style="color: var(--table-text-secondary); margin-right: 6px;"></i>
                                     {{/if}}
                                     {{#if IsOverdue}}
-                                    <i class="fas fa-exclamation-triangle text-warning me-2" title="Quá hạn"></i>
+                                    <i class="fas fa-exclamation-triangle" style="color: #F59E0B; margin-right: 6px;" title="Quá hạn"></i>
                                     {{/if}}
-                                    <div>
-                                        <h6 class="mb-0">{{Title}}</h6>
-                                        <small class="text-muted">{{substring Description 0 60}}{{#if (gt (length Description) 60)}}...{{/if}}</small>
-                                    </div>
+                                    {{Title}}
                                 </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
-                                        {{substring CreatedByUser 0 1}}
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">{{CreatedByUser}}</div>
-                                    </div>
+                                {{#if Description}}
+                                <div class="table-cell-secondary" style="margin-top: 4px;">
+                                    {{substring Description 0 70}}...
                                 </div>
-                            </td>
-                            <td>
-                                <span class="badge {{#if IsStatusFinal}}bg-success{{else}}{{#ifEquals StatusID 1}}bg-warning{{/ifEquals}}{{#ifEquals StatusID 2}}bg-info{{/ifEquals}}{{#ifEquals StatusID 3}}bg-primary{{/ifEquals}}{{/if}}">
-                                    {{StatusName}}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge" style="background-color: {{PriorityColor}};">
-                                    {{PriorityName}}
-                                </span>
-                            </td>
-                            <td>
-                                <small>{{formatDate CreatedAt}}</small>
-                            </td>
-                            <td>
-                                <small>{{formatDate AssignedAt}}</small>
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a href="/requests/{{RequestID}}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    {{#unless IsStatusFinal}}
-                                    <button type="button" class="btn btn-sm btn-outline-success" 
-                                            onclick="updateStatus({{RequestID}}, 'processing')" title="Bắt đầu xử lý">
-                                        <i class="fas fa-play"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" 
-                                            onclick="updateStatus({{RequestID}}, 'completed')" title="Hoàn thành">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    {{/unless}}
+                                {{/if}}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-cell-icon">
+                                <div style="width: 32px; height: 32px; background: var(--table-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">
+                                    {{substring CreatedByUser 0 1}}
                                 </div>
-                            </td>
-                        </tr>
-                        {{/each}}
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Pagination -->
-            {{#if pagination.showPagination}}
-            <div class="d-flex justify-content-between align-items-center p-3 border-top">
-                <div class="text-muted">
-                    Hiển thị {{pagination.startRecord}} - {{pagination.endRecord}} 
-                    của {{pagination.totalRecords}} kết quả
-                </div>
-                <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item {{#unless pagination.hasPrevious}}disabled{{/unless}}">
-                            <a class="page-link" href="?page={{pagination.previousPage}}{{#if filters.search}}&search={{filters.search}}{{/if}}{{#if filters.status}}&status={{filters.status}}{{/if}}{{#if filters.priority}}&priority={{filters.priority}}{{/if}}">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        </li>
-                        
-                        {{#each pagination.pages}}
-                        <li class="page-item {{#if active}}active{{/if}}">
-                            <a class="page-link" href="?page={{number}}{{#if ../filters.search}}&search={{../filters.search}}{{/if}}{{#if ../filters.status}}&status={{../filters.status}}{{/if}}{{#if ../filters.priority}}&priority={{../filters.priority}}{{/if}}">
-                                {{number}}
-                            </a>
-                        </li>
-                        {{/each}}
-                        
-                        <li class="page-item {{#unless pagination.hasNext}}disabled{{/unless}}">
-                            <a class="page-link" href="?page={{pagination.nextPage}}{{#if filters.search}}&search={{filters.search}}{{/if}}{{#if filters.status}}&status={{filters.status}}{{/if}}{{#if filters.priority}}&priority={{filters.priority}}{{/if}}">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-            {{/if}}
-            {{else}}
-            <div class="text-center py-5">
-                <i class="fas fa-user-check fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">Không có yêu cầu được giao</h5>
-                <p class="text-muted">
-                    {{#if filters.search}}
-                        Không tìm thấy yêu cầu phù hợp với từ khóa "{{filters.search}}"
-                    {{else}}
-                        Bạn chưa được giao yêu cầu nào
-                    {{/if}}
-                </p>
-            </div>
-            {{/if}}
+                                <span class="table-cell-secondary">{{CreatedByUser}}</span>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            {{#if IsStatusFinal}}
+                            <span class="table-status-badge status-success">
+                                <i class="fas fa-circle"></i>
+                                {{StatusName}}
+                            </span>
+                            {{else}}
+                            <span class="table-status-badge status-warning">
+                                <i class="fas fa-circle"></i>
+                                {{StatusName}}
+                            </span>
+                            {{/if}}
+                        </td>
+                        <td class="text-center">
+                            {{#ifEquals PriorityName "Cao"}}
+                            <span class="table-status-badge status-danger">
+                                <i class="fas fa-circle"></i>
+                                {{PriorityName}}
+                            </span>
+                            {{else}}{{#ifEquals PriorityName "Trung bình"}}
+                            <span class="table-status-badge status-warning">
+                                <i class="fas fa-circle"></i>
+                                {{PriorityName}}
+                            </span>
+                            {{else}}
+                            <span class="table-status-badge status-info">
+                                <i class="fas fa-circle"></i>
+                                {{PriorityName}}
+                            </span>
+                            {{/ifEquals}}{{/ifEquals}}
+                        </td>
+                        <td>
+                            <span class="table-cell-secondary">{{formatDate CreatedAt}}</span>
+                        </td>
+                        <td>
+                            <span class="table-cell-secondary">{{#if AssignedAt}}{{formatDate AssignedAt}}{{else}}-{{/if}}</span>
+                        </td>
+                        <td>
+                            <div class="table-actions-cell">
+                                <button class="table-action-btn action-view" title="Xem chi tiết" 
+                                        onclick="window.location.href='/requests/{{RequestID}}'">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="table-action-btn action-edit" title="Xử lý"
+                                        onclick="window.location.href='/requests/{{RequestID}}'">
+                                    <i class="fas fa-tasks"></i>
+                                </button>
+                                <button class="table-action-btn action-print" title="In"
+                                        onclick="window.print()">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
         </div>
+
+        <!-- Pagination -->
+        {{#if pagination.totalPages}}
+        <div class="table-pagination">
+            <div class="pagination-info">
+                <span>{{#if pagination.totalRecords}}{{pagination.totalRecords}}{{else}}0{{/if}} kết quả</span>
+                <i class="fas fa-sync-alt" onclick="location.reload()" 
+                   style="margin-left: 12px; cursor: pointer; color: var(--table-text-secondary);" 
+                   title="Làm mới"></i>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" {{#unless pagination.hasPrevious}}disabled{{/unless}}
+                        onclick="goToPage({{pagination.previousPage}})">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                {{#each pagination.pages}}
+                <button class="pagination-btn {{#if active}}active{{/if}}"
+                        onclick="goToPage({{number}})">
+                    {{number}}
+                </button>
+                {{/each}}
+                
+                <button class="pagination-btn" {{#unless pagination.hasNext}}disabled{{/unless}}
+                        onclick="goToPage({{pagination.nextPage}})">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                
+                <select class="pagination-select" id="itemsPerPage" onchange="changePageSize(this.value)">
+                    <option value="10">10 hàng/trang</option>
+                    <option value="20" selected>20 hàng/trang</option>
+                    <option value="50">50 hàng/trang</option>
+                </select>
+            </div>
+        </div>
+        {{/if}}
+        {{else}}
+        <div class="table-empty-state">
+            <div class="table-empty-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="table-empty-text">Không có yêu cầu được giao</div>
+            <div class="table-empty-subtext">
+                {{#if filters.search}}
+                Không tìm thấy yêu cầu phù hợp với từ khóa "{{filters.search}}"
+                {{else}}
+                Bạn chưa được giao yêu cầu nào.
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
     </div>
 </div>
-
-<!-- Status Update Modal -->
-<div class="modal fade" id="statusUpdateModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Cập nhật trạng thái</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="statusUpdateForm">
-                <div class="modal-body">
-                    <input type="hidden" id="requestId" name="requestId">
-                    <input type="hidden" id="newStatus" name="newStatus">
-                    
-                    <div class="mb-3">
-                        <label for="comment" class="form-label">Ghi chú (tùy chọn)</label>
-                        <textarea class="form-control" id="comment" name="comment" rows="3" 
-                                  placeholder="Thêm ghi chú về việc cập nhật trạng thái..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Cập nhật</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<style>
-.avatar-sm {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.table th {
-    border-top: none;
-    font-weight: 600;
-    color: var(--dark-color);
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.table td {
-    vertical-align: middle;
-    padding: 1rem 0.75rem;
-}
-
-.table-hover tbody tr:hover {
-    background-color: rgba(79, 70, 229, 0.02);
-}
-
-.badge {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 0.35em 0.65em;
-}
-
-.btn-group .btn {
-    margin-right: 2px;
-}
-
-.btn-group .btn:last-child {
-    margin-right: 0;
-}
-
-.pagination-sm .page-link {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
-}
-
-.page-link {
-    color: var(--primary-color);
-    border-color: var(--border-color);
-}
-
-.page-link:hover {
-    color: var(--primary-dark);
-    background-color: var(--light-color);
-    border-color: var(--border-color);
-}
-
-.page-item.active .page-link {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.content-header {
-    display: flex;
-    justify-content: between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-
-.page-title {
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    color: var(--dark-color);
-}
-
-.page-subtitle {
-    color: var(--muted-color);
-    margin-bottom: 0;
-}
-
-.table-warning {
-    --bs-table-accent-bg: rgba(255, 193, 7, 0.1);
-}
-</style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto submit form when filter changes
-    const statusSelect = document.getElementById('status');
-    const prioritySelect = document.getElementById('priority');
+// Filter functions
+function getCurrentFilters() {
+    const params = new URLSearchParams();
+    const search = document.getElementById('tableSearch')?.value;
+    const status = document.getElementById('statusFilter')?.value;
+    const priority = document.getElementById('priorityFilter')?.value;
     
-    if (statusSelect) {
-        statusSelect.addEventListener('change', function() {
-            this.form.submit();
-        });
-    }
+    if (search) params.set('search', search);
+    if (status) params.set('status', status);
+    if (priority) params.set('priority', priority);
     
-    if (prioritySelect) {
-        prioritySelect.addEventListener('change', function() {
-            this.form.submit();
-        });
-    }
-    
-    // Search form submit on Enter
-    const searchInput = document.getElementById('search');
-    if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                this.form.submit();
-            }
-        });
-    }
-    
-    // Status update form handler
-    const statusForm = document.getElementById('statusUpdateForm');
-    if (statusForm) {
-        statusForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const requestId = formData.get('requestId');
-            const newStatus = formData.get('newStatus');
-            const comment = formData.get('comment');
-            
-            // Send AJAX request to update status
-            fetch(`/requests/${requestId}/status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    status: newStatus,
-                    comment: comment
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Close modal and reload page
-                    bootstrap.Modal.getInstance(document.getElementById('statusUpdateModal')).hide();
-                    location.reload();
-                } else {
-                    alert('Có lỗi xảy ra khi cập nhật trạng thái: ' + (data.message || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi cập nhật trạng thái');
-            });
-        });
-    }
-});
-
-// Function to update request status
-function updateStatus(requestId, status) {
-    document.getElementById('requestId').value = requestId;
-    document.getElementById('newStatus').value = status;
-    
-    const statusText = status === 'processing' ? 'Bắt đầu xử lý' : 'Hoàn thành';
-    document.querySelector('#statusUpdateModal .modal-title').textContent = statusText + ' yêu cầu #' + requestId;
-    
-    const modal = new bootstrap.Modal(document.getElementById('statusUpdateModal'));
-    modal.show();
+    return params;
 }
 
-// Auto refresh every 5 minutes for real-time updates
-setInterval(function() {
-    // Only refresh if no modal is open
-    if (!document.querySelector('.modal.show')) {
-        location.reload();
-    }
-}, 5 * 60 * 1000);
+function applyFilters() {
+    const params = getCurrentFilters();
+    params.set('page', 1);
+    window.location.search = params.toString();
+}
+
+function clearFilters() {
+    window.location.href = '/requests/assigned';
+}
+
+// Search on Enter
+document.getElementById('tableSearch')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') applyFilters();
+});
+
+// Auto-submit on filter change
+document.getElementById('statusFilter')?.addEventListener('change', applyFilters);
+document.getElementById('priorityFilter')?.addEventListener('change', applyFilters);
+
+// Select all checkbox
+document.getElementById('selectAll')?.addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('.modern-table tbody .table-checkbox');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+});
+
+// Sorting
+document.querySelectorAll('.sortable').forEach(th => {
+    th.addEventListener('click', function() {
+        const tbody = this.closest('table').querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        if (rows.length === 0 || rows[0].cells.length === 1) return;
+        
+        const isAsc = this.classList.contains('sorted-asc');
+        document.querySelectorAll('.sortable').forEach(t => {
+            t.classList.remove('sorted-asc', 'sorted-desc');
+        });
+        this.classList.add(isAsc ? 'sorted-desc' : 'sorted-asc');
+        
+        const colIndex = Array.from(this.parentElement.children).indexOf(this);
+        rows.sort((a, b) => {
+            const aText = a.cells[colIndex]?.textContent.trim() || '';
+            const bText = b.cells[colIndex]?.textContent.trim() || '';
+            return isAsc ? bText.localeCompare(aText) : aText.localeCompare(bText);
+        });
+        
+        rows.forEach(row => tbody.appendChild(row));
+    });
+});
+
+// Pagination functions
+function goToPage(page) {
+    const params = getCurrentFilters();
+    params.set('page', page);
+    window.location.search = params.toString();
+}
+
+function changePageSize(size) {
+    const params = getCurrentFilters();
+    params.set('limit', size);
+    params.set('page', 1);
+    window.location.search = params.toString();
+}
+
+// Export to Excel
+function exportToExcel() {
+    alert('Chức năng xuất Excel đang được phát triển.');
+}
 </script>

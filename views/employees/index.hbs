@@ -1,10 +1,12 @@
+<link rel="stylesheet" href="/css/modern-table.css">
+
 <div class="content-header">
     <div>
         <h1 class="page-title">Quản lý nhân viên</h1>
         <p class="page-subtitle">Quản lý thông tin nhân viên và phân quyền</p>
     </div>
     <div class="content-actions">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
             <i class="fas fa-plus me-2"></i>Thêm nhân viên
         </button>
     </div>
@@ -80,216 +82,295 @@
     </div>
 </div>
 
-<!-- Filters -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" action="/employees" class="row g-3">
-            <div class="col-md-3">
-                <label for="search" class="form-label">Tìm kiếm</label>
-                <input type="text" class="form-control" id="search" name="search" 
-                       placeholder="Tên, email..." value="{{search}}">
+<!-- Modern Table Container -->
+<div class="modern-table-container">
+    <!-- Table Header -->
+    <div class="table-header-section">
+        <div class="table-title-wrapper">
+            <div>
+                <h2 class="table-title">
+                    <i class="fas fa-users" style="color: var(--table-primary);"></i>
+                    Danh sách nhân viên
+                </h2>
+                <p class="table-subtitle">{{users.length}} nhân viên trong hệ thống</p>
             </div>
-            <div class="col-md-3">
-                <label for="department" class="form-label">Phòng ban</label>
-                <select class="form-select" id="department" name="department">
-                    <option value="">Tất cả</option>
-                    {{#each departments}}
-                    <option value="{{DepartmentID}}" {{#ifEquals DepartmentID ../selectedDepartment}}selected{{/ifEquals}}>
-                        {{Name}}
-                    </option>
-                    {{/each}}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="role" class="form-label">Vai trò</label>
-                <select class="form-select" id="role" name="role">
-                    <option value="">Tất cả</option>
-                    {{#each roles}}
-                    <option value="{{Id}}" {{#ifEquals Id ../selectedRole}}selected{{/ifEquals}}>
-                        {{Name}}
-                    </option>
-                    {{/each}}
-                </select>
-            </div>
-            <div class="col-md-3 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary me-2">
-                    <i class="fas fa-search me-2"></i>Tìm kiếm
-                </button>
-                <a href="/employees" class="btn btn-secondary">
-                    <i class="fas fa-redo me-2"></i>Đặt lại
-                </a>
-            </div>
-        </form>
+        </div>
+        <div class="table-actions">
+            <button class="btn-modern btn-modern-secondary" onclick="exportEmployees()">
+                <i class="fas fa-download"></i>
+                Xuất Excel
+            </button>
+            <button class="btn-modern btn-modern-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                <i class="fas fa-plus"></i>
+                Thêm nhân viên
+            </button>
+        </div>
     </div>
-</div>
 
-<!-- Users Table -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title mb-0">
-            <i class="fas fa-list me-2"></i>
-            Danh sách nhân viên ({{users.length}})
-        </h5>
+    <!-- Filter Bar -->
+    <div class="table-filter-bar">
+        <div class="filter-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="tableSearch" name="search" value="{{search}}" 
+                   placeholder="Tìm theo tên, email...">
+        </div>
+
+        <select class="filter-select" id="departmentFilter" name="department">
+            <option value="">Tất cả phòng ban</option>
+            {{#each departments}}
+            <option value="{{DepartmentID}}" {{#ifEquals DepartmentID ../selectedDepartment}}selected{{/ifEquals}}>
+                {{Name}}
+            </option>
+            {{/each}}
+        </select>
+
+        <select class="filter-select" id="roleFilter" name="role">
+            <option value="">Tất cả vai trò</option>
+            {{#each roles}}
+            <option value="{{Id}}" {{#ifEquals Id ../selectedRole}}selected{{/ifEquals}}>
+                {{Name}}
+            </option>
+            {{/each}}
+        </select>
+
+        <button class="filter-btn" onclick="applyFilters()">
+            <i class="fas fa-filter"></i>
+            Lọc
+        </button>
+
+        <button class="filter-btn" onclick="clearFilters()">
+            <i class="fas fa-times"></i>
+            Xóa bộ lọc
+        </button>
     </div>
-    <div class="card-body p-0">
-        {{#if users.length}}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 60px;">Avatar</th>
-                        <th>Họ tên</th>
-                        <th>Email</th>
-                        <th>Phòng ban</th>
-                        <th>Vai trò</th>
-                        <th style="width: 120px;">Trạng thái</th>
-                        <th style="width: 180px;">Ngày tạo</th>
-                        <th style="width: 150px;">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each users}}
-                    <tr>
-                        <td>
-                            <div class="user-avatar" style="background-color: #667eea;">
-                                {{#if Avatar}}
-                                <img src="{{Avatar}}" alt="{{Email}}">
-                                {{else}}
-                                {{substring Email 0 2}}
-                                {{/if}}
+
+    <!-- Table -->
+    {{#if users.length}}
+    <div class="table-responsive">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">
+                        <input type="checkbox" class="table-checkbox" id="selectAll">
+                    </th>
+                    <th style="width: 250px;">Nhân viên</th>
+                    <th style="width: 200px;">Email</th>
+                    <th style="width: 150px;">Phòng ban</th>
+                    <th style="width: 120px;">Chức vụ</th>
+                    <th class="text-center" style="width: 130px;">Vai trò</th>
+                    <th class="text-center" style="width: 120px;">Trạng thái</th>
+                    <th style="width: 140px;">Ngày tạo</th>
+                    <th class="text-center" style="width: 180px;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each users}}
+                <tr>
+                    <td>
+                        <input type="checkbox" class="table-checkbox" value="{{Id}}">
+                    </td>
+                    <td>
+                        <div class="table-cell-icon">
+                            {{#if Avatar}}
+                            <img src="{{Avatar}}" alt="{{UserName}}" 
+                                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                            {{else}}
+                            <div style="width: 40px; height: 40px; background: var(--table-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">
+                                {{substring UserName 0 1}}
                             </div>
-                        </td>
-                        <td>
+                            {{/if}}
                             <div>
-                                <h6 class="mb-0">{{Email}}</h6>
-                                <small class="text-muted">@{{UserName}}</small>
+                                <div class="table-cell-name">{{UserName}}</div>
+                                <div class="table-cell-secondary">@{{UserName}}</div>
                             </div>
-                        </td>
-                        <td>{{Email}}</td>
-                        <td>
-                            {{#if DepartmentName}}
-                            <span class="badge bg-info">{{DepartmentName}}</span>
-                            {{else}}
-                            <span class="text-muted">Chưa gán</span>
-                            {{/if}}
-                        </td>
-                        <td>
-                            {{#if RoleName}}
-                            <span class="badge {{#ifEquals RoleName 'Admin'}}bg-danger{{/ifEquals}}{{#ifEquals RoleName 'Manager'}}bg-warning{{/ifEquals}}{{#ifEquals RoleName 'User'}}bg-primary{{/ifEquals}}">
-                                {{RoleName}}
-                            </span>
-                            {{else}}
-                            <span class="text-muted">Chưa gán</span>
-                            {{/if}}
-                        </td>
-                        <td>
-                            {{#if EmailConfirmed}}
-                            <span class="badge bg-success">Hoạt động</span>
-                            {{else}}
-                            <span class="badge bg-secondary">Vô hiệu</span>
-                            {{/if}}
-                        </td>
-                        <td>{{formatDateTime BirthDate}}</td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-sm btn-outline-primary" 
-                                        onclick="editUser({{json this}})" title="Chỉnh sửa">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-warning" 
-                                        onclick="resetPassword('{{Id}}', '{{Email}}')" title="Đặt lại mật khẩu">
-                                    <i class="fas fa-key"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-{{#if EmailConfirmed}}secondary{{else}}success{{/if}}" 
-                                        onclick="toggleUserStatus('{{Id}}', {{EmailConfirmed}}, '{{Email}}')" 
-                                        title="{{#if EmailConfirmed}}Vô hiệu hóa{{else}}Kích hoạt{{/if}}">
-                                    <i class="fas fa-{{#if EmailConfirmed}}ban{{else}}check{{/if}}"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
-        </div>
-        {{else}}
-        <div class="text-center py-5">
-            <i class="fas fa-users fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted">Không tìm thấy nhân viên</h5>
-        </div>
-        {{/if}}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-cell-icon">
+                            <i class="fas fa-envelope" style="color: var(--table-text-secondary);"></i>
+                            <span class="table-cell-secondary">{{Email}}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {{#if DepartmentName}}
+                        <span class="table-status-badge status-info">
+                            <i class="fas fa-building"></i>
+                            {{DepartmentName}}
+                        </span>
+                        {{else}}
+                        <span class="table-cell-secondary">Chưa phân</span>
+                        {{/if}}
+                    </td>
+                    <td>
+                        {{#if Position}}
+                        <span class="table-cell-secondary">{{Position}}</span>
+                        {{else}}
+                        <span class="table-cell-secondary">-</span>
+                        {{/if}}
+                    </td>
+                    <td class="text-center">
+                        {{#if IsAdmin}}
+                        <span class="table-status-badge status-danger">
+                            <i class="fas fa-user-shield"></i>
+                            Admin
+                        </span>
+                        {{else}}
+                        <span class="table-status-badge status-info">
+                            <i class="fas fa-user"></i>
+                            User
+                        </span>
+                        {{/if}}
+                    </td>
+                    <td class="text-center">
+                        {{#if IsActive}}
+                        <span class="table-status-badge status-success">
+                            <i class="fas fa-check-circle"></i>
+                            Hoạt động
+                        </span>
+                        {{else}}
+                        <span class="table-status-badge status-warning">
+                            <i class="fas fa-ban"></i>
+                            Khóa
+                        </span>
+                        {{/if}}
+                    </td>
+                    <td>
+                        <span class="table-cell-secondary">{{formatDate CreatedAt}}</span>
+                    </td>
+                    <td>
+                        <div class="table-actions-cell">
+                            <button class="table-action-btn action-view" title="Xem chi tiết"
+                                    onclick="viewEmployee('{{Id}}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="table-action-btn action-edit" title="Chỉnh sửa"
+                                    onclick="editEmployee('{{Id}}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="table-action-btn action-delete" title="Xóa"
+                                    onclick="deleteEmployee('{{Id}}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
     </div>
+
+    <!-- Pagination -->
+    {{#if pagination}}
+    <div class="table-pagination">
+        <div class="pagination-info">
+            <span>{{users.length}} nhân viên</span>
+            <i class="fas fa-sync-alt" onclick="location.reload()" 
+               style="margin-left: 12px; cursor: pointer; color: var(--table-text-secondary);" 
+               title="Làm mới"></i>
+        </div>
+        <div class="pagination-controls">
+            <button class="pagination-btn" {{#if pagination.isFirst}}disabled{{/if}}
+                    onclick="goToPage({{pagination.prevPage}})">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            {{#each pagination.pages}}
+            <button class="pagination-btn {{#if active}}active{{/if}}"
+                    onclick="goToPage({{page}})">
+                {{page}}
+            </button>
+            {{/each}}
+            
+            <button class="pagination-btn" {{#if pagination.isLast}}disabled{{/if}}
+                    onclick="goToPage({{pagination.nextPage}})">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    {{/if}}
+    {{else}}
+    <div class="table-empty-state">
+        <div class="table-empty-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="table-empty-text">Không tìm thấy nhân viên</div>
+        <div class="table-empty-subtext">
+            {{#if search}}
+            Không có nhân viên nào phù hợp với từ khóa "{{search}}"
+            {{else}}
+            Chưa có nhân viên nào trong hệ thống.
+            {{/if}}
+        </div>
+    </div>
+    {{/if}}
 </div>
 
-<!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1">
+<!-- Add Employee Modal -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Thêm nhân viên mới</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>Thêm nhân viên mới
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="/employees/create" method="POST">
+            <form id="addEmployeeForm" method="POST" action="/employees/add">
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="username" class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="username" name="username" required>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên đăng nhập *</label>
+                            <input type="text" class="form-control" name="username" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="fullName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="fullName" name="fullName" required>
+                        <div class="col-md-6">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-control" name="email" required>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="col-md-6">
+                            <label class="form-label">Họ tên *</label>
+                            <input type="text" class="form-control" name="fullName" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Số điện thoại</label>
-                            <input type="tel" class="form-control" id="phone" name="phone">
+                        <div class="col-md-6">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" name="phone">
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" id="password" name="password" required minlength="6">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="confirmPassword" class="form-label">Xác nhận mật khẩu <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required minlength="6">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="departmentId" class="form-label">Phòng ban</label>
-                            <select class="form-select" id="departmentId" name="departmentId">
+                        <div class="col-md-6">
+                            <label class="form-label">Phòng ban</label>
+                            <select class="form-select" name="department">
                                 <option value="">-- Chọn phòng ban --</option>
                                 {{#each departments}}
                                 <option value="{{DepartmentID}}">{{Name}}</option>
                                 {{/each}}
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="roleId" class="form-label">Vai trò</label>
-                            <select class="form-select" id="roleId" name="roleId">
-                                <option value="">-- Chọn vai trò --</option>
-                                {{#each roles}}
-                                <option value="{{Id}}">{{Name}}</option>
-                                {{/each}}
-                            </select>
+                        <div class="col-md-6">
+                            <label class="form-label">Chức vụ</label>
+                            <input type="text" class="form-control" name="position" placeholder="Ví dụ: Nhân viên, Trưởng phòng...">
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Địa chỉ</label>
-                        <textarea class="form-control" id="address" name="address" rows="2"></textarea>
-                    </div>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked>
-                        <label class="form-check-label" for="isActive">
-                            Kích hoạt tài khoản
-                        </label>
+                        <div class="col-md-6">
+                            <label class="form-label">Mật khẩu *</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Xác nhận mật khẩu *</label>
+                            <input type="password" class="form-control" name="confirmPassword" required>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="isAdmin" id="isAdmin">
+                                <label class="form-check-label" for="isAdmin">
+                                    Quản trị viên
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="isActive" id="isActive" checked>
+                                <label class="form-check-label" for="isActive">
+                                    Kích hoạt tài khoản
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -303,159 +384,118 @@
     </div>
 </div>
 
-<!-- Edit User Modal -->
-<div class="modal fade" id="editUserModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Chỉnh sửa thông tin nhân viên</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="/employees/update" method="POST">
-                <input type="hidden" id="editUserId" name="userId">
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editUsername" class="form-label">Tên đăng nhập</label>
-                            <input type="text" class="form-control" id="editUsername" name="username" readonly>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="editFullName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="editFullName" name="fullName" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editEmail" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="editEmail" name="email" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="editPhone" class="form-label">Số điện thoại</label>
-                            <input type="tel" class="form-control" id="editPhone" name="phone">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editDepartmentId" class="form-label">Phòng ban</label>
-                            <select class="form-select" id="editDepartmentId" name="departmentId">
-                                <option value="">-- Chọn phòng ban --</option>
-                                {{#each departments}}
-                                <option value="{{DepartmentID}}">{{Name}}</option>
-                                {{/each}}
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="editRoleId" class="form-label">Vai trò</label>
-                            <select class="form-select" id="editRoleId" name="roleId">
-                                <option value="">-- Chọn vai trò --</option>
-                                {{#each roles}}
-                                <option value="{{Id}}">{{Name}}</option>
-                                {{/each}}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editAddress" class="form-label">Địa chỉ</label>
-                        <textarea class="form-control" id="editAddress" name="address" rows="2"></textarea>
-                    </div>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="editIsActive" name="isActive">
-                        <label class="form-check-label" for="editIsActive">
-                            Kích hoạt tài khoản
-                        </label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>Cập nhật
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <style>
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+.stats-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.stats-card-body {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stats-card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: bold;
-    font-size: 0.875rem;
+    font-size: 24px;
 }
 
-.user-avatar img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
+.stats-card-content {
+    flex: 1;
 }
 
-.table th {
-    border-top: none;
-    font-weight: 600;
-    font-size: 13px;
-    text-transform: uppercase;
+.stats-card-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: #1f2937;
 }
 
-.table td {
-    vertical-align: middle;
+.stats-card-label {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
 }
 </style>
 
 <script>
-function editUser(user) {
-    document.getElementById('editUserId').value = user.Id;
-    document.getElementById('editUsername').value = user.UserName;
-    document.getElementById('editFullName').value = user.Email;
-    document.getElementById('editEmail').value = user.Email;
-    document.getElementById('editPhone').value = user.PhoneNumber || '';
-    document.getElementById('editDepartmentId').value = user.DepartmentID || '';
-    document.getElementById('editRoleId').value = user.RoleId || '';
-    document.getElementById('editAddress').value = user.HomeAdress || '';
-    document.getElementById('editIsActive').checked = user.EmailConfirmed;
+// Filter functions
+function getCurrentFilters() {
+    const params = new URLSearchParams();
+    const search = document.getElementById('tableSearch')?.value;
+    const department = document.getElementById('departmentFilter')?.value;
+    const role = document.getElementById('roleFilter')?.value;
     
-    const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-    modal.show();
+    if (search) params.set('search', search);
+    if (department) params.set('department', department);
+    if (role) params.set('role', role);
+    
+    return params;
 }
 
-function resetPassword(userId, email) {
-    if (confirm(`Bạn có chắc chắn muốn đặt lại mật khẩu cho "${email}"?`)) {
-        fetch(`/employees/${userId}/reset-password`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert(`Mật khẩu mới: ${data.newPassword}\nVui lòng sao chép và cung cấp cho nhân viên.`);
-            } else {
-                alert('Lỗi: ' + data.message);
-            }
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            alert('Có lỗi xảy ra khi đặt lại mật khẩu');
-        });
-    }
+function applyFilters() {
+    const params = getCurrentFilters();
+    params.set('page', 1);
+    window.location.search = params.toString();
 }
 
-function toggleUserStatus(userId, currentStatus, email) {
-    const action = currentStatus ? 'vô hiệu hóa' : 'kích hoạt';
-    if (confirm(`Bạn có chắc chắn muốn ${action} tài khoản "${email}"?`)) {
-        fetch(`/employees/${userId}/toggle-status`, {
-            method: 'POST',
+function clearFilters() {
+    window.location.href = '/employees';
+}
+
+// Search on Enter
+document.getElementById('tableSearch')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') applyFilters();
+});
+
+// Auto-submit on filter change
+document.getElementById('departmentFilter')?.addEventListener('change', applyFilters);
+document.getElementById('roleFilter')?.addEventListener('change', applyFilters);
+
+// Select all checkbox
+document.getElementById('selectAll')?.addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('.modern-table tbody .table-checkbox');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+});
+
+// Pagination
+function goToPage(page) {
+    const params = getCurrentFilters();
+    params.set('page', page);
+    window.location.search = params.toString();
+}
+
+// Employee actions
+function viewEmployee(id) {
+    window.location.href = `/employees/${id}`;
+}
+
+function editEmployee(id) {
+    window.location.href = `/employees/${id}/edit`;
+}
+
+function deleteEmployee(id) {
+    if (confirm('Bạn có chắc chắn muốn xóa nhân viên này?')) {
+        fetch(`/employees/${id}`, {
+            method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ currentStatus })
+                'Content-Type': 'application/json',
+            }
         })
         .then(res => res.json())
         .then(data => {
@@ -466,20 +506,13 @@ function toggleUserStatus(userId, currentStatus, email) {
             }
         })
         .catch(err => {
-            console.error('Error:', err);
-            alert('Có lỗi xảy ra');
+            console.error(err);
+            alert('Có lỗi xảy ra!');
         });
     }
 }
 
-// Validate password match
-document.getElementById('addUserModal').querySelector('form').addEventListener('submit', function(e) {
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    if (password !== confirmPassword) {
-        e.preventDefault();
-        alert('Mật khẩu xác nhận không khớp!');
-    }
-});
+function exportEmployees() {
+    alert('Chức năng xuất Excel đang được phát triển.');
+}
 </script>

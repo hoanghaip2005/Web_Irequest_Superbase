@@ -1,1994 +1,468 @@
-<div class="jira-dashboard">
-    <!-- Jira-style Header -->
-    <div class="jira-header">
-        <div class="jira-header-content">
-            <div class="header-left">
-                <h1 class="jira-title">Dashboard</h1>
-                <div class="breadcrumb">
-                    <span class="breadcrumb-item">Trang chủ</span>
-                    <i class="fas fa-chevron-right"></i>
-                    <span class="breadcrumb-item active">Dashboard</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <button class="jira-btn jira-btn-primary" onclick="window.location.href='/requests/create'">
-                    <i class="fas fa-plus me-2"></i>Tạo yêu cầu
-                </button>
-            </div>
-        </div>
-    </div>
+<link rel="stylesheet" href="/css/dashboard.css">
 
-    <!-- Welcome Banner -->
-    <div class="welcome-banner">
-        <div class="welcome-content">
-            <h2>Chào mừng trở lại, {{user.UserName}}!</h2>
-            <p>Đây là tổng quan về công việc và hoạt động của bạn</p>
-        </div>
-        <div class="welcome-date">
-            <i class="fas fa-calendar-alt me-2"></i>
-            {{formatDate currentDate}}
-        </div>
-    </div>
+<div class="dashboard-wrapper">
 
-    {{#if showSuccess}}
-    <div class="jira-alert jira-alert-success">
-        <i class="fas fa-check-circle me-2"></i>
-        Chào mừng bạn đến với iRequest! Hãy bắt đầu tạo yêu cầu đầu tiên của bạn.
-        <button type="button" class="alert-close" data-bs-dismiss="alert">
-            <i class="fas fa-times"></i>
+
+    <!-- Tab Navigation -->
+    <div class="dashboard-tabs">
+        <button class="dashboard-tab active" data-tab="all">
+            Toàn hệ thống
+            {{#if stats.totalRequests}}
+            <span class="tab-badge">{{stats.totalRequests}}</span>
+            {{/if}}
+        </button>
+        <button class="dashboard-tab" data-tab="my">
+            Yêu cầu của tôi
+            {{#if stats.myRequests}}
+            <span class="tab-badge">{{stats.myRequests}}</span>
+            {{/if}}
+        </button>
+        <button class="dashboard-tab" data-tab="assigned">
+            Được giao
+            {{#if stats.assignedToMe}}
+            <span class="tab-badge">{{stats.assignedToMe}}</span>
+            {{/if}}
+        </button>
+        <button class="dashboard-tab" data-tab="inProgress">
+            Đang xử lý
+            {{#if stats.inProgress}}
+            <span class="tab-badge">{{stats.inProgress}}</span>
+            {{/if}}
         </button>
     </div>
-    {{/if}}
 
-    {{#if error}}
-    <div class="jira-alert jira-alert-warning">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        {{error}}
-        <button type="button" class="alert-close" data-bs-dismiss="alert">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-    {{/if}}
-
-    <!-- Jira Stats Grid -->
-    <div class="jira-stats-container">
-        <div class="stat-card-jira">
-            <div class="stat-header">
-                <span class="stat-icon bg-blue">
-                    <i class="fas fa-clipboard-list"></i>
-                </span>
-                <span class="stat-label">Yêu cầu của tôi</span>
+    <div class="dashboard-container">
+        <!-- Dashboard Header with Filters -->
+        <div class="dashboard-header-section">
+            <div class="header-title-wrapper">
+                <h1 class="dashboard-title">Dashboard</h1>
             </div>
-            <div class="stat-body">
-                <div class="stat-number">{{stats.myRequests}}</div>
-                <a href="/requests/my" class="stat-link">Xem tất cả →</a>
-            </div>
-        </div>
-
-        <div class="stat-card-jira">
-            <div class="stat-header">
-                <span class="stat-icon bg-green">
-                    <i class="fas fa-user-check"></i>
-                </span>
-                <span class="stat-label">Được giao cho tôi</span>
-            </div>
-            <div class="stat-body">
-                <div class="stat-number">{{stats.assignedToMe}}</div>
-                <a href="/requests/assigned" class="stat-link">Xem tất cả →</a>
-            </div>
-        </div>
-
-        <div class="stat-card-jira">
-            <div class="stat-header">
-                <span class="stat-icon bg-orange">
-                    <i class="fas fa-hourglass-half"></i>
-                </span>
-                <span class="stat-label">Đang chờ xử lý</span>
-            </div>
-            <div class="stat-body">
-                <div class="stat-number">{{stats.pendingRequests}}</div>
-                <span class="stat-sublabel">Cần xử lý</span>
-            </div>
-        </div>
-
-        <div class="stat-card-jira">
-            <div class="stat-header">
-                <span class="stat-icon bg-purple">
-                    <i class="fas fa-check-circle"></i>
-                </span>
-                <span class="stat-label">Hoàn thành</span>
-            </div>
-            <div class="stat-body">
-                <div class="stat-number">{{stats.completedRequests}}</div>
-                <span class="stat-sublabel">Đã xong</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="charts-container mb-4">
-        <div class="row">
-            <div class="col-lg-8 mb-4">
-                <div class="jira-card">
-                    <div class="jira-card-header">
-                        <div class="card-title-group">
-                            <i class="fas fa-chart-line text-primary me-2"></i>
-                            <h3 class="jira-card-title">Xu hướng yêu cầu</h3>
-                        </div>
-                    </div>
-                    <div class="jira-card-body">
-                        <canvas id="trendChart" style="height: 300px;"></canvas>
+            
+            <div class="header-filters">
+                <!-- Time Range Buttons -->
+                <div class="filter-group">
+                    <button class="filter-btn" data-days="1">Hôm qua</button>
+                    <button class="filter-btn filter-btn-active" data-days="7">7 ngày trước</button>
+                    <button class="filter-btn" data-days="30">30 ngày trước</button>
+                </div>
+                
+                <!-- Date Range Picker -->
+                <div class="filter-group">
+                    <div class="date-range-picker">
+                        <i class="fas fa-calendar-alt"></i>
+                        <input type="date" id="startDate" class="date-input" style="width: 120px;">
+                        <span>-</span>
+                        <input type="date" id="endDate" class="date-input" style="width: 120px;">
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-4 mb-4">
-                <div class="jira-card">
-                    <div class="jira-card-header">
-                        <div class="card-title-group">
-                            <i class="fas fa-chart-pie text-success me-2"></i>
-                            <h3 class="jira-card-title">Phân bố trạng thái</h3>
-                        </div>
-                    </div>
-                    <div class="jira-card-body">
-                        <canvas id="statusChart" style="height: 300px;"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="jira-card">
-                    <div class="jira-card-header">
-                        <div class="card-title-group">
-                            <i class="fas fa-chart-bar text-warning me-2"></i>
-                            <h3 class="jira-card-title">Phân bố mức độ ưu tiên</h3>
-                        </div>
-                    </div>
-                    <div class="jira-card-body">
-                        <canvas id="priorityChart" style="height: 250px;"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div class="jira-content-grid">
-        <!-- Left Column: Your Work -->
-        <div class="jira-main-content">
-            <!-- Worked On Section -->
-            <div class="jira-card">
-                <div class="jira-card-header">
-                    <div class="card-title-group">
-                        <i class="fas fa-history text-primary me-2"></i>
-                        <h3 class="jira-card-title">Hoạt động gần đây</h3>
-                    </div>
-                    <a href="/requests/my" class="jira-link">Xem tất cả</a>
-                </div>
-                <div class="jira-card-body">
-                    {{#if recentRequests.length}}
-                    <div class="jira-issue-list">
-                        {{#each recentRequests}}
-                        <a href="/requests/{{this.RequestID}}" class="jira-issue-item">
-                            <div class="issue-left">
-                                <div class="issue-type-icon">
-                                    {{#if (eq this.relationType 'created')}}
-                                        <i class="fas fa-circle text-primary"></i>
-                                    {{else}}
-                                        <i class="fas fa-arrow-right text-success"></i>
-                                    {{/if}}
-                                </div>
-                                <div class="issue-details">
-                                    <div class="issue-key-title">
-                                        <span class="issue-key">#{{this.RequestID}}</span>
-                                        <span class="issue-title">{{this.Title}}</span>
-                                    </div>
-                                    <div class="issue-meta">
-                                        {{#if (eq this.relationType 'created')}}
-                                            <span class="meta-tag">Tạo bởi bạn</span>
-                                        {{else}}
-                                            <span class="meta-tag">Giao cho bạn</span>
-                                        {{/if}}
-                                        <span class="meta-separator">•</span>
-                                        <span class="meta-date">{{formatDateTime this.UpdatedAt}}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="issue-right">
-                                {{#if this.IsFinal}}
-                                    <span class="jira-badge status-done">{{this.StatusName}}</span>
-                                {{else}}
-                                    <span class="jira-badge status-progress">{{this.StatusName}}</span>
-                                {{/if}}
-                                
-                                {{#if (eq this.PriorityName 'Cao')}}
-                                    <span class="jira-badge priority-high">
-                                        <i class="fas fa-arrow-up"></i> {{this.PriorityName}}
-                                    </span>
-                                {{else if (eq this.PriorityName 'Trung bình')}}
-                                    <span class="jira-badge priority-medium">
-                                        <i class="fas fa-equals"></i> {{this.PriorityName}}
-                                    </span>
-                                {{else}}
-                                    <span class="jira-badge priority-low">
-                                        <i class="fas fa-arrow-down"></i> {{this.PriorityName}}
-                                    </span>
-                                {{/if}}
-                            </div>
-                        </a>
+                
+                <!-- Department Filter -->
+                <div class="filter-group">
+                    <select class="filter-select" id="departmentFilter">
+                        <option value="">Tất cả phòng ban</option>
+                        {{#each departments}}
+                        <option value="{{this.DepartmentID}}">{{this.Name}}</option>
                         {{/each}}
-                    </div>
-                    {{else}}
-                    <div class="jira-empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-inbox"></i>
-                        </div>
-                        <h4>Chưa có hoạt động nào</h4>
-                        <p>Không có yêu cầu nào trong 7 ngày qua</p>
-                        <button class="jira-btn jira-btn-primary mt-3" onclick="window.location.href='/requests/create'">
-                            <i class="fas fa-plus me-2"></i>Tạo yêu cầu đầu tiên
-                        </button>
-                    </div>
-                    {{/if}}
+                    </select>
                 </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="jira-card mt-4">
-                <div class="jira-card-header">
-                    <div class="card-title-group">
-                        <i class="fas fa-bolt text-warning me-2"></i>
-                        <h3 class="jira-card-title">Thao tác nhanh</h3>
-                    </div>
-                </div>
-                <div class="jira-card-body">
-                    <div class="quick-actions-jira">
-                        <a href="/requests/create" class="action-item">
-                            <div class="action-icon bg-blue-light">
-                                <i class="fas fa-plus text-primary"></i>
-                            </div>
-                            <div class="action-content">
-                                <h4>Tạo yêu cầu</h4>
-                                <p>Gửi yêu cầu hỗ trợ mới</p>
-                            </div>
-                            <i class="fas fa-chevron-right action-arrow"></i>
-                        </a>
-
-                        <a href="/requests/my?view=kanban" class="action-item">
-                            <div class="action-icon bg-purple-light">
-                                <i class="fas fa-columns text-purple"></i>
-                            </div>
-                            <div class="action-content">
-                                <h4>Kanban Board</h4>
-                                <p>Xem bảng công việc</p>
-                            </div>
-                            <i class="fas fa-chevron-right action-arrow"></i>
-                        </a>
-
-                        <a href="/calendar" class="action-item">
-                            <div class="action-icon bg-orange-light">
-                                <i class="fas fa-calendar-alt text-orange"></i>
-                            </div>
-                            <div class="action-content">
-                                <h4>Lịch</h4>
-                                <p>Xem lịch làm việc</p>
-                            </div>
-                            <i class="fas fa-chevron-right action-arrow"></i>
-                        </a>
-
-                        <a href="/reports" class="action-item">
-                            <div class="action-icon bg-green-light">
-                                <i class="fas fa-chart-bar text-green"></i>
-                            </div>
-                            <div class="action-content">
-                                <h4>Báo cáo</h4>
-                                <p>Xem báo cáo thống kê</p>
-                            </div>
-                            <i class="fas fa-chevron-right action-arrow"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Sidebar -->
-        <div class="jira-sidebar">
-            <!-- Assigned to Me -->
-            <div class="jira-card">
-                <div class="jira-card-header">
-                    <div class="card-title-group">
-                        <i class="fas fa-tasks text-success me-2"></i>
-                        <h3 class="jira-card-title">Công việc của tôi</h3>
-                    </div>
-                </div>
-                <div class="jira-card-body">
-                    {{#if upcomingTasks.length}}
-                    <div class="task-list-jira">
-                        {{#each upcomingTasks}}
-                        <a href="/requests/{{this.RequestID}}" class="task-item-jira">
-                            <div class="task-priority">
-                                {{#if (eq this.PriorityName 'Cao')}}
-                                    <span class="priority-icon priority-high">
-                                        <i class="fas fa-arrow-up"></i>
-                                    </span>
-                                {{else if (eq this.PriorityName 'Trung bình')}}
-                                    <span class="priority-icon priority-medium">
-                                        <i class="fas fa-equals"></i>
-                                    </span>
-                                {{else}}
-                                    <span class="priority-icon priority-low">
-                                        <i class="fas fa-arrow-down"></i>
-                                    </span>
-                                {{/if}}
-                            </div>
-                            <div class="task-content-jira">
-                                <div class="task-key">#{{this.RequestID}}</div>
-                                <div class="task-title">{{this.Title}}</div>
-                                <div class="task-assignee">
-                                    <i class="fas fa-user"></i>
-                                    {{this.CreatedByName}}
-                                </div>
-                            </div>
-                        </a>
+                
+                <!-- Priority Filter -->
+                <div class="filter-group">
+                    <select class="filter-select" id="priorityFilter">
+                        <option value="">Tất cả mức độ</option>
+                        {{#each priorities}}
+                        <option value="{{this.PriorityID}}">{{this.PriorityName}}</option>
                         {{/each}}
-                    </div>
-                    <a href="/requests/assigned" class="jira-btn jira-btn-default w-100 mt-3">
-                        Xem tất cả
-                    </a>
-                    {{else}}
-                    <div class="empty-state-small">
-                        <i class="fas fa-check-circle text-success"></i>
-                        <p>Không có công việc đang chờ</p>
-                    </div>
-                    {{/if}}
-                </div>
-            </div>
-
-            <!-- Activity Feed -->
-            <div class="jira-card mt-4">
-                <div class="jira-card-header">
-                    <div class="card-title-group">
-                        <i class="fas fa-rss text-info me-2"></i>
-                        <h3 class="jira-card-title">Thông tin hữu ích</h3>
-                    </div>
-                </div>
-                <div class="jira-card-body">
-                    <div class="info-list">
-                        <div class="info-item">
-                            <div class="info-icon bg-blue-light">
-                                <i class="fas fa-keyboard text-primary"></i>
-                            </div>
-                            <div class="info-content">
-                                <strong>Phím tắt</strong>
-                                <p>Nhấn <kbd>C</kbd> để tạo yêu cầu mới</p>
-                            </div>
-                        </div>
-
-                        <div class="info-item">
-                            <div class="info-icon bg-purple-light">
-                                <i class="fas fa-columns text-purple"></i>
-                            </div>
-                            <div class="info-content">
-                                <strong>Kanban Board</strong>
-                                <p>Kéo thả để thay đổi trạng thái</p>
-                            </div>
-                        </div>
-
-                        <div class="info-item">
-                            <div class="info-icon bg-green-light">
-                                <i class="fas fa-bell text-green"></i>
-                            </div>
-                            <div class="info-content">
-                                <strong>Thông báo</strong>
-                                <p>{{unreadNotifications}} thông báo mới</p>
-                            </div>
-                        </div>
-
-                        <div class="info-item">
-                            <div class="info-icon bg-orange-light">
-                                <i class="fas fa-calendar text-orange"></i>
-                            </div>
-                            <div class="info-content">
-                                <strong>Lịch làm việc</strong>
-                                <p>Xem yêu cầu theo thời gian</p>
-                            </div>
-                        </div>
-                    </div>
+                    </select>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<style>
-    /* Jira Color Palette */
-    :root {
-        --jira-blue: #0052CC;
-        --jira-blue-light: #DEEBFF;
-        --jira-green: #00875A;
-        --jira-green-light: #E3FCEF;
-        --jira-orange: #FF8B00;
-        --jira-orange-light: #FFF0B3;
-        --jira-red: #DE350B;
-        --jira-red-light: #FFEBE6;
-        --jira-purple: #5243AA;
-        --jira-purple-light: #EAE6FF;
-        --jira-gray-50: #FAFBFC;
-        --jira-gray-100: #F4F5F7;
-        --jira-gray-200: #EBECF0;
-        --jira-gray-300: #DFE1E6;
-        --jira-gray-400: #C1C7D0;
-        --jira-gray-500: #8993A4;
-        --jira-gray-600: #5E6C84;
-        --jira-gray-700: #42526E;
-        --jira-gray-800: #253858;
-        --jira-gray-900: #172B4D;
-    }
-
-    .jira-dashboard {
-        background: var(--jira-gray-50);
-        min-height: 100vh;
-        padding: 0;
-        margin: -1.5rem;
-    }
-
-    /* Jira Header */
-    .jira-header {
-        background: white;
-        border-bottom: 2px solid var(--jira-gray-200);
-        padding: 1.5rem 2rem;
-        margin-bottom: 2rem;
-    }
-
-    .jira-header-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .jira-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--jira-gray-900);
-        margin: 0 0 0.5rem 0;
-    }
-
-    .breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.875rem;
-        color: var(--jira-gray-600);
-    }
-
-    .breadcrumb-item.active {
-        color: var(--jira-gray-900);
-        font-weight: 500;
-    }
-
-    .breadcrumb i {
-        font-size: 0.7rem;
-    }
-
-    /* Jira Buttons */
-    .jira-btn {
-        padding: 0.5rem 1rem;
-        border-radius: 3px;
-        border: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        text-decoration: none;
-    }
-
-    .jira-btn-primary {
-        background: var(--jira-blue);
-        color: white;
-    }
-
-    .jira-btn-primary:hover {
-        background: #0065FF;
-        color: white;
-    }
-
-    .jira-btn-default {
-        background: var(--jira-gray-100);
-        color: var(--jira-gray-700);
-    }
-
-    .jira-btn-default:hover {
-        background: var(--jira-gray-200);
-        color: var(--jira-gray-800);
-    }
-
-    /* Welcome Banner */
-    .welcome-banner {
-        max-width: 1400px;
-        margin: 0 auto 2rem;
-        padding: 2rem;
-        background: linear-gradient(135deg, var(--jira-blue) 0%, #0065FF 100%);
-        border-radius: 3px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: white;
-    }
-
-    .welcome-content h2 {
-        font-size: 1.75rem;
-        font-weight: 600;
-        margin: 0 0 0.5rem 0;
-    }
-
-    .welcome-content p {
-        margin: 0;
-        opacity: 0.9;
-    }
-
-    .welcome-date {
-        font-size: 1.125rem;
-        opacity: 0.9;
-    }
-
-    /* Alerts */
-    .jira-alert {
-        max-width: 1400px;
-        margin: 0 auto 1rem;
-        padding: 1rem 1.5rem;
-        border-radius: 3px;
-        display: flex;
-        align-items: center;
-        position: relative;
-    }
-
-    .jira-alert-success {
-        background: var(--jira-green-light);
-        color: var(--jira-green);
-        border-left: 3px solid var(--jira-green);
-    }
-
-    .jira-alert-warning {
-        background: var(--jira-orange-light);
-        color: var(--jira-gray-800);
-        border-left: 3px solid var(--jira-orange);
-    }
-
-    .alert-close {
-        position: absolute;
-        right: 1rem;
-        background: none;
-        border: none;
-        color: inherit;
-        opacity: 0.6;
-        cursor: pointer;
-        padding: 0.25rem 0.5rem;
-    }
-
-    .alert-close:hover {
-        opacity: 1;
-    }
-
-    /* Stats Container */
-    .jira-stats-container {
-        max-width: 1400px;
-        margin: 0 auto 2rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-        padding: 0 2rem;
-    }
-
-    .stat-card-jira {
-        background: white;
-        border: 1px solid var(--jira-gray-200);
-        border-radius: 3px;
-        padding: 1.25rem;
-        transition: all 0.2s;
-    }
-
-    .stat-card-jira:hover {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-color: var(--jira-gray-300);
-    }
-
-    .stat-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
-
-    .stat-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.125rem;
-        color: white;
-    }
-
-    .stat-icon.bg-blue { background: var(--jira-blue); }
-    .stat-icon.bg-green { background: var(--jira-green); }
-    .stat-icon.bg-orange { background: var(--jira-orange); }
-    .stat-icon.bg-purple { background: var(--jira-purple); }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: var(--jira-gray-600);
-        font-weight: 500;
-    }
-
-    .stat-body {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-    }
-
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--jira-gray-900);
-        line-height: 1;
-    }
-
-    .stat-link {
-        font-size: 0.875rem;
-        color: var(--jira-blue);
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .stat-link:hover {
-        text-decoration: underline;
-        color: #0065FF;
-    }
-
-    .stat-sublabel {
-        font-size: 0.875rem;
-        color: var(--jira-gray-500);
-    }
-
-    /* Content Grid */
-    .jira-content-grid {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 2rem 2rem;
-        display: grid;
-        grid-template-columns: 1fr 350px;
-        gap: 2rem;
-    }
-
-    /* Jira Card */
-    .jira-card {
-        background: white;
-        border: 1px solid var(--jira-gray-200);
-        border-radius: 3px;
-        overflow: hidden;
-    }
-
-    .jira-card-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--jira-gray-200);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .card-title-group {
-        display: flex;
-        align-items: center;
-    }
-
-    .jira-card-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--jira-gray-900);
-        margin: 0;
-    }
-
-    .jira-link {
-        font-size: 0.875rem;
-        color: var(--jira-blue);
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .jira-link:hover {
-        text-decoration: underline;
-    }
-
-    .jira-card-body {
-        padding: 1.5rem;
-    }
-
-    /* Issue List */
-    .jira-issue-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-    }
-
-    .jira-issue-item {
-        padding: 1rem;
-        border-bottom: 1px solid var(--jira-gray-200);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        text-decoration: none;
-        color: inherit;
-        transition: background 0.15s;
-    }
-
-    .jira-issue-item:last-child {
-        border-bottom: none;
-    }
-
-    .jira-issue-item:hover {
-        background: var(--jira-gray-50);
-    }
-
-    .issue-left {
-        display: flex;
-        align-items: start;
-        gap: 0.75rem;
-        flex: 1;
-    }
-
-    .issue-type-icon {
-        margin-top: 0.25rem;
-        font-size: 0.75rem;
-    }
-
-    .issue-details {
-        flex: 1;
-    }
-
-    .issue-key-title {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.25rem;
-    }
-
-    .issue-key {
-        font-size: 0.75rem;
-        color: var(--jira-gray-600);
-        font-weight: 600;
-    }
-
-    .issue-title {
-        font-size: 0.875rem;
-        color: var(--jira-gray-900);
-        font-weight: 500;
-    }
-
-    .issue-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.75rem;
-        color: var(--jira-gray-500);
-    }
-
-    .meta-tag {
-        padding: 0.125rem 0.5rem;
-        background: var(--jira-gray-100);
-        border-radius: 3px;
-    }
-
-    .meta-separator {
-        opacity: 0.5;
-    }
-
-    .issue-right {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-    }
-
-    /* Jira Badges */
-    .jira-badge {
-        padding: 0.25rem 0.5rem;
-        border-radius: 3px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        white-space: nowrap;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    .status-done {
-        background: var(--jira-green-light);
-        color: var(--jira-green);
-    }
-
-    .status-progress {
-        background: var(--jira-blue-light);
-        color: var(--jira-blue);
-    }
-
-    .priority-high {
-        background: var(--jira-red-light);
-        color: var(--jira-red);
-    }
-
-    .priority-medium {
-        background: var(--jira-orange-light);
-        color: var(--jira-orange);
-    }
-
-    .priority-low {
-        background: var(--jira-gray-200);
-        color: var(--jira-gray-600);
-    }
-
-    /* Quick Actions */
-    .quick-actions-jira {
-        display: grid;
-        gap: 0.75rem;
-    }
-
-    .action-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        border: 1px solid var(--jira-gray-200);
-        border-radius: 3px;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.2s;
-    }
-
-    .action-item:hover {
-        border-color: var(--jira-blue);
-        background: var(--jira-gray-50);
-    }
-
-    .action-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.125rem;
-        flex-shrink: 0;
-    }
-
-    .bg-blue-light { background: var(--jira-blue-light); }
-    .bg-green-light { background: var(--jira-green-light); }
-    .bg-orange-light { background: var(--jira-orange-light); }
-    .bg-purple-light { background: var(--jira-purple-light); }
-
-    .text-primary { color: var(--jira-blue); }
-    .text-green { color: var(--jira-green); }
-    .text-orange { color: var(--jira-orange); }
-    .text-purple { color: var(--jira-purple); }
-
-    .action-content {
-        flex: 1;
-    }
-
-    .action-content h4 {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--jira-gray-900);
-        margin: 0 0 0.25rem 0;
-    }
-
-    .action-content p {
-        font-size: 0.75rem;
-        color: var(--jira-gray-600);
-        margin: 0;
-    }
-
-    .action-arrow {
-        color: var(--jira-gray-400);
-        font-size: 0.875rem;
-    }
-
-    /* Task List */
-    .task-list-jira {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .task-item-jira {
-        display: flex;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        border: 1px solid var(--jira-gray-200);
-        border-radius: 3px;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.2s;
-    }
-
-    .task-item-jira:hover {
-        border-color: var(--jira-blue);
-        background: var(--jira-gray-50);
-    }
-
-    .priority-icon {
-        width: 24px;
-        height: 24px;
-        border-radius: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        color: white;
-        flex-shrink: 0;
-    }
-
-    .priority-icon.priority-high { background: var(--jira-red); }
-    .priority-icon.priority-medium { background: var(--jira-orange); }
-    .priority-icon.priority-low { background: var(--jira-gray-400); }
-
-    .task-content-jira {
-        flex: 1;
-    }
-
-    .task-key {
-        font-size: 0.75rem;
-        color: var(--jira-gray-600);
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-
-    .task-title {
-        font-size: 0.875rem;
-        color: var(--jira-gray-900);
-        font-weight: 500;
-        margin-bottom: 0.25rem;
-    }
-
-    .task-assignee {
-        font-size: 0.75rem;
-        color: var(--jira-gray-600);
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    /* Info List */
-    .info-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .info-item {
-        display: flex;
-        gap: 0.75rem;
-    }
-
-    .info-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .info-content strong {
-        font-size: 0.875rem;
-        color: var(--jira-gray-900);
-        display: block;
-        margin-bottom: 0.25rem;
-    }
-
-    .info-content p {
-        font-size: 0.75rem;
-        color: var(--jira-gray-600);
-        margin: 0;
-    }
-
-    .info-content kbd {
-        padding: 0.125rem 0.375rem;
-        background: var(--jira-gray-200);
-        border-radius: 3px;
-        font-size: 0.75rem;
-        font-family: monospace;
-    }
-
-    /* Empty States */
-    .jira-empty-state {
-        text-align: center;
-        padding: 3rem 1.5rem;
-    }
-
-    .empty-icon {
-        font-size: 3rem;
-        color: var(--jira-gray-300);
-        margin-bottom: 1rem;
-    }
-
-    .jira-empty-state h4 {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--jira-gray-700);
-        margin-bottom: 0.5rem;
-    }
-
-    .jira-empty-state p {
-        color: var(--jira-gray-600);
-        margin-bottom: 0;
-    }
-
-    .empty-state-small {
-        text-align: center;
-        padding: 2rem 1rem;
-        color: var(--jira-gray-600);
-    }
-
-    .empty-state-small i {
-        font-size: 2rem;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-
-    .empty-state-small p {
-        margin: 0;
-        font-size: 0.875rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 1200px) {
-        .jira-content-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .jira-sidebar .jira-card:first-child {
-            margin-bottom: 1rem;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .jira-header {
-            padding: 1rem;
-        }
-
-        .jira-header-content {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-
-        .welcome-banner {
-            flex-direction: column;
-            text-align: center;
-            gap: 1rem;
-        }
-
-        .jira-stats-container {
-            grid-template-columns: 1fr;
-            padding: 0 1rem;
-        }
-
-        .jira-content-grid {
-            padding: 0 1rem 1rem;
-        }
-
-        .issue-right {
-            flex-direction: column;
-            align-items: flex-end;
-        }
-    }
-</style>
-
-    <!-- Statistics Cards with Modern Design -->
-    <div class="stats-grid">
-        <div class="stat-card stat-card-primary">
-            <div class="stat-icon-wrapper">
-                <div class="stat-icon bg-primary-gradient">
-                    <i class="fas fa-clipboard-list"></i>
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <!-- Total Requests Card -->
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon-wrapper icon-primary">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div class="stat-trend trend-up">
+                        <i class="fas fa-arrow-up"></i>
+                        12%
+                    </div>
                 </div>
-            </div>
-            <div class="stat-content">
-                <div class="stat-label">Yêu cầu của tôi</div>
+                <div class="stat-label">Tổng số yêu cầu</div>
                 <div class="stat-value">{{stats.myRequests}}</div>
-                <div class="stat-footer">
+                <div class="stat-description">
                     <a href="/requests/my" class="stat-link">
-                        Xem chi tiết <i class="fas fa-arrow-right ms-1"></i>
+                        <i class="fas fa-arrow-right"></i> Xem chi tiết
                     </a>
                 </div>
             </div>
-        </div>
-        
-        <div class="stat-card stat-card-success">
-            <div class="stat-icon-wrapper">
-                <div class="stat-icon bg-success-gradient">
-                    <i class="fas fa-tasks"></i>
+
+            <!-- Assigned Requests Card -->
+            <div class="stat-card stat-success">
+                <div class="stat-header">
+                    <div class="stat-icon-wrapper icon-success">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-trend trend-up">
+                        <i class="fas fa-arrow-up"></i>
+                        8%
+                    </div>
                 </div>
-            </div>
-            <div class="stat-content">
                 <div class="stat-label">Được giao cho tôi</div>
                 <div class="stat-value">{{stats.assignedToMe}}</div>
-                <div class="stat-footer">
+                <div class="stat-description">
                     <a href="/requests/assigned" class="stat-link">
-                        Xem chi tiết <i class="fas fa-arrow-right ms-1"></i>
+                        <i class="fas fa-arrow-right"></i> Xem chi tiết
                     </a>
                 </div>
             </div>
-        </div>
-        
-        <div class="stat-card stat-card-warning">
-            <div class="stat-icon-wrapper">
-                <div class="stat-icon bg-warning-gradient">
-                    <i class="fas fa-clock"></i>
+
+            <!-- Pending Requests Card -->
+            <div class="stat-card stat-warning">
+                <div class="stat-header">
+                    <div class="stat-icon-wrapper icon-warning">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-trend trend-up">
+                        <i class="fas fa-arrow-up"></i>
+                        5%
+                    </div>
                 </div>
-            </div>
-            <div class="stat-content">
                 <div class="stat-label">Đang chờ xử lý</div>
                 <div class="stat-value">{{stats.pendingRequests}}</div>
-                <div class="stat-footer">
-                    <span class="stat-info text-muted">Cần xử lý sớm</span>
+                <div class="stat-description">
+                    <span class="stat-users">
+                        <i class="fas fa-circle text-warning" style="font-size: 8px;"></i>
+                        <span class="user-count-badge">Cần xử lý</span>
+                    </span>
                 </div>
             </div>
-        </div>
-        
-        <div class="stat-card stat-card-info">
-            <div class="stat-icon-wrapper">
-                <div class="stat-icon bg-info-gradient">
-                    <i class="fas fa-bell"></i>
-                </div>
-            </div>
-            <div class="stat-content">
-                <div class="stat-label">Thông báo mới</div>
-                <div class="stat-value">{{unreadNotifications}}</div>
-                <div class="stat-footer">
-                    <a href="/notifications" class="stat-link">
-                        Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Quick Actions with Modern Icons -->
-    <div class="quick-actions-section">
-        <h5 class="section-title">
-            <i class="fas fa-bolt text-warning me-2"></i>
-            Thao tác nhanh
-        </h5>
-        <div class="quick-actions-grid">
-            <a href="/requests/create" class="quick-action-card">
-                <div class="quick-action-icon bg-primary-light">
-                    <i class="fas fa-plus-circle text-primary"></i>
-                </div>
-                <div class="quick-action-content">
-                    <h6>Tạo yêu cầu mới</h6>
-                    <p>Gửi yêu cầu hỗ trợ</p>
-                </div>
-                <i class="fas fa-chevron-right quick-action-arrow"></i>
-            </a>
-            
-            <a href="/requests/my" class="quick-action-card">
-                <div class="quick-action-icon bg-success-light">
-                    <i class="fas fa-list-ul text-success"></i>
-                </div>
-                <div class="quick-action-content">
-                    <h6>Yêu cầu của tôi</h6>
-                    <p>Theo dõi tiến độ</p>
-                </div>
-                <i class="fas fa-chevron-right quick-action-arrow"></i>
-            </a>
-            
-            <a href="/requests/assigned" class="quick-action-card">
-                <div class="quick-action-icon bg-warning-light">
-                    <i class="fas fa-user-check text-warning"></i>
-                </div>
-                <div class="quick-action-content">
-                    <h6>Công việc được giao</h6>
-                    <p>Xử lý yêu cầu</p>
-                </div>
-                <i class="fas fa-chevron-right quick-action-arrow"></i>
-            </a>
-            
-            <a href="/calendar" class="quick-action-card">
-                <div class="quick-action-icon bg-info-light">
-                    <i class="fas fa-calendar-alt text-info"></i>
-                </div>
-                <div class="quick-action-content">
-                    <h6>Lịch & Sự kiện</h6>
-                    <p>Quản lý thời gian</p>
-                </div>
-                <i class="fas fa-chevron-right quick-action-arrow"></i>
-            </a>
-        </div>
-    </div>
-
-    <!-- Content Grid -->
-    <div class="content-grid">
-        <!-- Recent Requests -->
-        <div class="content-card recent-requests-card">
-            <div class="card-header-modern">
-                <div class="card-header-content">
-                    <div class="card-icon bg-primary-light">
-                        <i class="fas fa-history text-primary"></i>
+            <!-- Completed Requests Card -->
+            <div class="stat-card stat-info">
+                <div class="stat-header">
+                    <div class="stat-icon-wrapper icon-info">
+                        <i class="fas fa-check-circle"></i>
                     </div>
-                    <div>
-                        <h5 class="card-title-modern">Yêu cầu gần đây</h5>
-                        <p class="card-subtitle-modern">7 ngày qua</p>
+                    <div class="stat-trend trend-down">
+                        <i class="fas fa-arrow-down"></i>
+                        2%
                     </div>
                 </div>
-                <a href="/requests/my" class="btn btn-sm btn-outline-primary">
-                    Xem tất cả
-                </a>
+                <div class="stat-label">Hoàn thành</div>
+                <div class="stat-value">{{stats.completedRequests}}</div>
+                <div class="stat-description">
+                    <span class="stat-users">
+                        <i class="fas fa-circle text-success" style="font-size: 8px;"></i>
+                        <span class="user-count-badge">Tuần này</span>
+                    </span>
+                </div>
             </div>
-            <div class="card-body-modern">
-                {{#if recentRequests.length}}
-                <div class="requests-list">
-                    {{#each recentRequests}}
-                    <a href="/requests/{{this.RequestID}}" class="request-item">
-                        <div class="request-header">
-                            <div class="request-title-wrapper">
-                                <h6 class="request-title">{{this.Title}}</h6>
-                                <div class="request-badges">
-                                    {{#if this.IsFinal}}
-                                        <span class="badge badge-success-soft">{{this.StatusName}}</span>
-                                    {{else}}
-                                        <span class="badge badge-warning-soft">{{this.StatusName}}</span>
-                                    {{/if}}
-                                    
-                                    {{#if (eq this.PriorityName 'Cao')}}
-                                        <span class="badge badge-danger-soft">{{this.PriorityName}}</span>
-                                    {{else if (eq this.PriorityName 'Trung bình')}}
-                                        <span class="badge badge-warning-soft">{{this.PriorityName}}</span>
-                                    {{else}}
-                                        <span class="badge badge-secondary-soft">{{this.PriorityName}}</span>
-                                    {{/if}}
+        </div>
+
+        <!-- Charts Layout -->
+        <div class="charts-layout">
+            <!-- Request Trend Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Xu hướng yêu cầu theo tuần
+                    </h3>
+                    <div class="chart-actions">
+                        <button class="chart-filter active">Tuần</button>
+                        <button class="chart-filter">Tháng</button>
+                        <button class="chart-filter">Năm</button>
+                    </div>
+                </div>
+                
+                <div class="chart-body">
+                    <canvas id="trendChart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00B8D4;"></div>
+                        <span>Mới tạo</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4CAF50;"></div>
+                        <span>Hoàn thành</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FF6B6B;"></div>
+                        <span>Đã hủy</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Distribution Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Phân bố trạng thái
+                    </h3>
+                </div>
+                
+                <div class="chart-body">
+                    <canvas id="statusChart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFA726;"></div>
+                        <span>Mới</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00B8D4;"></div>
+                        <span>Đang xử lý</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4CAF50;"></div>
+                        <span>Hoàn thành</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #E91E63;"></div>
+                        <span>Đã hủy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Chart - Full Width -->
+        <div class="charts-layout">
+            <div class="chart-card chart-full-width">
+                <div class="chart-header">
+                    <h3 class="chart-title">
+                        <i class="fas fa-chart-area"></i>
+                        Phân bố theo mức độ ưu tiên
+                    </h3>
+                    <div class="chart-actions">
+                        <button class="chart-filter">Ngày</button>
+                        <button class="chart-filter active">Tuần</button>
+                        <button class="chart-filter">Tháng</button>
+                    </div>
+                </div>
+                
+                <div class="chart-body">
+                    <canvas id="priorityChart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #DC3545;"></div>
+                        <span>Khẩn cấp</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFA726;"></div>
+                        <span>Cao</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFD700;"></div>
+                        <span>Trung bình</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4CAF50;"></div>
+                        <span>Thấp</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Layout with Sidebar -->
+        <div class="content-layout">
+            <!-- Main Content - Activity Feed -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <h3 class="activity-title">Hoạt động gần đây</h3>
+                    <a href="/requests/my" class="activity-link">Xem thêm</a>
+                </div>
+                
+                <div class="activity-list">
+                    {{#if recentRequests.length}}
+                        {{#each recentRequests}}
+                        <a href="/requests/{{this.RequestID}}" class="activity-item">
+                            <div class="activity-avatar">{{substring this.CreatedByName 0 1}}</div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>{{this.CreatedByName}}</strong> {{#if (eq this.relationType 'created')}}đã tạo{{else}}đã cập nhật{{/if}} yêu cầu 
+                                    <strong>{{this.Title}}</strong>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="request-meta">
-                            <span class="meta-item">
-                                {{#if (eq this.relationType 'created')}}
-                                    <i class="fas fa-user text-primary me-1"></i>Bạn tạo
-                                {{else}}
-                                    <i class="fas fa-user-check text-success me-1"></i>Giao cho bạn
-                                {{/if}}
-                            </span>
-                            <span class="meta-item">
-                                <i class="fas fa-clock me-1"></i>{{formatDateTime this.UpdatedAt}}
-                            </span>
-                        </div>
-                    </a>
-                    {{/each}}
-                </div>
-                {{else}}
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-inbox"></i>
-                    </div>
-                    <h6>Chưa có yêu cầu nào</h6>
-                    <p>Không có yêu cầu nào trong 7 ngày qua</p>
-                    <a href="/requests/create" class="btn btn-primary mt-2">
-                        <i class="fas fa-plus me-2"></i>Tạo yêu cầu đầu tiên
-                    </a>
-                </div>
-                {{/if}}
-            </div>
-        </div>
-        
-        <!-- Sidebar -->
-        <div class="sidebar-content">
-            <!-- Upcoming Tasks -->
-            <div class="content-card tasks-card">
-                <div class="card-header-modern">
-                    <div class="card-header-content">
-                        <div class="card-icon bg-success-light">
-                            <i class="fas fa-tasks text-success"></i>
-                        </div>
-                        <div>
-                            <h5 class="card-title-modern">Công việc ưu tiên</h5>
-                            <p class="card-subtitle-modern">Cần xử lý sớm</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body-modern">
-                    {{#if upcomingTasks.length}}
-                    <div class="tasks-list">
-                        {{#each upcomingTasks}}
-                        <a href="/requests/{{this.RequestID}}" class="task-item">
-                            <div class="task-priority">
-                                {{#if (eq this.PriorityName 'Cao')}}
-                                    <span class="priority-dot priority-high"></span>
-                                {{else if (eq this.PriorityName 'Trung bình')}}
-                                    <span class="priority-dot priority-medium"></span>
-                                {{else}}
-                                    <span class="priority-dot priority-low"></span>
-                                {{/if}}
-                            </div>
-                            <div class="task-content">
-                                <h6 class="task-title">{{this.Title}}</h6>
-                                <p class="task-meta">
-                                    <i class="fas fa-user me-1"></i>{{this.CreatedByName}}
-                                </p>
+                                <div class="activity-time">{{formatDateTime this.UpdatedAt}}</div>
                             </div>
                         </a>
                         {{/each}}
-                    </div>
-                    <a href="/requests/assigned" class="btn btn-sm btn-outline-success w-100 mt-3">
-                        Xem tất cả công việc
-                    </a>
                     {{else}}
-                    <div class="empty-state-small">
-                        <i class="fas fa-check-circle text-success"></i>
-                        <p>Không có công việc đang chờ</p>
-                    </div>
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Chưa có hoạt động nào</p>
+                        </div>
                     {{/if}}
                 </div>
             </div>
-            
-            <!-- Tips Card -->
-            <div class="content-card tips-card">
-                <div class="card-header-modern">
-                    <div class="card-header-content">
-                        <div class="card-icon bg-info-light">
-                            <i class="fas fa-lightbulb text-warning"></i>
-                        </div>
-                        <div>
-                            <h5 class="card-title-modern">Mẹo hữu ích</h5>
-                        </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar-section">
+                <!-- Assigned Tasks Card -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">
+                        <h3 class="sidebar-title">
+                            <i class="fas fa-tasks"></i>
+                            Công việc được giao
+                        </h3>
+                        <a href="/requests/assigned" class="activity-link">Xem tất cả</a>
                     </div>
-                </div>
-                <div class="card-body-modern">
-                    <div class="tips-list">
-                        <div class="tip-item">
-                            <div class="tip-icon">
-                                <i class="fas fa-calendar text-primary"></i>
-                            </div>
-                            <p>Sử dụng <strong>Lịch</strong> để xem yêu cầu theo thời gian</p>
-                        </div>
-                        
-                        <div class="tip-item">
-                            <div class="tip-icon">
-                                <i class="fas fa-columns text-success"></i>
-                            </div>
-                            <p>Dùng <strong>Kanban</strong> để kéo thả và cập nhật trạng thái</p>
-                        </div>
-                        
-                        <div class="tip-item">
-                            <div class="tip-icon">
-                                <i class="fas fa-bell text-warning"></i>
-                            </div>
-                            <p>Nhận <strong>thông báo</strong> khi có cập nhật mới</p>
-                        </div>
-                        
-                        <div class="tip-item">
-                            <div class="tip-icon">
-                                <i class="fas fa-search text-info"></i>
-                            </div>
-                            <p>Dùng <strong>tìm kiếm</strong> để nhanh chóng tìm yêu cầu</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* Dashboard Container */
-    .dashboard-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0;
-    }
-
-    /* Header Section */
-    .dashboard-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    }
-
-    .welcome-title {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        color: white;
-    }
-
-    .user-highlight {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 0.25rem 0.75rem;
-        border-radius: 8px;
-    }
-
-    .welcome-subtitle {
-        font-size: 1rem;
-        opacity: 0.9;
-        margin-bottom: 0;
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        display: flex;
-        gap: 1.5rem;
-        align-items: start;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-        transition: all 0.3s ease;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-    }
-
-    .bg-primary-gradient {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .bg-success-gradient {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-
-    .bg-warning-gradient {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    .bg-info-gradient {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-
-    .stat-content {
-        flex: 1;
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: #6c757d;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-    }
-
-    .stat-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #1a202c;
-        margin-bottom: 0.5rem;
-        line-height: 1;
-    }
-
-    .stat-link {
-        color: #667eea;
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-
-    .stat-link:hover {
-        color: #764ba2;
-        transform: translateX(4px);
-        display: inline-block;
-    }
-
-    .stat-info {
-        font-size: 0.875rem;
-    }
-
-    /* Quick Actions */
-    .quick-actions-section {
-        margin-bottom: 2rem;
-    }
-
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        color: #1a202c;
-    }
-
-    .quick-actions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1rem;
-    }
-
-    .quick-action-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        text-decoration: none;
-        color: inherit;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-        transition: all 0.3s ease;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .quick-action-card:hover {
-        transform: translateX(4px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-        color: inherit;
-    }
-
-    .quick-action-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        flex-shrink: 0;
-    }
-
-    .bg-primary-light { background: rgba(102, 126, 234, 0.1); }
-    .bg-success-light { background: rgba(17, 153, 142, 0.1); }
-    .bg-warning-light { background: rgba(245, 87, 108, 0.1); }
-    .bg-info-light { background: rgba(79, 172, 254, 0.1); }
-
-    .quick-action-content h6 {
-        font-size: 0.95rem;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-        color: #1a202c;
-    }
-
-    .quick-action-content p {
-        font-size: 0.8rem;
-        color: #6c757d;
-        margin-bottom: 0;
-    }
-
-    .quick-action-arrow {
-        margin-left: auto;
-        color: #cbd5e0;
-        font-size: 0.875rem;
-    }
-
-    /* Content Grid */
-    .content-grid {
-        display: grid;
-        grid-template-columns: 1fr 380px;
-        gap: 1.5rem;
-    }
-
-    .content-card {
-        background: white;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .card-header-modern {
-        padding: 1.5rem;
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .card-header-content {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .card-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-    }
-
-    .card-title-modern {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-        color: #1a202c;
-    }
-
-    .card-subtitle-modern {
-        font-size: 0.85rem;
-        color: #6c757d;
-        margin-bottom: 0;
-    }
-
-    .card-body-modern {
-        padding: 1.5rem;
-    }
-
-    /* Requests List */
-    .requests-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .request-item {
-        padding: 1rem;
-        border-radius: 10px;
-        background: #f8f9fa;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.2s;
-        border: 1px solid transparent;
-    }
-
-    .request-item:hover {
-        background: white;
-        border-color: #667eea;
-        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.1);
-        color: inherit;
-    }
-
-    .request-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #1a202c;
-    }
-
-    .request-badges {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-top: 0.5rem;
-    }
-
-    .request-meta {
-        display: flex;
-        gap: 1rem;
-        font-size: 0.8rem;
-        color: #6c757d;
-        margin-top: 0.5rem;
-    }
-
-    .meta-item {
-        display: flex;
-        align-items: center;
-    }
-
-    /* Badges */
-    .badge {
-        padding: 0.35rem 0.65rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .badge-success-soft { background: rgba(17, 153, 142, 0.1); color: #11998e; }
-    .badge-warning-soft { background: rgba(245, 87, 108, 0.1); color: #f5576c; }
-    .badge-danger-soft { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
-    .badge-secondary-soft { background: rgba(108, 117, 125, 0.1); color: #6c757d; }
-
-    /* Tasks List */
-    .tasks-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .task-item {
-        display: flex;
-        align-items: start;
-        gap: 0.75rem;
-        padding: 0.75rem;
-        border-radius: 8px;
-        background: #f8f9fa;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.2s;
-    }
-
-    .task-item:hover {
-        background: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-        color: inherit;
-    }
-
-    .priority-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        margin-top: 6px;
-    }
-
-    .priority-high { background: #dc3545; box-shadow: 0 0 6px rgba(220, 53, 69, 0.5); }
-    .priority-medium { background: #ffc107; box-shadow: 0 0 6px rgba(255, 193, 7, 0.5); }
-    .priority-low { background: #6c757d; }
-
-    .task-title {
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-        color: #1a202c;
-    }
-
-    .task-meta {
-        font-size: 0.8rem;
-        color: #6c757d;
-        margin-bottom: 0;
-    }
-
-    /* Tips List */
-    .tips-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .tip-item {
-        display: flex;
-        gap: 0.75rem;
-        align-items: start;
-    }
-
-    .tip-icon {
-        width: 36px;
-        height: 36px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .tip-item p {
-        font-size: 0.875rem;
-        color: #4a5568;
-        margin-bottom: 0;
-        line-height: 1.6;
-    }
-
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 1.5rem;
-    }
-
-    .empty-icon {
-        font-size: 4rem;
-        color: #cbd5e0;
-        margin-bottom: 1rem;
-    }
-
-    .empty-state h6 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #2d3748;
-        margin-bottom: 0.5rem;
-    }
-
-    .empty-state p {
-        color: #6c757d;
-        margin-bottom: 1rem;
-    }
-
-    .empty-state-small {
-        text-align: center;
-        padding: 2rem 1rem;
-        color: #6c757d;
-    }
-
-    .empty-state-small i {
-        font-size: 2.5rem;
-        margin-bottom: 0.75rem;
-        display: block;
-    }
-
-    /* Responsive */
-    @media (max-width: 1200px) {
-        .content-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .sidebar-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .dashboard-header {
-            flex-direction: column;
-            text-align: center;
-            gap: 1rem;
-        }
-
-        .welcome-title {
-            font-size: 1.5rem;
-        }
-
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .quick-actions-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-                    <div class="d-flex align-items-center justify-content-center mb-3">
-                        <div class="p-3 rounded-circle bg-info bg-opacity-10">
-                            <i class="fas fa-tasks fa-2x text-info"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-info mb-1">{{dashboardData.PendingTasks}}</h3>
-                    <p class="text-muted mb-0 small">Công việc chờ</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="d-flex align-items-center justify-content-center mb-3">
-                        <div class="p-3 rounded-circle bg-danger bg-opacity-10">
-                            <i class="fas fa-bell fa-2x text-danger"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-danger mb-1">{{dashboardData.UnreadNotifications}}</h3>
-                    <p class="text-muted mb-0 small">Thông báo mới</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bolt text-warning me-2"></i>
-                        Thao tác nhanh
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <a href="/requests/create" class="text-decoration-none">
-                                <div class="d-flex align-items-center p-3 rounded bg-light hover-shadow">
-                                    <div class="me-3">
-                                        <i class="fas fa-plus-circle fa-2x text-primary"></i>
-                                    </div>
+                    
+                    <div class="status-list">
+                        {{#if upcomingTasks.length}}
+                            {{#each upcomingTasks}}
+                            <a href="/requests/{{this.RequestID}}" class="status-item task-item-link">
+                                <div class="status-label-wrapper">
+                                    {{#if (eq this.PriorityName 'Cao')}}
+                                        <div class="status-indicator status-warning"></div>
+                                    {{else if (eq this.PriorityName 'Khẩn cấp')}}
+                                        <div class="status-indicator status-offline"></div>
+                                    {{else}}
+                                        <div class="status-indicator status-online"></div>
+                                    {{/if}}
                                     <div>
-                                        <h6 class="mb-1">Tạo yêu cầu mới</h6>
-                                        <small class="text-muted">Gửi yêu cầu hỗ trợ mới</small>
+                                        <div class="status-name">{{this.Title}}</div>
+                                        <div class="status-meta">
+                                            <i class="fas fa-user"></i>
+                                            {{this.CreatedByName}}
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="status-value">#{{this.RequestID}}</div>
                             </a>
-                        </div>
-                        
-                        <div class="col-md-4 mb-3">
-                            <a href="/requests" class="text-decoration-none">
-                                <div class="d-flex align-items-center p-3 rounded bg-light hover-shadow">
-                                    <div class="me-3">
-                                        <i class="fas fa-search fa-2x text-success"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-1">Xem yêu cầu</h6>
-                                        <small class="text-muted">Theo dõi tiến độ yêu cầu</small>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        
-                        <div class="col-md-4 mb-3">
-                            <a href="/users/profile" class="text-decoration-none">
-                                <div class="d-flex align-items-center p-3 rounded bg-light hover-shadow">
-                                    <div class="me-3">
-                                        <i class="fas fa-user-edit fa-2x text-info"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-1">Cập nhật hồ sơ</h6>
-                                        <small class="text-muted">Chỉnh sửa thông tin cá nhân</small>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
+                            {{/each}}
+                        {{else}}
+                            <div class="empty-state-small">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <p>Không có công việc đang chờ</p>
+                            </div>
+                        {{/if}}
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Recent Activity -->
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history text-primary me-2"></i>
-                        Hoạt động gần đây
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="text-center py-4">
-                        <i class="fas fa-clock fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Chưa có hoạt động nào gần đây</p>
-                        <a href="/requests" class="btn btn-outline-primary">
-                            Xem tất cả yêu cầu
+                <!-- Quick Actions -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">
+                        <h3 class="sidebar-title">
+                            <i class="fas fa-bolt"></i>
+                            Thao tác nhanh
+                        </h3>
+                    </div>
+                    
+                    <div class="quick-actions-list">
+                        <a href="/requests/create" class="quick-action-item">
+                            <div class="quick-action-icon bg-primary">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Tạo yêu cầu mới</div>
+                                <div class="quick-action-desc">Gửi yêu cầu hỗ trợ</div>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                        
+                        <a href="/requests/my?view=kanban" class="quick-action-item">
+                            <div class="quick-action-icon bg-purple">
+                                <i class="fas fa-columns"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Kanban Board</div>
+                                <div class="quick-action-desc">Xem bảng công việc</div>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                        
+                        <a href="/calendar" class="quick-action-item">
+                            <div class="quick-action-icon bg-orange">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Lịch & Sự kiện</div>
+                                <div class="quick-action-desc">Quản lý thời gian</div>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                        
+                        <a href="/reports" class="quick-action-item">
+                            <div class="quick-action-icon bg-success">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Báo cáo</div>
+                                <div class="quick-action-desc">Thống kê chi tiết</div>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
                         </a>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle text-info me-2"></i>
-                        Hướng dẫn
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <div class="p-2 rounded bg-light">
-                            <small>
-                                <i class="fas fa-lightbulb text-warning me-1"></i>
-                                <strong>Mẹo:</strong> Sử dụng tìm kiếm để nhanh chóng tìm yêu cầu của bạn
-                            </small>
+
+                <!-- System Info -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">
+                        <h3 class="sidebar-title">
+                            <i class="fas fa-info-circle"></i>
+                            Thông tin hệ thống
+                        </h3>
+                    </div>
+                    
+                    <div class="status-list">
+                        <div class="status-item">
+                            <div class="status-label-wrapper">
+                                <div class="status-indicator status-online"></div>
+                                <span class="status-name">Hệ thống hoạt động</span>
+                            </div>
+                            <div class="status-value">
+                                <span class="status-percentage">Online</span>
+                            </div>
                         </div>
                         
-                        <div class="p-2 rounded bg-light">
-                            <small>
-                                <i class="fas fa-star text-primary me-1"></i>
-                                <strong>Tính năng:</strong> Đánh dấu sao những yêu cầu quan trọng
-                            </small>
+                        <div class="status-item">
+                            <div class="status-label-wrapper">
+                                <i class="fas fa-bell" style="color: var(--text-muted); font-size: 14px;"></i>
+                                <span class="status-name">Thông báo chưa đọc</span>
+                            </div>
+                            <div class="status-value">{{unreadNotifications}}</div>
                         </div>
                         
-                        <div class="p-2 rounded bg-light">
-                            <small>
-                                <i class="fas fa-bell text-success me-1"></i>
-                                <strong>Thông báo:</strong> Nhận thông báo khi có cập nhật mới
-                            </small>
+                        <div class="status-item">
+                            <div class="status-label-wrapper">
+                                <i class="fas fa-clipboard-list" style="color: var(--text-muted); font-size: 14px;"></i>
+                                <span class="status-name">Tổng yêu cầu</span>
+                            </div>
+                            <div class="status-value">{{stats.myRequests}}</div>
+                        </div>
+
+                        <div class="status-item">
+                            <div class="status-label-wrapper">
+                                <i class="fas fa-hourglass-half" style="color: var(--text-muted); font-size: 14px;"></i>
+                                <span class="status-name">Đang chờ xử lý</span>
+                            </div>
+                            <div class="status-value">{{stats.pendingRequests}}</div>
+                        </div>
+
+                        <div class="status-item">
+                            <div class="status-label-wrapper">
+                                <i class="fas fa-check-circle" style="color: var(--text-muted); font-size: 14px;"></i>
+                                <span class="status-name">Hoàn thành tuần này</span>
+                            </div>
+                            <div class="status-value">{{stats.completedRequests}}</div>
+                        </div>
+
+                        <div class="status-item">
+                            <div class="status-label-wrapper">
+                                <i class="fas fa-user-check" style="color: var(--text-muted); font-size: 14px;"></i>
+                                <span class="status-name">Được giao cho tôi</span>
+                            </div>
+                            <div class="status-value">{{stats.assignedToMe}}</div>
                         </div>
                     </div>
                 </div>
@@ -1997,27 +471,304 @@
     </div>
 </div>
 
-<style>
-    .hover-shadow {
-        transition: all 0.3s ease;
-    }
-    
-    .hover-shadow:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        transform: translateY(-2px);
-    }
-    
-    .card {
-        transition: all 0.2s ease;
-    }
-    
-    .bg-opacity-10 {
-        --bs-bg-opacity: 0.1;
-    }
-</style>
-
-<!-- Chart.js Library -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<!-- Dashboard Charts Script -->
-<script src="/js/dashboard.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Global variables
+    let trendChart, statusChart, priorityChart;
+    let currentFilters = {
+        days: 7,
+        tab: 'all',
+        departmentId: '',
+        priorityId: '',
+        startDate: '',
+        endDate: ''
+    };
+
+    // Initialize charts
+    function initCharts() {
+        const trendCtx = document.getElementById('trendChart');
+        if (trendCtx) {
+            trendChart = new Chart(trendCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Mới tạo',
+                            data: [],
+                            backgroundColor: '#00B8D4',
+                            borderRadius: 6,
+                            barThickness: 20
+                        },
+                        {
+                            label: 'Hoàn thành',
+                            data: [],
+                            backgroundColor: '#4CAF50',
+                            borderRadius: 6,
+                            barThickness: 20
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#E8ECEF'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        const statusCtx = document.getElementById('statusChart');
+        if (statusCtx) {
+            statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: ['#FFA726', '#00B8D4', '#4CAF50', '#E91E63', '#9C27B0'],
+                        borderWidth: 0,
+                        cutout: '70%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        const priorityCtx = document.getElementById('priorityChart');
+        if (priorityCtx) {
+            priorityChart = new Chart(priorityCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#E8ECEF'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Load chart data from API
+    async function loadChartData() {
+        try {
+            const params = new URLSearchParams({
+                days: currentFilters.days,
+                tab: currentFilters.tab
+            });
+
+            if (currentFilters.departmentId) {
+                params.append('departmentId', currentFilters.departmentId);
+            }
+            if (currentFilters.priorityId) {
+                params.append('priorityId', currentFilters.priorityId);
+            }
+
+            const response = await fetch(`/api/dashboard/chart-data?${params.toString()}`);
+            const data = await response.json();
+
+            // Update Trend Chart
+            if (trendChart && data.trend) {
+                const labels = data.trend.map(item => {
+                    const date = new Date(item.date);
+                    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                });
+                const createdData = data.trend.map(item => parseInt(item.created) || 0);
+                const completedData = data.trend.map(item => parseInt(item.completed) || 0);
+
+                trendChart.data.labels = labels;
+                trendChart.data.datasets[0].data = createdData;
+                trendChart.data.datasets[1].data = completedData;
+                trendChart.update();
+            }
+
+            // Update Status Chart
+            if (statusChart && data.status) {
+                const labels = data.status.map(item => item.status);
+                const counts = data.status.map(item => parseInt(item.count) || 0);
+
+                statusChart.data.labels = labels;
+                statusChart.data.datasets[0].data = counts;
+                statusChart.update();
+            }
+
+            // Update Priority Chart
+            if (priorityChart && data.priority) {
+                const labels = data.priority.map(item => item.priority);
+                const counts = data.priority.map(item => parseInt(item.count) || 0);
+                
+                const colors = {
+                    'Cao': '#DC3545',
+                    'Trung bình': '#FFA726',
+                    'Thấp': '#4CAF50'
+                };
+
+                priorityChart.data.labels = labels;
+                priorityChart.data.datasets = labels.map((label, index) => ({
+                    label: label,
+                    data: [counts[index]],
+                    borderColor: colors[label] || '#9C27B0',
+                    backgroundColor: `${colors[label] || '#9C27B0'}20`,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointBackgroundColor: colors[label] || '#9C27B0'
+                }));
+                priorityChart.update();
+            }
+
+        } catch (error) {
+            console.error('Error loading chart data:', error);
+        }
+    }
+
+    // Initialize
+    initCharts();
+    loadChartData();
+
+    // Tab switching
+    const tabs = document.querySelectorAll('.dashboard-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentFilters.tab = this.getAttribute('data-tab');
+            loadChartData();
+        });
+    });
+
+    // Time range filter buttons
+    const filterBtns = document.querySelectorAll('.filter-btn[data-days]');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const group = this.parentElement;
+            group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('filter-btn-active'));
+            this.classList.add('filter-btn-active');
+            currentFilters.days = parseInt(this.getAttribute('data-days'));
+            loadChartData();
+        });
+    });
+
+    // Department filter
+    const departmentFilter = document.getElementById('departmentFilter');
+    if (departmentFilter) {
+        departmentFilter.addEventListener('change', function() {
+            currentFilters.departmentId = this.value;
+            loadChartData();
+        });
+    }
+
+    // Priority filter
+    const priorityFilter = document.getElementById('priorityFilter');
+    if (priorityFilter) {
+        priorityFilter.addEventListener('change', function() {
+            currentFilters.priorityId = this.value;
+            loadChartData();
+        });
+    }
+
+    // Date range picker
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    if (startDate && endDate) {
+        startDate.addEventListener('change', function() {
+            currentFilters.startDate = this.value;
+            if (currentFilters.endDate) {
+                const start = new Date(currentFilters.startDate);
+                const end = new Date(currentFilters.endDate);
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                currentFilters.days = diffDays;
+                loadChartData();
+            }
+        });
+
+        endDate.addEventListener('change', function() {
+            currentFilters.endDate = this.value;
+            if (currentFilters.startDate) {
+                const start = new Date(currentFilters.startDate);
+                const end = new Date(currentFilters.endDate);
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                currentFilters.days = diffDays;
+                loadChartData();
+            }
+        });
+    }
+
+    // Chart filter switching (Week/Month/Year buttons on charts)
+    const chartFilters = document.querySelectorAll('.chart-filter');
+    chartFilters.forEach(filter => {
+        filter.addEventListener('click', function() {
+            const parent = this.closest('.chart-actions');
+            parent.querySelectorAll('.chart-filter').forEach(f => f.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filterText = this.textContent.trim();
+            if (filterText === 'Tuần') {
+                currentFilters.days = 7;
+            } else if (filterText === 'Tháng') {
+                currentFilters.days = 30;
+            } else if (filterText === 'Năm') {
+                currentFilters.days = 365;
+            }
+            loadChartData();
+        });
+    });
+
+    // Alert close
+    const alertCloses = document.querySelectorAll('.alert-close');
+    alertCloses.forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.alert-message').style.display = 'none';
+        });
+    });
+});
+</script>

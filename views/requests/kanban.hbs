@@ -1,3 +1,6 @@
+<link rel="stylesheet" href="/css/modern-table.css">
+<link rel="stylesheet" href="/css/kanban.css">
+
 <div class="content-header">
     <div>
         <h1 class="page-title">
@@ -5,6 +8,7 @@
             {{#if user.isAdmin}}Kanban Board - Tất cả yêu cầu{{else}}Kanban Board - Yêu cầu của tôi{{/if}}
         </h1>
         <p class="page-subtitle">
+            <i class="fas fa-hand-rock"></i>
             Kéo thả để thay đổi trạng thái yêu cầu
             {{#if user.isAdmin}}
             <span class="badge bg-danger ms-2">
@@ -14,19 +18,23 @@
         </p>
     </div>
     <div class="content-actions">
-        <div class="btn-group me-2" role="group">
-            <a href="/requests/my?view=list" class="btn btn-outline-secondary">
-                <i class="fas fa-list me-2"></i>Danh sách
+        <div class="d-inline-flex gap-2 me-2">
+            <a href="/requests/my?view=list" class="btn-modern btn-modern-secondary">
+                <i class="fas fa-list"></i>
+                Danh sách
             </a>
-            <a href="/requests/my/kanban" class="btn btn-outline-secondary active">
-                <i class="fas fa-th me-2"></i>Kanban
+            <a href="/requests/my/kanban" class="btn-modern btn-modern-primary">
+                <i class="fas fa-th"></i>
+                Kanban
             </a>
-            <a href="/requests/my?view=calendar" class="btn btn-outline-secondary">
-                <i class="fas fa-calendar-alt me-2"></i>Lịch
+            <a href="/requests/my?view=calendar" class="btn-modern btn-modern-secondary">
+                <i class="fas fa-calendar-alt"></i>
+                Lịch
             </a>
         </div>
-        <a href="/requests/create" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+        <a href="/requests/create" class="btn-modern btn-modern-primary">
+            <i class="fas fa-plus"></i>
+            Tạo yêu cầu mới
         </a>
     </div>
 </div>
@@ -108,39 +116,57 @@
 </div>
 
 <!-- Kanban Board -->
-<div class="kanban-board">
+<div class="modern-kanban-board">
     <div class="kanban-container">
         {{#each statuses}}
         <div class="kanban-column" data-status-id="{{StatusID}}">
-            <div class="kanban-column-header {{#ifEquals StatusName 'Pending'}}bg-warning{{/ifEquals}}{{#ifEquals StatusName 'In Progress'}}bg-info{{/ifEquals}}{{#ifEquals StatusName 'Completed'}}bg-success{{/ifEquals}}{{#ifEquals StatusName 'Rejected'}}bg-danger{{/ifEquals}}">
-                <h5 class="mb-0 text-white">
-                    <i class="fas fa-{{#ifEquals StatusName 'Pending'}}clock{{/ifEquals}}{{#ifEquals StatusName 'In Progress'}}spinner{{/ifEquals}}{{#ifEquals StatusName 'Completed'}}check-circle{{/ifEquals}}{{#ifEquals StatusName 'Rejected'}}times-circle{{/ifEquals}} me-2"></i>
-                    {{StatusName}}
-                    <span class="badge bg-white text-dark ms-2">{{requests.length}}</span>
-                </h5>
+            <div class="kanban-column-header">
+                <div class="kanban-column-title">
+                    <div class="kanban-icon {{#if IsFinal}}status-completed{{else}}status-pending{{/if}}">
+                        <i class="fas fa-{{#if IsFinal}}check-circle{{else}}clock{{/if}}"></i>
+                    </div>
+                    <div class="kanban-title-text">
+                        <h5>{{StatusName}}</h5>
+                        <span class="kanban-count">{{requests.length}} yêu cầu</span>
+                    </div>
+                </div>
             </div>
             <div class="kanban-column-body" id="column-{{StatusID}}" data-status-id="{{StatusID}}">
                 {{#if requests.length}}
                     {{#each requests}}
-                    <div class="kanban-card" data-request-id="{{RequestID}}" draggable="true">
+                    <div class="modern-kanban-card" data-request-id="{{RequestID}}" draggable="true">
                         <div class="kanban-card-header">
-                            <div>
-                                <span class="badge bg-secondary">#{{RequestID}}</span>
+                            <div class="kanban-card-id">
+                                <span class="table-cell-id">#{{RequestID}}</span>
                                 {{#if ../user.isAdmin}}
                                     {{#if CreatorEmail}}
-                                    <span class="badge bg-danger" title="Bạn có quyền xử lý yêu cầu này">
+                                    <span class="kanban-admin-badge" title="Bạn có quyền xử lý yêu cầu này">
                                         <i class="fas fa-user-shield"></i>
                                     </span>
                                     {{/if}}
                                 {{/if}}
                             </div>
-                            <span class="badge bg-{{#ifEquals PriorityName 'Cao'}}danger{{/ifEquals}}{{#ifEquals PriorityName 'Trung bình'}}warning{{/ifEquals}}{{#ifEquals PriorityName 'Thấp'}}info{{/ifEquals}}">
+                            {{#ifEquals PriorityName 'Cao'}}
+                            <span class="table-status-badge status-danger">
+                                <i class="fas fa-flag"></i>
                                 {{PriorityName}}
                             </span>
+                            {{else}}{{#ifEquals PriorityName 'Trung bình'}}
+                            <span class="table-status-badge status-warning">
+                                <i class="fas fa-flag"></i>
+                                {{PriorityName}}
+                            </span>
+                            {{else}}
+                            <span class="table-status-badge status-info">
+                                <i class="fas fa-flag"></i>
+                                {{PriorityName}}
+                            </span>
+                            {{/ifEquals}}{{/ifEquals}}
                         </div>
+                        
                         <div class="kanban-card-body">
                             <h6 class="kanban-card-title">
-                                <a href="/requests/{{RequestID}}" class="text-decoration-none text-dark">
+                                <a href="/requests/{{RequestID}}">
                                     {{Title}}
                                 </a>
                             </h6>
@@ -150,40 +176,42 @@
                             </p>
                             {{/if}}
                         </div>
+                        
                         <div class="kanban-card-footer">
-                            <div class="d-flex justify-content-between align-items-start w-100">
-                                <div>
-                                    <small class="text-muted d-block">
-                                        <i class="fas fa-calendar me-1"></i>{{formatDate CreatedAt}}
-                                    </small>
-                                    {{#if ../user.isAdmin}}
-                                        {{#if CreatorEmail}}
-                                        <small class="text-muted d-block">
-                                            <i class="fas fa-user me-1"></i>{{CreatorEmail}}
-                                        </small>
-                                        {{/if}}
-                                    {{/if}}
-                                    {{#if AssignedToEmail}}
-                                    <small class="text-muted d-block">
-                                        <i class="fas fa-user-check me-1"></i>{{AssignedToEmail}}
-                                    </small>
-                                    {{/if}}
+                            <div class="kanban-card-meta">
+                                <div class="kanban-meta-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>{{formatDate CreatedAt}}</span>
                                 </div>
-                                <div class="kanban-card-actions">
-                                    <button class="btn btn-sm btn-outline-primary view-detail-btn" 
-                                            data-request-id="{{RequestID}}"
-                                            title="Xem chi tiết">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
+                                {{#if ../user.isAdmin}}
+                                    {{#if CreatorEmail}}
+                                    <div class="kanban-meta-item">
+                                        <i class="fas fa-user"></i>
+                                        <span>{{CreatorEmail}}</span>
+                                    </div>
+                                    {{/if}}
+                                {{/if}}
+                                {{#if AssignedToEmail}}
+                                <div class="kanban-meta-item">
+                                    <i class="fas fa-user-check"></i>
+                                    <span>{{AssignedToEmail}}</span>
                                 </div>
+                                {{/if}}
                             </div>
+                            <button class="kanban-view-btn view-detail-btn" 
+                                    data-request-id="{{RequestID}}"
+                                    title="Xem chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </div>
                     {{/each}}
                 {{else}}
                 <div class="kanban-empty">
-                    <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
-                    <p class="text-muted mb-0">Không có yêu cầu</p>
+                    <div class="table-empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <div class="table-empty-text">Không có yêu cầu</div>
                 </div>
                 {{/if}}
             </div>

@@ -1,125 +1,656 @@
-<div class="content-header">
+<link rel="stylesheet" href="/css/modern-table.css"><link rel="stylesheet" href="/css/modern-table.css"><div class="content-header">
+
+
+
+<div class="content-header">    <div>
+
     <div>
-        <h1 class="page-title">Bản nháp</h1>
+
+        <h1 class="page-title">Bản nháp</h1><div class="content-header">        <h1 class="page-title">Bản nháp</h1>
+
         <p class="page-subtitle">Danh sách các yêu cầu đã lưu nháp</p>
-    </div>
+
+    </div>    <div>        <p class="page-subtitle">Danh sách các yêu cầu đã lưu nháp</p>
+
     <div class="content-actions">
-        <a href="/requests/create" class="btn btn-primary">
+
+        <a href="/requests/create" class="btn btn-primary">        <h1 class="page-title">Bản nháp</h1>    </div>
+
             <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
-        </a>
-    </div>
-</div>
 
-{{#if error}}
+        </a>        <p class="page-subtitle">Danh sách các yêu cầu đã lưu nháp</p>    <div class="content-actions">
+
+    </div>
+
+</div>    </div>        <a href="/requests/create" class="btn btn-primary">
+
+
+
+{{#if error}}    <div class="content-actions">            <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+
 <div class="alert alert-danger">
-    <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+
+    <i class="fas fa-exclamation-circle me-2"></i>{{error}}        <a href="/requests/create" class="btn btn-primary">        </a>
+
 </div>
-{{/if}}
 
-<div class="card" style="background-color: #ffffff; border: 1px solid #dee2e6;">
-    <div class="card-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
-        <h5 class="card-title mb-0" style="color: #212529;">
-            <i class="fas fa-file-alt me-2"></i>
-            Bản nháp ({{pagination.totalRecords}} bản nháp)
-        </h5>
+{{/if}}            <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới    </div>
+
+
+
+<div class="modern-table-container">        </a></div>
+
+    <!-- Table Header -->
+
+    <div class="table-header-section">    </div>
+
+        <div class="table-title-wrapper">
+
+            <div></div>{{#if error}}
+
+                <h2 class="table-title">
+
+                    <i class="fas fa-file-alt" style="color: var(--table-primary);"></i><div class="alert alert-danger">
+
+                    Bản nháp
+
+                </h2>{{#if error}}    <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+
+                <p class="table-subtitle">{{pagination.totalRecords}} bản nháp đang chờ xử lý</p>
+
+            </div><div class="alert alert-danger"></div>
+
+        </div>
+
+        <div class="table-actions">    <i class="fas fa-exclamation-circle me-2"></i>{{error}}{{/if}}
+
+            <button class="btn-modern btn-modern-primary" onclick="window.location.href='/requests/create'">
+
+                <i class="fas fa-plus"></i></div>
+
+                Tạo yêu cầu mới
+
+            </button>{{/if}}<div class="card" style="background-color: #ffffff; border: 1px solid #dee2e6;">
+
+        </div>
+
+    </div>    <div class="card-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+
+
+
+    <!-- Table --><div class="modern-table-container">        <h5 class="card-title mb-0" style="color: #212529;">
+
+    {{#if drafts.length}}
+
+    <div class="table-responsive">    <!-- Table Header -->            <i class="fas fa-file-alt me-2"></i>
+
+        <table class="modern-table">
+
+            <thead>    <div class="table-header-section">            Bản nháp ({{pagination.totalRecords}} bản nháp)
+
+                <tr>
+
+                    <th style="width: 40px;">        <div class="table-title-wrapper">        </h5>
+
+                        <input type="checkbox" class="table-checkbox" id="selectAll">
+
+                    </th>            <div>    </div>
+
+                    <th style="width: 80px;">ID</th>
+
+                    <th class="sortable" data-sort="title">Tiêu đề</th>                <h2 class="table-title">    <div class="card-body p-0" style="background-color: #ffffff;">
+
+                    <th class="sortable text-center" style="width: 130px;" data-sort="priority">Độ ưu tiên</th>
+
+                    <th class="sortable" style="width: 160px;" data-sort="updated">Cập nhật lúc</th>                    <i class="fas fa-file-alt" style="color: var(--table-primary);"></i>        {{#if drafts.length}}
+
+                    <th class="text-center" style="width: 200px;">Thao tác</th>
+
+                </tr>                    Bản nháp        <div class="table-responsive">
+
+            </thead>
+
+            <tbody>                </h2>            <table class="table table-hover mb-0">
+
+                {{#each drafts}}
+
+                <tr>                <p class="table-subtitle">{{pagination.totalRecords}} bản nháp đang chờ xử lý</p>                <thead class="table-light">
+
+                    <td>
+
+                        <input type="checkbox" class="table-checkbox" value="{{RequestID}}">            </div>                    <tr>
+
+                    </td>
+
+                    <td>        </div>                        <th style="width: 80px;">ID</th>
+
+                        <span class="table-cell-id">#{{RequestID}}</span>
+
+                    </td>        <div class="table-actions">                        <th>Tiêu đề</th>
+
+                    <td>
+
+                        <div style="max-width: 450px;">            <button class="btn-modern btn-modern-primary" onclick="window.location.href='/requests/create'">                        <th style="width: 120px;">Độ ưu tiên</th>
+
+                            <div class="table-cell-name">
+
+                                <i class="fas fa-edit" style="color: var(--table-warning); margin-right: 6px;"></i>                <i class="fas fa-plus"></i>                        <th style="width: 150px;">Cập nhật lúc</th>
+
+                                {{Title}}
+
+                            </div>                Tạo yêu cầu mới                        <th style="width: 200px;">Thao tác</th>
+
+                            {{#if Description}}
+
+                            <div class="table-cell-secondary" style="margin-top: 4px;">            </button>                    </tr>
+
+                                {{substring Description 0 100}}...
+
+                            </div>        </div>                </thead>
+
+                            {{/if}}
+
+                        </div>    </div>                <tbody>
+
+                    </td>
+
+                    <td class="text-center">                    {{#each drafts}}
+
+                        {{#ifEquals PriorityName "Cao"}}
+
+                        <span class="table-status-badge status-danger">    <!-- Table -->                    <tr>
+
+                            <i class="fas fa-circle"></i>
+
+                            {{PriorityName}}    {{#if drafts.length}}                        <td>
+
+                        </span>
+
+                        {{else}}    <div class="table-responsive">                            <span class="badge bg-secondary">#{{RequestID}}</span>
+
+                        {{#ifEquals PriorityName "Trung bình"}}
+
+                        <span class="table-status-badge status-warning">        <table class="modern-table">                        </td>
+
+                            <i class="fas fa-circle"></i>
+
+                            {{PriorityName}}            <thead>                        <td>
+
+                        </span>
+
+                        {{else}}                <tr>                            <div>
+
+                        <span class="table-status-badge status-info">
+
+                            <i class="fas fa-circle"></i>                    <th style="width: 40px;">                                <h6 class="mb-1">{{Title}}</h6>
+
+                            {{PriorityName}}
+
+                        </span>                        <input type="checkbox" class="table-checkbox" id="selectAll">                                <small class="text-muted">{{substring Description 0 80}}...</small>
+
+                        {{/ifEquals}}
+
+                        {{/ifEquals}}                    </th>                            </div>
+
+                    </td>
+
+                    <td>                    <th style="width: 80px;">ID</th>                        </td>
+
+                        <span class="table-cell-secondary">
+
+                            <i class="far fa-clock" style="margin-right: 4px;"></i>                    <th class="sortable" data-sort="title">Tiêu đề</th>                        <td>
+
+                            {{formatDate UpdatedAt}}
+
+                        </span>                    <th class="sortable text-center" style="width: 130px;" data-sort="priority">Độ ưu tiên</th>                            <span class="badge" style="background-color: {{PriorityColor}};">
+
+                    </td>
+
+                    <td>                    <th class="sortable" style="width: 160px;" data-sort="updated">Cập nhật lúc</th>                                {{PriorityName}}
+
+                        <div class="table-actions-cell">
+
+                            <button class="table-action-btn action-view" title="Xem"                     <th class="text-center" style="width: 200px;">Thao tác</th>                            </span>
+
+                                    onclick="window.location.href='/requests/{{RequestID}}'">
+
+                                <i class="fas fa-eye"></i>                </tr>                        </td>
+
+                            </button>
+
+                            <button class="table-action-btn action-edit" title="Chỉnh sửa"            </thead>                        <td>
+
+                                    onclick="window.location.href='/requests/{{RequestID}}/edit'">
+
+                                <i class="fas fa-edit"></i>            <tbody>                            <small>{{formatDate UpdatedAt}}</small>
+
+                            </button>
+
+                            <button class="table-action-btn action-send" title="Gửi yêu cầu"                {{#each drafts}}                        </td>
+
+                                    style="background: linear-gradient(135deg, #10B981, #059669); color: white;"
+
+                                    onclick="publishDraft({{RequestID}})">                <tr>                        <td>
+
+                                <i class="fas fa-paper-plane"></i>
+
+                            </button>                    <td>                            <div class="btn-group" role="group">
+
+                            <button class="table-action-btn action-delete" title="Xóa"
+
+                                    onclick="deleteDraft({{RequestID}})">                        <input type="checkbox" class="table-checkbox" value="{{RequestID}}">                                <a href="/requests/{{RequestID}}" class="btn btn-sm btn-outline-primary" title="Xem">
+
+                                <i class="fas fa-trash"></i>
+
+                            </button>                    </td>                                    <i class="fas fa-eye"></i>
+
+                        </div>
+
+                    </td>                    <td>                                </a>
+
+                </tr>
+
+                {{/each}}                        <span class="table-cell-id">#{{RequestID}}</span>                                <a href="/requests/{{RequestID}}/edit" class="btn btn-sm btn-outline-secondary" title="Chỉnh sửa">
+
+            </tbody>
+
+        </table>                    </td>                                    <i class="fas fa-edit"></i>
+
     </div>
-    <div class="card-body p-0" style="background-color: #ffffff;">
-        {{#if drafts.length}}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 80px;">ID</th>
-                        <th>Tiêu đề</th>
-                        <th style="width: 120px;">Độ ưu tiên</th>
-                        <th style="width: 150px;">Cập nhật lúc</th>
-                        <th style="width: 200px;">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each drafts}}
-                    <tr>
-                        <td>
-                            <span class="badge bg-secondary">#{{RequestID}}</span>
-                        </td>
-                        <td>
-                            <div>
-                                <h6 class="mb-1">{{Title}}</h6>
-                                <small class="text-muted">{{substring Description 0 80}}...</small>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge" style="background-color: {{PriorityColor}};">
-                                {{PriorityName}}
-                            </span>
-                        </td>
-                        <td>
-                            <small>{{formatDate UpdatedAt}}</small>
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <a href="/requests/{{RequestID}}" class="btn btn-sm btn-outline-primary" title="Xem">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="/requests/{{RequestID}}/edit" class="btn btn-sm btn-outline-secondary" title="Chỉnh sửa">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button type="button" class="btn btn-sm btn-success" 
-                                        onclick="publishDraft({{RequestID}})" title="Gửi yêu cầu">
-                                    <i class="fas fa-paper-plane"></i> Gửi
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" 
-                                        onclick="deleteDraft({{RequestID}})" title="Xóa">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
+
+                    <td>                                </a>
+
+    <!-- Pagination -->
+
+    {{#if pagination.showPagination}}                        <div style="max-width: 450px;">                                <button type="button" class="btn btn-sm btn-success" 
+
+    <div class="table-pagination">
+
+        <div class="pagination-info">                            <div class="table-cell-name">                                        onclick="publishDraft({{RequestID}})" title="Gửi yêu cầu">
+
+            <span>{{pagination.totalRecords}} bản nháp</span>
+
+            <i class="fas fa-sync-alt" onclick="location.reload()"                                 <i class="fas fa-edit" style="color: var(--table-warning); margin-right: 6px;"></i>                                    <i class="fas fa-paper-plane"></i> Gửi
+
+               style="margin-left: 12px; cursor: pointer; color: var(--table-text-secondary);" 
+
+               title="Làm mới"></i>                                {{Title}}                                </button>
+
         </div>
 
-        <!-- Pagination -->
-        {{#if pagination.showPagination}}
-        <div class="d-flex justify-content-between align-items-center p-3 border-top">
-            <div class="text-muted">
-                Hiển thị {{pagination.totalRecords}} bản nháp
-            </div>
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item {{#unless pagination.hasPrevious}}disabled{{/unless}}">
-                        <a class="page-link" href="/requests/drafts?page={{subtract pagination.currentPage 1}}">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                    </li>
-                    <li class="page-item active">
-                        <span class="page-link">{{pagination.currentPage}}</span>
-                    </li>
-                    <li class="page-item {{#unless pagination.hasNext}}disabled{{/unless}}">
-                        <a class="page-link" href="/requests/drafts?page={{add pagination.currentPage 1}}">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-        {{/if}}
+        <div class="pagination-controls">                            </div>                                <button type="button" class="btn btn-sm btn-outline-danger" 
 
-        {{else}}
-        <div class="text-center py-5">
-            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted">Chưa có bản nháp nào</h5>
-            <p class="text-muted">Khi bạn lưu nháp yêu cầu, chúng sẽ xuất hiện ở đây.</p>
-            <a href="/requests/create" class="btn btn-primary mt-3">
-                <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
-            </a>
-        </div>
-        {{/if}}
+            <button class="pagination-btn" {{#unless pagination.hasPrevious}}disabled{{/unless}}
+
+                    onclick="goToPage({{subtract pagination.currentPage 1}})">                            {{#if Description}}                                        onclick="deleteDraft({{RequestID}})" title="Xóa">
+
+                <i class="fas fa-chevron-left"></i>
+
+            </button>                            <div class="table-cell-secondary" style="margin-top: 4px;">                                    <i class="fas fa-trash"></i>
+
+            
+
+            <button class="pagination-btn active">                                {{substring Description 0 100}}...                                </button>
+
+                {{pagination.currentPage}}
+
+            </button>                            </div>                            </div>
+
+            
+
+            <button class="pagination-btn" {{#unless pagination.hasNext}}disabled{{/unless}}                            {{/if}}                        </td>
+
+                    onclick="goToPage({{add pagination.currentPage 1}})">
+
+                <i class="fas fa-chevron-right"></i>                        </div>                    </tr>
+
+            </button>
+
+        </div>                    </td>                    {{/each}}
+
     </div>
+
+    {{/if}}                    <td class="text-center">                </tbody>
+
+    {{else}}
+
+    <div class="table-empty-state">                        {{#ifEquals PriorityName "Cao"}}            </table>
+
+        <div class="table-empty-icon">
+
+            <i class="fas fa-file-alt"></i>                        <span class="table-status-badge status-danger">        </div>
+
+        </div>
+
+        <div class="table-empty-text">Chưa có bản nháp nào</div>                            <i class="fas fa-circle"></i>
+
+        <div class="table-empty-subtext">
+
+            Khi bạn lưu nháp yêu cầu, chúng sẽ xuất hiện ở đây.                            {{PriorityName}}        <!-- Pagination -->
+
+        </div>
+
+        <button class="btn-modern btn-modern-primary" style="margin-top: 20px;"                        </span>        {{#if pagination.showPagination}}
+
+                onclick="window.location.href='/requests/create'">
+
+            <i class="fas fa-plus"></i>                        {{else}}{{#ifEquals PriorityName "Trung bình"}}        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+
+            Tạo yêu cầu mới
+
+        </button>                        <span class="table-status-badge status-warning">            <div class="text-muted">
+
+    </div>
+
+    {{/if}}                            <i class="fas fa-circle"></i>                Hiển thị {{pagination.totalRecords}} bản nháp
+
 </div>
+
+                            {{PriorityName}}            </div>
 
 <script>
+
+// Select all checkbox                        </span>            <nav>
+
+document.getElementById('selectAll')?.addEventListener('change', function(e) {
+
+    const checkboxes = document.querySelectorAll('.modern-table tbody .table-checkbox');                        {{else}}                <ul class="pagination pagination-sm mb-0">
+
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+
+});                        <span class="table-status-badge status-info">                    <li class="page-item {{#unless pagination.hasPrevious}}disabled{{/unless}}">
+
+
+
+// Sorting                            <i class="fas fa-circle"></i>                        <a class="page-link" href="/requests/drafts?page={{subtract pagination.currentPage 1}}">
+
+document.querySelectorAll('.sortable').forEach(th => {
+
+    th.addEventListener('click', function() {                            {{PriorityName}}                            <i class="fas fa-chevron-left"></i>
+
+        const tbody = this.closest('table').querySelector('tbody');
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));                        </span>                        </a>
+
+        if (rows.length === 0) return;
+
+                                {{/ifEquals}}{{/ifEquals}}                    </li>
+
+        const isAsc = this.classList.contains('sorted-asc');
+
+        document.querySelectorAll('.sortable').forEach(t => {                    </td>                    <li class="page-item active">
+
+            t.classList.remove('sorted-asc', 'sorted-desc');
+
+        });                    <td>                        <span class="page-link">{{pagination.currentPage}}</span>
+
+        this.classList.add(isAsc ? 'sorted-desc' : 'sorted-asc');
+
+                                <span class="table-cell-secondary">                    </li>
+
+        const colIndex = Array.from(this.parentElement.children).indexOf(this);
+
+        rows.sort((a, b) => {                            <i class="far fa-clock" style="margin-right: 4px;"></i>                    <li class="page-item {{#unless pagination.hasNext}}disabled{{/unless}}">
+
+            const aText = a.cells[colIndex]?.textContent.trim() || '';
+
+            const bText = b.cells[colIndex]?.textContent.trim() || '';                            {{formatDate UpdatedAt}}                        <a class="page-link" href="/requests/drafts?page={{add pagination.currentPage 1}}">
+
+            return isAsc ? bText.localeCompare(aText) : aText.localeCompare(bText);
+
+        });                        </span>                            <i class="fas fa-chevron-right"></i>
+
+        
+
+        rows.forEach(row => tbody.appendChild(row));                    </td>                        </a>
+
+    });
+
+});                    <td>                    </li>
+
+
+
+// Pagination                        <div class="table-actions-cell">                </ul>
+
+function goToPage(page) {
+
+    window.location.href = `/requests/drafts?page=${page}`;                            <button class="table-action-btn action-view" title="Xem"             </nav>
+
+}
+
+                                    onclick="window.location.href='/requests/{{RequestID}}'">        </div>
+
+// Publish draft
+
+async function publishDraft(draftId) {                                <i class="fas fa-eye"></i>        {{/if}}
+
+    if (!confirm('Bạn có chắc muốn gửi yêu cầu này? Sau khi gửi, yêu cầu sẽ không còn ở dạng nháp.')) {
+
+        return;                            </button>
+
+    }
+
+                            <button class="table-action-btn action-edit" title="Chỉnh sửa"        {{else}}
+
+    try {
+
+        const response = await fetch(`/requests/drafts/${draftId}/publish`, {                                    onclick="window.location.href='/requests/{{RequestID}}/edit'">        <div class="text-center py-5">
+
+            method: 'POST',
+
+            headers: {                                <i class="fas fa-edit"></i>            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+
+                'Content-Type': 'application/json'
+
+            }                            </button>            <h5 class="text-muted">Chưa có bản nháp nào</h5>
+
+        });
+
+                            <button class="table-action-btn action-send" title="Gửi yêu cầu"            <p class="text-muted">Khi bạn lưu nháp yêu cầu, chúng sẽ xuất hiện ở đây.</p>
+
+        const data = await response.json();
+
+                                    style="background: linear-gradient(135deg, #10B981, #059669); color: white;"            <a href="/requests/create" class="btn btn-primary mt-3">
+
+        if (data.success) {
+
+            alert(data.message);                                    onclick="publishDraft({{RequestID}})">                <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+
+            window.location.href = `/requests/${data.requestId}`;
+
+        } else {                                <i class="fas fa-paper-plane"></i>            </a>
+
+            alert(data.message || 'Có lỗi xảy ra');
+
+        }                            </button>        </div>
+
+    } catch (error) {
+
+        console.error('Error:', error);                            <button class="table-action-btn action-delete" title="Xóa"        {{/if}}
+
+        alert('Có lỗi xảy ra khi gửi yêu cầu');
+
+    }                                    onclick="deleteDraft({{RequestID}})">    </div>
+
+}
+
+                                <i class="fas fa-trash"></i></div>
+
+// Delete draft
+
+async function deleteDraft(draftId) {                            </button>
+
+    if (!confirm('Bạn có chắc muốn xóa bản nháp này?')) {
+
+        return;                        </div><script>
+
+    }
+
+                    </td>async function publishDraft(draftId) {
+
+    try {
+
+        const response = await fetch(`/requests/${draftId}`, {                </tr>    if (!confirm('Bạn có chắc muốn gửi yêu cầu này? Sau khi gửi, yêu cầu sẽ không còn ở dạng nháp.')) {
+
+            method: 'DELETE',
+
+            headers: {                {{/each}}        return;
+
+                'Content-Type': 'application/json'
+
+            }            </tbody>    }
+
+        });
+
+        </table>
+
+        const data = await response.json();
+
+    </div>    try {
+
+        if (data.success) {
+
+            alert(data.message);        const response = await fetch(`/requests/drafts/${draftId}/publish`, {
+
+            window.location.reload();
+
+        } else {    <!-- Pagination -->            method: 'POST',
+
+            alert(data.message || 'Có lỗi xảy ra');
+
+        }    {{#if pagination.showPagination}}            headers: {
+
+    } catch (error) {
+
+        console.error('Error:', error);    <div class="table-pagination">                'Content-Type': 'application/json'
+
+        alert('Có lỗi xảy ra khi xóa bản nháp');
+
+    }        <div class="pagination-info">            }
+
+}
+
+</script>            <span>{{pagination.totalRecords}} bản nháp</span>        });
+
+
+            <i class="fas fa-sync-alt" onclick="location.reload()" 
+
+               style="margin-left: 12px; cursor: pointer; color: var(--table-text-secondary);"         const data = await response.json();
+
+               title="Làm mới"></i>
+
+        </div>        if (data.success) {
+
+        <div class="pagination-controls">            alert(data.message);
+
+            <button class="pagination-btn" {{#unless pagination.hasPrevious}}disabled{{/unless}}            window.location.href = `/requests/${data.requestId}`;
+
+                    onclick="goToPage({{subtract pagination.currentPage 1}})">        } else {
+
+                <i class="fas fa-chevron-left"></i>            alert(data.message || 'Có lỗi xảy ra');
+
+            </button>        }
+
+                } catch (error) {
+
+            <button class="pagination-btn active">        console.error('Error:', error);
+
+                {{pagination.currentPage}}        alert('Có lỗi xảy ra khi gửi yêu cầu');
+
+            </button>    }
+
+            }
+
+            <button class="pagination-btn" {{#unless pagination.hasNext}}disabled{{/unless}}
+
+                    onclick="goToPage({{add pagination.currentPage 1}})">async function deleteDraft(draftId) {
+
+                <i class="fas fa-chevron-right"></i>    if (!confirm('Bạn có chắc muốn xóa bản nháp này?')) {
+
+            </button>        return;
+
+        </div>    }
+
+    </div>
+
+    {{/if}}    try {
+
+    {{else}}        const response = await fetch(`/requests/${draftId}`, {
+
+    <div class="table-empty-state">            method: 'DELETE',
+
+        <div class="table-empty-icon">            headers: {
+
+            <i class="fas fa-file-alt"></i>                'Content-Type': 'application/json'
+
+        </div>            }
+
+        <div class="table-empty-text">Chưa có bản nháp nào</div>        });
+
+        <div class="table-empty-subtext">
+
+            Khi bạn lưu nháp yêu cầu, chúng sẽ xuất hiện ở đây.        const data = await response.json();
+
+        </div>
+
+        <button class="btn-modern btn-modern-primary" style="margin-top: 20px;"        if (data.success) {
+
+                onclick="window.location.href='/requests/create'">            alert(data.message);
+
+            <i class="fas fa-plus"></i>            window.location.reload();
+
+            Tạo yêu cầu mới        } else {
+
+        </button>            alert(data.message || 'Có lỗi xảy ra');
+
+    </div>        }
+
+    {{/if}}    } catch (error) {
+
+</div>        console.error('Error:', error);
+
+        alert('Có lỗi xảy ra khi xóa bản nháp');
+
+<script>    }
+
+// Select all checkbox}
+
+document.getElementById('selectAll')?.addEventListener('change', function(e) {</script>
+
+    const checkboxes = document.querySelectorAll('.modern-table tbody .table-checkbox');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+});
+
+// Sorting
+document.querySelectorAll('.sortable').forEach(th => {
+    th.addEventListener('click', function() {
+        const tbody = this.closest('table').querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        if (rows.length === 0) return;
+        
+        const isAsc = this.classList.contains('sorted-asc');
+        document.querySelectorAll('.sortable').forEach(t => {
+            t.classList.remove('sorted-asc', 'sorted-desc');
+        });
+        this.classList.add(isAsc ? 'sorted-desc' : 'sorted-asc');
+        
+        const colIndex = Array.from(this.parentElement.children).indexOf(this);
+        rows.sort((a, b) => {
+            const aText = a.cells[colIndex]?.textContent.trim() || '';
+            const bText = b.cells[colIndex]?.textContent.trim() || '';
+            return isAsc ? bText.localeCompare(aText) : aText.localeCompare(bText);
+        });
+        
+        rows.forEach(row => tbody.appendChild(row));
+    });
+});
+
+// Pagination
+function goToPage(page) {
+    window.location.href = `/requests/drafts?page=${page}`;
+}
+
+// Publish draft
 async function publishDraft(draftId) {
     if (!confirm('Bạn có chắc muốn gửi yêu cầu này? Sau khi gửi, yêu cầu sẽ không còn ở dạng nháp.')) {
         return;
@@ -147,6 +678,7 @@ async function publishDraft(draftId) {
     }
 }
 
+// Delete draft
 async function deleteDraft(draftId) {
     if (!confirm('Bạn có chắc muốn xóa bản nháp này?')) {
         return;
