@@ -78,7 +78,7 @@
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <div class="text-muted small">Thời gian TB</div>
-                        <div class="fs-5 fw-bold text-info">{{summary.avgHours}} giờ</div>
+                        <div class="fs-5 fw-bold text-info">{{summary.avgTime}}</div>
                     </div>
                 </div>
             </div>
@@ -169,17 +169,17 @@
                             {{/if}}
                         </td>
                         <td>
-                            <span class="badge bg-{{#ifEquals StatusName 'Completed'}}success{{/ifEquals}}{{#ifEquals StatusName 'In Progress'}}warning{{/ifEquals}}{{#ifEquals StatusName 'Pending'}}secondary{{/ifEquals}}">
+                            <span class="badge bg-{{statusColor StatusName}}">
                                 {{StatusName}}
                             </span>
                         </td>
                         <td>
-                            <span class="badge bg-{{#ifEquals PriorityName 'High'}}danger{{/ifEquals}}{{#ifEquals PriorityName 'Medium'}}warning{{/ifEquals}}{{#ifEquals PriorityName 'Low'}}info{{/ifEquals}}">
+                            <span class="badge bg-{{priorityColor PriorityName}}">
                                 {{PriorityName}}
                             </span>
                         </td>
                         <td>{{formatDate CreatedAt}}</td>
-                        <td>{{hoursElapsed}} giờ</td>
+                        <td>{{formatHours hoursElapsed}}</td>
                     </tr>
                     {{/each}}
                 </tbody>

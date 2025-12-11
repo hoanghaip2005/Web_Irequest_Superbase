@@ -50,6 +50,11 @@ router.get('/', authenticateToken, async (req, res) => {
 
     const whereClause =
       filters.length > 0 ? 'WHERE ' + filters.join(' AND ') : '';
+    
+    // Exclude drafts
+    const draftFilter = filters.length > 0 
+      ? ` AND (s."StatusName" IS NULL OR s."StatusName" != 'Nháp')`
+      : `WHERE (s."StatusName" IS NULL OR s."StatusName" != 'Nháp')`;
 
     // Get requests report
     const reportsQuery = `
@@ -75,6 +80,7 @@ router.get('/', authenticateToken, async (req, res) => {
       LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
       LEFT JOIN "Priority" p ON r."PriorityID" = p."PriorityID"
       ${whereClause}
+      ${draftFilter}
       ORDER BY r."CreatedAt" DESC
       LIMIT 500
     `;
@@ -96,16 +102,18 @@ router.get('/', authenticateToken, async (req, res) => {
       LEFT JOIN "Users" assignee ON r."AssignedUserId" = assignee."Id"
       LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
       ${whereClause}
+      ${draftFilter}
     `;
 
     const summaryResult = await query(summaryQuery, params);
     const summary = summaryResult.rows[0];
 
-    // Format average hours
+    // Format average hours - Làm tròn 2 chữ số thập phân
     const avgHours = parseFloat(summary.avgHours) || 0;
+    summary.avgHoursRaw = avgHours.toFixed(2);
     summary.avgTime = avgHours > 24 
-      ? `${Math.round(avgHours / 24)} ngày`
-      : `${Math.round(avgHours)} giờ`;
+      ? `${(avgHours / 24).toFixed(1)} ngày`
+      : `${avgHours.toFixed(1)} giờ`;
 
     // Get departments for filter
     const departmentsResult = await query(

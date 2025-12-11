@@ -224,6 +224,48 @@ const hbs = Handlebars.create({
 
       return pages;
     },
+
+    // Helper to get status color class
+    statusColor: function (statusName) {
+      if (!statusName) return 'secondary';
+      const status = statusName.toLowerCase();
+      
+      if (status.includes('hoàn thành') || status.includes('completed')) return 'success';
+      if (status.includes('đang xử lý') || status.includes('progress')) return 'primary';
+      if (status.includes('chờ') || status.includes('pending')) return 'warning';
+      if (status.includes('từ chối') || status.includes('rejected')) return 'danger';
+      if (status.includes('mới') || status.includes('new')) return 'info';
+      if (status.includes('nháp') || status.includes('draft')) return 'secondary';
+      
+      return 'secondary';
+    },
+
+    // Helper to get priority color class
+    priorityColor: function (priorityName) {
+      if (!priorityName) return 'secondary';
+      const priority = priorityName.toLowerCase();
+      
+      if (priority.includes('khẩn cấp') || priority.includes('urgent') || priority.includes('critical')) return 'danger';
+      if (priority.includes('cao') || priority.includes('high')) return 'warning';
+      if (priority.includes('trung bình') || priority.includes('medium') || priority.includes('normal')) return 'primary';
+      if (priority.includes('thấp') || priority.includes('low')) return 'success';
+      
+      return 'secondary';
+    },
+
+    // Helper to format hours to readable time
+    formatHours: function (hours) {
+      if (!hours || isNaN(hours)) return '0 giờ';
+      const h = parseFloat(hours);
+      
+      if (h < 1) {
+        return `${Math.round(h * 60)} phút`;
+      } else if (h >= 24) {
+        return `${(h / 24).toFixed(1)} ngày`;
+      } else {
+        return `${h.toFixed(1)} giờ`;
+      }
+    },
   },
 });
 

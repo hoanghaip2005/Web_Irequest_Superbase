@@ -374,4 +374,20 @@ router.get('/api/health', async (req, res) => {
   }
 });
 
+// Documentation page
+router.get('/docs', (req, res) => {
+  res.render('docs/index', {
+    title: 'Tài liệu hướng dẫn',
+    page: 'docs',
+  });
+});
+
+// Help page
+router.get('/help', (req, res) => {
+  res.render('help/index', {
+    title: 'Trợ giúp',
+    page: 'help',
+  });
+});
+
 module.exports = router;

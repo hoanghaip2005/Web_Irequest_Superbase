@@ -1,0 +1,189 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">Tài liệu hướng dẫn</h1>
+        <p class="page-subtitle">Hướng dẫn sử dụng hệ thống iRequest</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Start -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Bắt đầu nhanh</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="fw-bold">1. Đăng nhập hệ thống</h6>
+                <p>Sử dụng tài khoản được cấp để đăng nhập vào hệ thống tại trang <code>/auth/login</code></p>
+
+                <h6 class="fw-bold mt-4">2. Tạo yêu cầu mới</h6>
+                <p>Nhấn nút <span class="badge bg-primary">+ Tạo yêu cầu mới</span> để tạo yêu cầu:</p>
+                <ul>
+                    <li>Điền tiêu đề và mô tả yêu cầu</li>
+                    <li>Chọn mức độ ưu tiên (Thấp, Trung bình, Cao, Khẩn cấp)</li>
+                    <li>Chọn workflow phù hợp</li>
+                    <li>Đính kèm file nếu cần</li>
+                    <li>Nhấn <span class="badge bg-success">Tạo yêu cầu</span> hoặc <span class="badge bg-secondary">Lưu nháp</span></li>
+                </ul>
+
+                <h6 class="fw-bold mt-4">3. Theo dõi yêu cầu</h6>
+                <p>Truy cập <strong>Yêu cầu của tôi</strong> để xem danh sách yêu cầu đã tạo</p>
+
+                <h6 class="fw-bold mt-4">4. Xử lý yêu cầu được giao</h6>
+                <p>Vào <strong>Được giao</strong> để xem các yêu cầu được phân công cho bạn</p>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-star me-2"></i>Tính năng chính</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-clipboard-list text-primary me-2"></i>Quản lý yêu cầu</h6>
+                        <p class="small text-muted">Tạo, xem, chỉnh sửa và theo dõi trạng thái yêu cầu</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-save text-secondary me-2"></i>Lưu bản nháp</h6>
+                        <p class="small text-muted">Lưu yêu cầu dở dang để tiếp tục sau</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-comments text-success me-2"></i>Bình luận</h6>
+                        <p class="small text-muted">Thảo luận và trao đổi thông tin về yêu cầu</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-bell text-warning me-2"></i>Thông báo</h6>
+                        <p class="small text-muted">Nhận thông báo về các cập nhật quan trọng</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-chart-bar text-info me-2"></i>Báo cáo</h6>
+                        <p class="small text-muted">Xem thống kê và báo cáo chi tiết</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6><i class="fas fa-calendar text-danger me-2"></i>Lịch làm việc</h6>
+                        <p class="small text-muted">Quản lý và theo dõi deadline</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workflows -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-project-diagram me-2"></i>Quy trình (Workflow)</h5>
+            </div>
+            <div class="card-body">
+                <p>Mỗi yêu cầu sẽ đi qua các bước theo workflow đã định nghĩa:</p>
+                <ol>
+                    <li><strong>Tạo yêu cầu:</strong> Người dùng tạo yêu cầu mới</li>
+                    <li><strong>Phân công:</strong> Hệ thống hoặc quản lý phân công người xử lý</li>
+                    <li><strong>Xử lý:</strong> Người được giao thực hiện yêu cầu</li>
+                    <li><strong>Phê duyệt:</strong> Quản lý xem xét và phê duyệt (nếu cần)</li>
+                    <li><strong>Hoàn thành:</strong> Đóng yêu cầu</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Links -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h6 class="mb-0"><i class="fas fa-link me-2"></i>Liên kết nhanh</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="/dashboard" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Trang chủ
+                </a>
+                <a href="/requests/create" class="list-group-item list-group-item-action">
+                    <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+                </a>
+                <a href="/requests/my" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user me-2"></i>Yêu cầu của tôi
+                </a>
+                <a href="/requests/assigned" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Được giao
+                </a>
+                <a href="/requests/drafts" class="list-group-item list-group-item-action">
+                    <i class="fas fa-file-alt me-2"></i>Bản nháp
+                </a>
+                <a href="/reports" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-pie me-2"></i>Báo cáo
+                </a>
+            </div>
+        </div>
+
+        <!-- Priority Levels -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-flag me-2"></i>Mức độ ưu tiên</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <span class="badge bg-danger">Khẩn cấp</span>
+                    <small class="text-muted ms-2">Cần xử lý ngay lập tức</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-warning">Cao</span>
+                    <small class="text-muted ms-2">Xử lý trong 1-2 ngày</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-primary">Trung bình</span>
+                    <small class="text-muted ms-2">Xử lý trong tuần</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-success">Thấp</span>
+                    <small class="text-muted ms-2">Xử lý khi có thời gian</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Trạng thái</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <span class="badge bg-info">Mới</span>
+                    <small class="text-muted ms-2">Yêu cầu mới tạo</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-primary">Đang xử lý</span>
+                    <small class="text-muted ms-2">Đang được thực hiện</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-warning">Chờ phê duyệt</span>
+                    <small class="text-muted ms-2">Chờ xét duyệt</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-success">Hoàn thành</span>
+                    <small class="text-muted ms-2">Đã hoàn thành</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-danger">Từ chối</span>
+                    <small class="text-muted ms-2">Không được chấp nhận</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-secondary">Nháp</span>
+                    <small class="text-muted ms-2">Lưu tạm, chưa gửi</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support -->
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="fas fa-life-ring me-2"></i>Hỗ trợ</h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-2">Cần hỗ trợ? Liên hệ:</p>
+                <p class="small mb-1"><i class="fas fa-envelope me-2"></i>support@irequest.com</p>
+                <p class="small mb-0"><i class="fas fa-phone me-2"></i>(+84) 123 456 789</p>
+            </div>
+        </div>
+    </div>
+</div>
