@@ -308,12 +308,12 @@
   .kanban-container {
     gap: 12px;
   }
-  
+
   .kanban-column {
     flex: 0 0 280px;
     min-width: 280px;
   }
-  
+
   .modern-kanban-card {
     padding: 12px;
   }
@@ -331,7 +331,11 @@
 }
 
 .row .card .bg-gradient {
-  background: linear-gradient(135deg, var(--table-primary) 0%, #0097a7 100%) !important;
+  background: linear-gradient(
+    135deg,
+    var(--table-primary) 0%,
+    #0097a7 100%
+  ) !important;
 }
 
 .row .card .bg-warning.bg-gradient {
@@ -344,4 +348,16 @@
 
 .row .card .bg-success.bg-gradient {
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+}
+
+/* Remove underline from links */
+.content-header a,
+.content-actions a,
+.btn-modern {
+  text-decoration: none !important;
+}
+
+.content-header a:hover,
+.content-actions a:hover {
+  text-decoration: none !important;
 }

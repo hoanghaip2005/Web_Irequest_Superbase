@@ -7,18 +7,22 @@
     </div>
     <div class="content-actions">
         <div class="d-inline-flex gap-2 me-2">
-            <button type="button" class="btn btn-outline-secondary active" id="listViewBtn" data-view="list">
-                <i class="fas fa-list me-2"></i>Danh sách
+            <button type="button" class="btn-modern btn-modern-primary" id="listViewBtn" data-view="list">
+                <i class="fas fa-list"></i>
+                Danh sách
             </button>
-            <button type="button" class="btn btn-outline-secondary" id="kanbanViewBtn" data-view="kanban">
-                <i class="fas fa-th me-2"></i>Kanban
+            <button type="button" class="btn-modern btn-modern-secondary" id="kanbanViewBtn" data-view="kanban">
+                <i class="fas fa-th"></i>
+                Kanban
             </button>
-            <button type="button" class="btn btn-outline-secondary" id="calendarViewBtn" data-view="calendar">
-                <i class="fas fa-calendar-alt me-2"></i>Lịch
+            <button type="button" class="btn-modern btn-modern-secondary" id="calendarViewBtn" data-view="calendar">
+                <i class="fas fa-calendar-alt"></i>
+                Lịch
             </button>
         </div>
-        <a href="/requests/create" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Tạo yêu cầu mới
+        <a href="/requests/create" class="btn-modern btn-modern-primary">
+            <i class="fas fa-plus"></i>
+            Tạo yêu cầu mới
         </a>
     </div>
 </div>
@@ -386,9 +390,7 @@ let calendar = null;
             currentView = 'list';
             listView.style.display = 'block';
             calendarView.style.display = 'none';
-            listViewBtn.classList.add('active');
-            kanbanViewBtn.classList.remove('active');
-            calendarViewBtn.classList.remove('active');
+            setActiveButton('list');
         }
         
         // Add event listeners
@@ -403,9 +405,7 @@ let calendar = null;
             listView.style.display = 'block';
             calendarView.style.display = 'none';
             
-            listViewBtn.classList.add('active');
-            kanbanViewBtn.classList.remove('active');
-            calendarViewBtn.classList.remove('active');
+            setActiveButton('list');
             
             updateURL('list');
             return false;
@@ -448,9 +448,7 @@ let calendar = null;
             listView.style.display = 'none';
             calendarView.style.display = 'block';
             
-            listViewBtn.classList.remove('active');
-            kanbanViewBtn.classList.remove('active');
-            calendarViewBtn.classList.add('active');
+            setActiveButton('calendar');
             
             updateURL('calendar');
             
@@ -459,6 +457,25 @@ let calendar = null;
                 calendar = initializeCalendar();
             } else {
                 console.log('Calendar already exists, just showing it');
+            }
+        }
+        
+        function setActiveButton(activeView) {
+            // Remove all active states
+            listViewBtn.classList.remove('btn-modern-primary');
+            listViewBtn.classList.add('btn-modern-secondary');
+            kanbanViewBtn.classList.remove('btn-modern-primary');
+            kanbanViewBtn.classList.add('btn-modern-secondary');
+            calendarViewBtn.classList.remove('btn-modern-primary');
+            calendarViewBtn.classList.add('btn-modern-secondary');
+            
+            // Set active state
+            if (activeView === 'list') {
+                listViewBtn.classList.remove('btn-modern-secondary');
+                listViewBtn.classList.add('btn-modern-primary');
+            } else if (activeView === 'calendar') {
+                calendarViewBtn.classList.remove('btn-modern-secondary');
+                calendarViewBtn.classList.add('btn-modern-primary');
             }
         }
         
