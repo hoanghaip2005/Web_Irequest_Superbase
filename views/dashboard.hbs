@@ -132,12 +132,11 @@
                     </div>
                 </div>
                 <div class="stat-label">Đang chờ xử lý</div>
-                <div class="stat-value">{{stats.pendingRequests}}</div>
+                <div class="stat-value">{{stats.inProgress}}</div>
                 <div class="stat-description">
-                    <span class="stat-users">
-                        <i class="fas fa-circle text-warning" style="font-size: 8px;"></i>
-                        <span class="user-count-badge">Cần xử lý</span>
-                    </span>
+                    <a href="/requests/my" class="stat-link">
+                        <i class="fas fa-arrow-right"></i> Xem chi tiết
+                    </a>
                 </div>
             </div>
 
@@ -155,10 +154,9 @@
                 <div class="stat-label">Hoàn thành</div>
                 <div class="stat-value">{{stats.completedRequests}}</div>
                 <div class="stat-description">
-                    <span class="stat-users">
-                        <i class="fas fa-circle text-success" style="font-size: 8px;"></i>
-                        <span class="user-count-badge">Tuần này</span>
-                    </span>
+                    <a href="/requests/my" class="stat-link">
+                        <i class="fas fa-arrow-right"></i> Xem chi tiết
+                    </a>
                 </div>
             </div>
         </div>

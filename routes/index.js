@@ -21,32 +21,43 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
     // Get comprehensive dashboard statistics
     const statsQuery = `
       SELECT 
-        -- Total system requests
-        (SELECT COUNT(*) FROM "Requests") as "totalRequests",
+        -- Total system requests (exclude drafts)
+        (SELECT COUNT(*) FROM "Requests" r
+         LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+         WHERE s."StatusName" != 'Nháp' OR s."StatusName" IS NULL) as "totalRequests",
         
-        -- My Requests (created by me)
-        (SELECT COUNT(*) FROM "Requests" WHERE "UsersId" = $1) as "myRequests",
+        -- My Requests (created by me, exclude drafts)
+        (SELECT COUNT(*) FROM "Requests" r
+         LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+         WHERE r."UsersId" = $1 
+         AND (s."StatusName" != 'Nháp' OR s."StatusName" IS NULL)) as "myRequests",
         
-        -- Assigned to me
-        (SELECT COUNT(*) FROM "Requests" WHERE "AssignedUserId" = $1) as "assignedToMe",
+        -- Assigned to me (exclude drafts)
+        (SELECT COUNT(*) FROM "Requests" r
+         LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+         WHERE r."AssignedUserId" = $1
+         AND (s."StatusName" != 'Nháp' OR s."StatusName" IS NULL)) as "assignedToMe",
         
-        -- In Progress (not final status, assigned to me or created by me)
+        -- In Progress (not final status, assigned to me or created by me, exclude drafts)
         (SELECT COUNT(*) FROM "Requests" r
          LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
          WHERE (r."UsersId" = $1 OR r."AssignedUserId" = $1) 
-         AND (s."IsFinal" = false OR s."IsFinal" IS NULL)) as "inProgress",
+         AND (s."IsFinal" = false OR s."IsFinal" IS NULL)
+         AND (s."StatusName" != 'Nháp' OR s."StatusName" IS NULL)) as "inProgress",
         
-        -- Pending requests (not final status)
+        -- Pending requests (not final status, exclude drafts)
         (SELECT COUNT(*) FROM "Requests" r
          LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
          WHERE (r."UsersId" = $1 OR r."AssignedUserId" = $1) 
-         AND (s."IsFinal" = false OR s."IsFinal" IS NULL)) as "pendingRequests",
+         AND (s."IsFinal" = false OR s."IsFinal" IS NULL)
+         AND (s."StatusName" != 'Nháp' OR s."StatusName" IS NULL)) as "pendingRequests",
          
-        -- Completed requests (final status)
+        -- Completed requests (final status, exclude drafts)
         (SELECT COUNT(*) FROM "Requests" r
          LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
          WHERE (r."UsersId" = $1 OR r."AssignedUserId" = $1) 
-         AND s."IsFinal" = true) as "completedRequests"
+         AND s."IsFinal" = true
+         AND (s."StatusName" != 'Nháp' OR s."StatusName" IS NULL)) as "completedRequests"
     `;
 
     const statsResult = await query(statsQuery, [userId]);
