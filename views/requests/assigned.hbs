@@ -90,9 +90,17 @@
                 </div>
             </div>
             <div class="table-actions">
-                <button class="btn-modern btn-modern-secondary" onclick="exportToExcel()">
-                    <i class="fas fa-download"></i>
+                <button class="btn-modern btn-modern-secondary" onclick="exportToExcel('assigned', getCurrentFilters())">
+                    <i class="fas fa-file-excel"></i>
                     Xuất Excel
+                </button>
+                <button class="btn-modern btn-modern-secondary" onclick="exportToPDF('assigned', getCurrentFilters())">
+                    <i class="fas fa-file-pdf"></i>
+                    Xuất PDF
+                </button>
+                <button class="btn-modern btn-modern-secondary" onclick="printRequests()">
+                    <i class="fas fa-print"></i>
+                    In
                 </button>
             </div>
         </div>
@@ -377,9 +385,6 @@ function changePageSize(size) {
     params.set('page', 1);
     window.location.search = params.toString();
 }
-
-// Export to Excel
-function exportToExcel() {
-    alert('Chức năng xuất Excel đang được phát triển.');
-}
 </script>
+
+<script src="/js/export.js"></script>

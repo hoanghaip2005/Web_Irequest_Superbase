@@ -248,6 +248,91 @@ router.get('/builder', async (req, res) => {
   }
 });
 
+// GET /:id/edit - Edit workflow in builder
+router.get('/:id/edit', async (req, res) => {
+  try {
+    const workflowId = req.params.id;
+    console.log('📝 Loading workflow for edit, ID:', workflowId);
+
+    // Load workflow data
+    const workflowResult = await pool.query(
+      `SELECT * FROM "Workflow" WHERE "WorkflowID" = $1`,
+      [workflowId]
+    );
+
+    if (workflowResult.rows.length === 0) {
+      return res.status(404).render('errors/404', {
+        title: 'Không tìm thấy',
+        user: req.user,
+      });
+    }
+
+    const workflow = workflowResult.rows[0];
+
+    // Load workflow steps with role names
+    const stepsResult = await pool.query(
+      `SELECT ws.*, r."Name" as "RoleName"
+       FROM "WorkflowSteps" ws
+       LEFT JOIN "Roles" r ON ws."RequiredRoleId" = r."Id"
+       WHERE ws."WorkflowID" = $1
+       ORDER BY ws."StepOrder"`,
+      [workflowId]
+    );
+
+    console.log(
+      '📊 Loaded workflow:',
+      workflow.WorkflowName,
+      'with',
+      stepsResult.rows.length,
+      'steps'
+    );
+
+    // Get roles for assignment
+    const rolesResult = await pool.query(`
+      SELECT "Id", "Name" FROM "Roles" ORDER BY "Name"
+    `);
+
+    // Get statuses
+    const statusesResult = await pool.query(`
+      SELECT "StatusID", "StatusName" FROM "Status" ORDER BY "StatusName"
+    `);
+
+    // Get departments
+    const departmentsResult = await pool.query(`
+      SELECT "DepartmentID", "Name" FROM "Departments" 
+      WHERE "IsActive" = true 
+      ORDER BY "Name"
+    `);
+
+    // Get priorities
+    const prioritiesResult = await pool.query(`
+      SELECT "PriorityID", "PriorityName" FROM "Priority" 
+      WHERE "IsActive" = true 
+      ORDER BY "PriorityName"
+    `);
+
+    res.render('workflows/builder', {
+      title: `Chỉnh sửa: ${workflow.WorkflowName}`,
+      page: 'workflows',
+      user: req.user,
+      roles: rolesResult.rows,
+      statuses: statusesResult.rows,
+      departments: departmentsResult.rows,
+      priorities: prioritiesResult.rows,
+      editWorkflow: workflow,
+      editSteps: stepsResult.rows,
+      isEdit: true,
+    });
+  } catch (err) {
+    console.error('Error loading workflow for edit:', err);
+    res.status(500).render('errors/500', {
+      title: 'Lỗi',
+      user: req.user,
+      error: 'Không thể tải workflow để chỉnh sửa',
+    });
+  }
+});
+
 // Get workflow details
 router.get('/:id', async (req, res) => {
   try {

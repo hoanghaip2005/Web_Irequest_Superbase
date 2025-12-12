@@ -9,6 +9,8 @@ const Request = require('../models/Request');
 const { query } = require('../config/database');
 const multer = require('multer');
 const path = require('path');
+const ExcelJS = require('exceljs');
+const PDFDocument = require('pdfkit');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -2396,6 +2398,304 @@ router.get('/:id/rating', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Lỗi khi lấy đánh giá: ' + error.message,
+    });
+  }
+});
+
+// ==================== EXPORT ENDPOINTS ====================
+
+// Export requests to Excel
+router.get('/export/excel', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.Id;
+    const { view = 'all', status, priority, workflow, search } = req.query;
+
+    // Build query based on view type
+    let whereClause = 'WHERE r."IsActive" = TRUE';
+    const params = [];
+    let paramCount = 0;
+
+    if (view === 'my') {
+      whereClause += ` AND r."CreatedBy" = $${++paramCount}`;
+      params.push(userId);
+    } else if (view === 'assigned') {
+      whereClause += ` AND r."AssignedTo" = $${++paramCount}`;
+      params.push(userId);
+    }
+
+    if (status) {
+      whereClause += ` AND r."StatusID" = $${++paramCount}`;
+      params.push(status);
+    }
+
+    if (priority) {
+      whereClause += ` AND r."PriorityID" = $${++paramCount}`;
+      params.push(priority);
+    }
+
+    if (workflow) {
+      whereClause += ` AND r."WorkflowID" = $${++paramCount}`;
+      params.push(workflow);
+    }
+
+    if (search) {
+      whereClause += ` AND (r."Title" ILIKE $${++paramCount} OR r."Description" ILIKE $${paramCount})`;
+      params.push(`%${search}%`);
+    }
+
+    const requestsQuery = `
+      SELECT 
+        r."RequestID",
+        r."Title",
+        r."Description",
+        s."StatusName",
+        p."PriorityName",
+        w."WorkflowName",
+        creator."UserName" AS CreatorName,
+        assignee."UserName" AS AssigneeName,
+        r."CreatedAt",
+        r."UpdatedAt",
+        r."DueDate"
+      FROM "Requests" r
+      LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+      LEFT JOIN "Priority" p ON r."PriorityID" = p."PriorityID"
+      LEFT JOIN "Workflow" w ON r."WorkflowID" = w."WorkflowID"
+      LEFT JOIN "Users" creator ON r."CreatedBy" = creator."Id"
+      LEFT JOIN "Users" assignee ON r."AssignedTo" = assignee."Id"
+      ${whereClause}
+      ORDER BY r."CreatedAt" DESC
+    `;
+
+    const result = await query(requestsQuery, params);
+
+    // Create workbook
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'iRequest System';
+    workbook.created = new Date();
+
+    const worksheet = workbook.addWorksheet('Yêu cầu', {
+      views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }],
+    });
+
+    // Define columns
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Tiêu đề', key: 'title', width: 30 },
+      { header: 'Mô tả', key: 'description', width: 40 },
+      { header: 'Trạng thái', key: 'status', width: 15 },
+      { header: 'Độ ưu tiên', key: 'priority', width: 15 },
+      { header: 'Workflow', key: 'workflow', width: 20 },
+      { header: 'Người tạo', key: 'creator', width: 20 },
+      { header: 'Người xử lý', key: 'assignee', width: 20 },
+      { header: 'Ngày tạo', key: 'createdAt', width: 20 },
+      { header: 'Ngày cập nhật', key: 'updatedAt', width: 20 },
+      { header: 'Hạn xử lý', key: 'dueDate', width: 20 },
+    ];
+
+    // Style header row
+    worksheet.getRow(1).font = { bold: true, size: 12 };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' },
+    };
+    worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    worksheet.getRow(1).alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+    };
+
+    // Add data rows
+    result.rows.forEach((request) => {
+      worksheet.addRow({
+        id: request.requestid,
+        title: request.title,
+        description: request.description,
+        status: request.statusname,
+        priority: request.priorityname,
+        workflow: request.workflowname,
+        creator: request.creatorname,
+        assignee: request.assigneename || 'Chưa phân công',
+        createdAt: request.createdat
+          ? new Date(request.createdat).toLocaleString('vi-VN')
+          : '',
+        updatedAt: request.updatedat
+          ? new Date(request.updatedat).toLocaleString('vi-VN')
+          : '',
+        dueDate: request.duedate
+          ? new Date(request.duedate).toLocaleString('vi-VN')
+          : '',
+      });
+    });
+
+    // Add borders to all cells
+    worksheet.eachRow({ includeEmpty: false }, (row) => {
+      row.eachCell({ includeEmpty: false }, (cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
+    });
+
+    // Set response headers
+    const viewName =
+      view === 'my' ? 'cua-toi' : view === 'assigned' ? 'duoc-giao' : 'tat-ca';
+    const fileName = `yeu-cau-${viewName}-${Date.now()}.xlsx`;
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+
+    // Write to response
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Export Excel error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Lỗi khi xuất file Excel: ' + error.message,
+    });
+  }
+});
+
+// Export requests to PDF
+router.get('/export/pdf', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.Id;
+    const { view = 'all', status, priority, workflow, search } = req.query;
+
+    // Build query based on view type
+    let whereClause = 'WHERE r."IsActive" = TRUE';
+    const params = [];
+    let paramCount = 0;
+
+    if (view === 'my') {
+      whereClause += ` AND r."CreatedBy" = $${++paramCount}`;
+      params.push(userId);
+    } else if (view === 'assigned') {
+      whereClause += ` AND r."AssignedTo" = $${++paramCount}`;
+      params.push(userId);
+    }
+
+    if (status) {
+      whereClause += ` AND r."StatusID" = $${++paramCount}`;
+      params.push(status);
+    }
+
+    if (priority) {
+      whereClause += ` AND r."PriorityID" = $${++paramCount}`;
+      params.push(priority);
+    }
+
+    if (workflow) {
+      whereClause += ` AND r."WorkflowID" = $${++paramCount}`;
+      params.push(workflow);
+    }
+
+    if (search) {
+      whereClause += ` AND (r."Title" ILIKE $${++paramCount} OR r."Description" ILIKE $${paramCount})`;
+      params.push(`%${search}%`);
+    }
+
+    const requestsQuery = `
+      SELECT 
+        r."RequestID",
+        r."Title",
+        r."Description",
+        s."StatusName",
+        p."PriorityName",
+        w."WorkflowName",
+        creator."UserName" AS CreatorName,
+        assignee."UserName" AS AssigneeName,
+        r."CreatedAt",
+        r."DueDate"
+      FROM "Requests" r
+      LEFT JOIN "Status" s ON r."StatusID" = s."StatusID"
+      LEFT JOIN "Priority" p ON r."PriorityID" = p."PriorityID"
+      LEFT JOIN "Workflow" w ON r."WorkflowID" = w."WorkflowID"
+      LEFT JOIN "Users" creator ON r."CreatedBy" = creator."Id"
+      LEFT JOIN "Users" assignee ON r."AssignedTo" = assignee."Id"
+      ${whereClause}
+      ORDER BY r."CreatedAt" DESC
+    `;
+
+    const result = await query(requestsQuery, params);
+
+    // Create PDF document
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+
+    // Set response headers
+    const viewName =
+      view === 'my' ? 'cua-toi' : view === 'assigned' ? 'duoc-giao' : 'tat-ca';
+    const fileName = `yeu-cau-${viewName}-${Date.now()}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+
+    // Pipe PDF to response
+    doc.pipe(res);
+
+    // Add title
+    doc.fontSize(20).text('DANH SÁCH YÊU CẦU', { align: 'center' });
+    doc.moveDown();
+    doc
+      .fontSize(12)
+      .text(`Tổng số: ${result.rows.length} yêu cầu`, { align: 'center' });
+    doc
+      .fontSize(10)
+      .text(`Xuất ngày: ${new Date().toLocaleString('vi-VN')}`, {
+        align: 'center',
+      });
+    doc.moveDown(2);
+
+    // Add requests
+    result.rows.forEach((request, index) => {
+      // Check if we need a new page
+      if (doc.y > 700) {
+        doc.addPage();
+      }
+
+      doc
+        .fontSize(12)
+        .font('Helvetica-Bold')
+        .text(`${index + 1}. ${request.title}`);
+      doc.fontSize(10).font('Helvetica');
+
+      doc.text(`Trạng thái: ${request.statusname || 'N/A'}`);
+      doc.text(`Độ ưu tiên: ${request.priorityname || 'N/A'}`);
+      doc.text(`Workflow: ${request.workflowname || 'N/A'}`);
+      doc.text(`Người tạo: ${request.creatorname || 'N/A'}`);
+      doc.text(`Người xử lý: ${request.assigneename || 'Chưa phân công'}`);
+      doc.text(
+        `Ngày tạo: ${request.createdat ? new Date(request.createdat).toLocaleString('vi-VN') : 'N/A'}`
+      );
+      doc.text(
+        `Hạn xử lý: ${request.duedate ? new Date(request.duedate).toLocaleString('vi-VN') : 'N/A'}`
+      );
+
+      if (request.description) {
+        doc.text(
+          `Mô tả: ${request.description.substring(0, 200)}${request.description.length > 200 ? '...' : ''}`
+        );
+      }
+
+      doc.moveDown();
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown();
+    });
+
+    // Finalize PDF
+    doc.end();
+  } catch (error) {
+    console.error('Export PDF error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Lỗi khi xuất file PDF: ' + error.message,
     });
   }
 });

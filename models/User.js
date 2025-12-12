@@ -139,7 +139,7 @@ class User {
   static async updatePassword(email, hashedPassword) {
     try {
       const result = await query(
-        'UPDATE "Users" SET "PasswordHash" = $1, "LastPasswordChangeTime" = NOW() WHERE "Email" = $2 RETURNING "Id", "Email"',
+        'UPDATE "Users" SET "PasswordHash" = $1 WHERE "Email" = $2 RETURNING "Id", "Email"',
         [hashedPassword, email]
       );
       return result.rows[0];

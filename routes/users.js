@@ -40,6 +40,131 @@ const upload = multer({
   },
 });
 
+// POST /users/create - Tạo user mới (admin only)
+router.post('/create', authenticateToken, async (req, res) => {
+  try {
+    // Check admin permission
+    if (!req.user.isAdmin) {
+      return res
+        .status(403)
+        .redirect(
+          '/users?error=' +
+            encodeURIComponent('Bạn không có quyền tạo người dùng')
+        );
+    }
+
+    const {
+      userName,
+      email,
+      phoneNumber,
+      departmentId,
+      position,
+      homeAdress,
+      password,
+      confirmPassword,
+      roles,
+      isAdmin,
+      isActive,
+    } = req.body;
+
+    // Validate required fields
+    if (!userName || !email || !password) {
+      return res.redirect(
+        '/users?error=' +
+          encodeURIComponent('Vui lòng điền đầy đủ thông tin bắt buộc')
+      );
+    }
+
+    // Validate password match
+    if (password !== confirmPassword) {
+      return res.redirect(
+        '/users?error=' + encodeURIComponent('Mật khẩu xác nhận không khớp')
+      );
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.redirect(
+        '/users?error=' + encodeURIComponent('Mật khẩu phải có ít nhất 6 ký tự')
+      );
+    }
+
+    // Check if username or email already exists
+    const checkQuery = `
+      SELECT "Id" FROM "Users" 
+      WHERE "UserName" = $1 OR "Email" = $2
+    `;
+    const checkResult = await query(checkQuery, [userName, email]);
+
+    if (checkResult.rows.length > 0) {
+      return res.redirect(
+        '/users?error=' +
+          encodeURIComponent('Tên đăng nhập hoặc email đã tồn tại')
+      );
+    }
+
+    // Hash password
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate UUID for new user
+    const { v4: uuidv4 } = require('uuid');
+    const userId = uuidv4();
+
+    // Insert new user
+    const insertQuery = `
+      INSERT INTO "Users" (
+        "Id", "UserName", "NormalizedUserName",
+        "Email", "NormalizedEmail", "EmailConfirmed",
+        "PasswordHash", "PhoneNumber", "DepartmentID",
+        "Position", "HomeAdress", "isAdmin", "IsActive",
+        "CreatedAt", "UpdatedAt"
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+      RETURNING "Id"
+    `;
+
+    const insertParams = [
+      userId,
+      userName,
+      userName.toUpperCase(),
+      email,
+      email.toUpperCase(),
+      true, // Email confirmed by default for admin-created users
+      hashedPassword,
+      phoneNumber || null,
+      departmentId || null,
+      position || null,
+      homeAdress || null,
+      isAdmin === 'on',
+      isActive === 'on',
+    ];
+
+    const insertResult = await query(insertQuery, insertParams);
+
+    // Insert user roles if provided
+    if (roles) {
+      const roleArray = Array.isArray(roles) ? roles : [roles];
+      for (const roleId of roleArray) {
+        await query(
+          `INSERT INTO "UserRoles" ("UserId", "RoleId") VALUES ($1, $2)`,
+          [userId, roleId]
+        );
+      }
+    }
+
+    res.redirect(
+      '/users?success=' + encodeURIComponent('Tạo người dùng thành công')
+    );
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.redirect(
+      '/users?error=' +
+        encodeURIComponent('Không thể tạo người dùng: ' + error.message)
+    );
+  }
+});
+
 // Danh sách users (admin only - tạm thời cho phép tất cả user xem)
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -54,15 +179,41 @@ router.get('/', authenticateToken, async (req, res) => {
 
     const totalPages = Math.ceil(totalCount / limit);
 
+    // Get departments for modal
+    const departmentsQuery = `
+      SELECT * FROM "Departments" WHERE "IsActive" = true ORDER BY "Name"
+    `;
+    const departmentsResult = await query(departmentsQuery);
+
+    // Get statistics
+    const statsQuery = `
+      SELECT 
+        COUNT(*) as "totalUsers",
+        COUNT(*) FILTER (WHERE "IsActive" = true) as "activeUsers",
+        COUNT(*) FILTER (WHERE "isAdmin" = true) as "adminUsers",
+        COUNT(*) FILTER (WHERE "IsActive" = false) as "blockedUsers"
+      FROM "Users"
+    `;
+    const statsResult = await query(statsQuery);
+
     res.render('users/index', {
       title: 'Danh sách người dùng',
       users,
+      departments: departmentsResult.rows,
+      stats: statsResult.rows[0] || {
+        totalUsers: 0,
+        activeUsers: 0,
+        adminUsers: 0,
+        blockedUsers: 0,
+      },
       currentPage: page,
       totalPages,
       totalCount,
       search,
       hasNext: page < totalPages,
       hasPrev: page > 1,
+      success: req.query.success,
+      error: req.query.error,
     });
   } catch (error) {
     console.error('Users list error:', error);
@@ -704,5 +855,310 @@ router.post(
     }
   }
 );
+
+// GET /users/:id/edit - Form chỉnh sửa user (admin only)
+router.get('/:id/edit', authenticateToken, async (req, res) => {
+  try {
+    // Check admin permission
+    if (!req.user.isAdmin) {
+      return res.status(403).render('errors/403', {
+        title: 'Không có quyền',
+        message: 'Bạn không có quyền chỉnh sửa người dùng',
+      });
+    }
+
+    const userId = req.params.id;
+
+    // Get user info
+    const userQuery = `
+      SELECT u.*, d."Name" as "DepartmentName"
+      FROM "Users" u
+      LEFT JOIN "Departments" d ON u."DepartmentID" = d."DepartmentID"
+      WHERE u."Id" = $1
+    `;
+    const userResult = await query(userQuery, [userId]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).render('errors/404', {
+        title: 'Không tìm thấy',
+        message: 'Người dùng không tồn tại',
+      });
+    }
+
+    const editUser = userResult.rows[0];
+
+    // Get user roles
+    const rolesQuery = `
+      SELECT r."Id", r."Name", r."Description"
+      FROM "UserRoles" ur
+      JOIN "Roles" r ON ur."RoleId" = r."Id"
+      WHERE ur."UserId" = $1
+    `;
+    const userRolesResult = await query(rolesQuery, [userId]);
+    const userRoles = userRolesResult.rows.map((r) => r.Id);
+
+    // Get all departments
+    const departmentsQuery = `
+      SELECT * FROM "Departments" WHERE "IsActive" = true ORDER BY "Name"
+    `;
+    const departmentsResult = await query(departmentsQuery);
+
+    // Get all roles
+    const allRolesQuery = `SELECT * FROM "Roles" ORDER BY "Name"`;
+    const allRolesResult = await query(allRolesQuery);
+
+    res.render('users/edit', {
+      title: 'Chỉnh sửa người dùng',
+      editUser: editUser,
+      departments: departmentsResult.rows,
+      roles: allRolesResult.rows,
+      userRoles: userRoles,
+    });
+  } catch (error) {
+    console.error('Edit user error:', error);
+    res.status(500).render('errors/500', {
+      title: 'Lỗi hệ thống',
+      message: 'Không thể tải form chỉnh sửa',
+    });
+  }
+});
+
+// PUT /users/:id - Cập nhật thông tin user (admin only)
+router.put(
+  '/:id',
+  authenticateToken,
+  upload.single('avatar'),
+  async (req, res) => {
+    try {
+      // Check admin permission
+      if (!req.user.isAdmin) {
+        return res.status(403).json({
+          success: false,
+          message: 'Bạn không có quyền chỉnh sửa người dùng',
+        });
+      }
+
+      const userId = req.params.id;
+      const {
+        userName,
+        email,
+        phoneNumber,
+        homeAdress,
+        departmentId,
+        position,
+        isAdmin,
+        isActive,
+        emailConfirmed,
+        newPassword,
+        confirmPassword,
+        roles,
+      } = req.body;
+
+      // Validate password if provided
+      if (newPassword) {
+        if (newPassword !== confirmPassword) {
+          return res.redirect(
+            `/users/${userId}/edit?error=` +
+              encodeURIComponent('Mật khẩu xác nhận không khớp')
+          );
+        }
+        if (newPassword.length < 6) {
+          return res.redirect(
+            `/users/${userId}/edit?error=` +
+              encodeURIComponent('Mật khẩu phải có ít nhất 6 ký tự')
+          );
+        }
+      }
+
+      // Update user info
+      let updateQuery = `
+      UPDATE "Users" 
+      SET "UserName" = $1, 
+          "Email" = $2,
+          "PhoneNumber" = $3,
+          "HomeAdress" = $4,
+          "DepartmentID" = $5,
+          "Position" = $6,
+          "isAdmin" = $7,
+          "IsActive" = $8,
+          "EmailConfirmed" = $9,
+          "UpdatedAt" = NOW()
+    `;
+
+      const params = [
+        userName,
+        email,
+        phoneNumber || null,
+        homeAdress || null,
+        departmentId || null,
+        position || null,
+        isAdmin === 'on',
+        isActive === 'on',
+        emailConfirmed === 'on',
+      ];
+
+      // Handle avatar upload
+      if (req.file) {
+        const avatarPath = '/uploads/avatars/' + req.file.filename;
+        updateQuery += `, "Avatar" = $${params.length + 1}`;
+        params.push(avatarPath);
+      }
+
+      // Handle password change
+      if (newPassword) {
+        const bcrypt = require('bcryptjs');
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        updateQuery += `, "PasswordHash" = $${params.length + 1}`;
+        params.push(hashedPassword);
+      }
+
+      updateQuery += ` WHERE "Id" = $${params.length + 1} RETURNING *`;
+      params.push(userId);
+
+      const updateResult = await query(updateQuery, params);
+
+      if (updateResult.rows.length === 0) {
+        return res.redirect(
+          `/users/${userId}/edit?error=` +
+            encodeURIComponent('Người dùng không tồn tại')
+        );
+      }
+
+      // Update user roles
+      if (roles) {
+        // Delete existing roles
+        await query(`DELETE FROM "UserRoles" WHERE "UserId" = $1`, [userId]);
+
+        // Insert new roles
+        const roleArray = Array.isArray(roles) ? roles : [roles];
+        for (const roleId of roleArray) {
+          await query(
+            `INSERT INTO "UserRoles" ("UserId", "RoleId") VALUES ($1, $2)`,
+            [userId, roleId]
+          );
+        }
+      }
+
+      res.redirect(
+        `/users/${userId}?success=` + encodeURIComponent('Cập nhật thành công')
+      );
+    } catch (error) {
+      console.error('Update user error:', error);
+      res.redirect(
+        `/users/${req.params.id}/edit?error=` +
+          encodeURIComponent('Không thể cập nhật: ' + error.message)
+      );
+    }
+  }
+);
+
+// DELETE /users/:id - Xóa user (admin only)
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    // Check admin permission
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền xóa người dùng',
+      });
+    }
+
+    const userId = req.params.id;
+
+    // Prevent self-deletion
+    if (userId === req.user.Id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Không thể xóa tài khoản của chính mình',
+      });
+    }
+
+    // Check if user exists
+    const checkQuery = `SELECT "Id", "Avatar" FROM "Users" WHERE "Id" = $1`;
+    const checkResult = await query(checkQuery, [userId]);
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Người dùng không tồn tại',
+      });
+    }
+
+    const avatar = checkResult.rows[0].Avatar;
+
+    // Delete user (cascade will handle related records)
+    const deleteQuery = `DELETE FROM "Users" WHERE "Id" = $1`;
+    await query(deleteQuery, [userId]);
+
+    // Delete avatar file if exists
+    if (avatar && avatar.startsWith('/uploads/avatars/')) {
+      const avatarPath = path.join(__dirname, '..', avatar);
+      if (fs.existsSync(avatarPath)) {
+        fs.unlinkSync(avatarPath);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Xóa người dùng thành công',
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Không thể xóa người dùng: ' + error.message,
+    });
+  }
+});
+
+// PUT /users/:id/permissions - Cập nhật quyền user (admin only)
+router.put('/:id/permissions', authenticateToken, async (req, res) => {
+  try {
+    // Check admin permission
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền thay đổi phân quyền',
+      });
+    }
+
+    const userId = req.params.id;
+    const { roles, isAdmin } = req.body;
+
+    // Update admin status
+    if (typeof isAdmin !== 'undefined') {
+      await query(`UPDATE "Users" SET "isAdmin" = $1 WHERE "Id" = $2`, [
+        isAdmin,
+        userId,
+      ]);
+    }
+
+    // Update roles
+    if (roles) {
+      // Delete existing roles
+      await query(`DELETE FROM "UserRoles" WHERE "UserId" = $1`, [userId]);
+
+      // Insert new roles
+      const roleArray = Array.isArray(roles) ? roles : [roles];
+      for (const roleId of roleArray) {
+        await query(
+          `INSERT INTO "UserRoles" ("UserId", "RoleId") VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [userId, roleId]
+        );
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Cập nhật phân quyền thành công',
+    });
+  } catch (error) {
+    console.error('Update permissions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Không thể cập nhật phân quyền: ' + error.message,
+    });
+  }
+});
 
 module.exports = router;

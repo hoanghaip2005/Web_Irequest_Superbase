@@ -20,6 +20,20 @@
                 Lịch
             </button>
         </div>
+        <div class="d-inline-flex gap-2 me-2">
+            <button type="button" class="btn-modern btn-modern-secondary" onclick="exportToExcel('my', getCurrentFilters())">
+                <i class="fas fa-file-excel"></i>
+                Xuất Excel
+            </button>
+            <button type="button" class="btn-modern btn-modern-secondary" onclick="exportToPDF('my', getCurrentFilters())">
+                <i class="fas fa-file-pdf"></i>
+                Xuất PDF
+            </button>
+            <button type="button" class="btn-modern btn-modern-secondary" onclick="printRequests()">
+                <i class="fas fa-print"></i>
+                In
+            </button>
+        </div>
         <a href="/requests/create" class="btn-modern btn-modern-primary">
             <i class="fas fa-plus"></i>
             Tạo yêu cầu mới
@@ -582,3 +596,5 @@ let calendar = null;
     }
 })();
 </script>
+
+<script src="/js/export.js"></script>

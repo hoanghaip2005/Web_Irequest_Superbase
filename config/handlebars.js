@@ -27,14 +27,27 @@ const hbs = Handlebars.create({
     formatDate: function (date) {
       if (!date) return '';
       const d = new Date(date);
-      return d.toLocaleDateString('vi-VN');
+      return d.toLocaleDateString('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
     },
 
     // Helper for formatting datetime
     formatDateTime: function (date) {
       if (!date) return '';
       const d = new Date(date);
-      return d.toLocaleString('vi-VN');
+      return d.toLocaleString('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
     },
 
     // Helper for formatting time (for chat messages)
@@ -69,6 +82,7 @@ const hbs = Handlebars.create({
       // Today - show time only
       if (date.toDateString() === now.toDateString()) {
         return date.toLocaleTimeString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh',
           hour: '2-digit',
           minute: '2-digit',
         });
@@ -81,6 +95,7 @@ const hbs = Handlebars.create({
         return (
           'Hôm qua ' +
           date.toLocaleTimeString('vi-VN', {
+            timeZone: 'Asia/Ho_Chi_Minh',
             hour: '2-digit',
             minute: '2-digit',
           })
@@ -90,6 +105,7 @@ const hbs = Handlebars.create({
       // This year - show date and time without year
       if (date.getFullYear() === now.getFullYear()) {
         return date.toLocaleString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh',
           month: 'numeric',
           day: 'numeric',
           hour: '2-digit',
@@ -99,6 +115,7 @@ const hbs = Handlebars.create({
 
       // Different year - show full date
       return date.toLocaleString('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
         year: 'numeric',
         month: 'numeric',
         day: 'numeric',
@@ -229,14 +246,19 @@ const hbs = Handlebars.create({
     statusColor: function (statusName) {
       if (!statusName) return 'secondary';
       const status = statusName.toLowerCase();
-      
-      if (status.includes('hoàn thành') || status.includes('completed')) return 'success';
-      if (status.includes('đang xử lý') || status.includes('progress')) return 'primary';
-      if (status.includes('chờ') || status.includes('pending')) return 'warning';
-      if (status.includes('từ chối') || status.includes('rejected')) return 'danger';
+
+      if (status.includes('hoàn thành') || status.includes('completed'))
+        return 'success';
+      if (status.includes('đang xử lý') || status.includes('progress'))
+        return 'primary';
+      if (status.includes('chờ') || status.includes('pending'))
+        return 'warning';
+      if (status.includes('từ chối') || status.includes('rejected'))
+        return 'danger';
       if (status.includes('mới') || status.includes('new')) return 'info';
-      if (status.includes('nháp') || status.includes('draft')) return 'secondary';
-      
+      if (status.includes('nháp') || status.includes('draft'))
+        return 'secondary';
+
       return 'secondary';
     },
 
@@ -244,12 +266,24 @@ const hbs = Handlebars.create({
     priorityColor: function (priorityName) {
       if (!priorityName) return 'secondary';
       const priority = priorityName.toLowerCase();
-      
-      if (priority.includes('khẩn cấp') || priority.includes('urgent') || priority.includes('critical')) return 'danger';
-      if (priority.includes('cao') || priority.includes('high')) return 'warning';
-      if (priority.includes('trung bình') || priority.includes('medium') || priority.includes('normal')) return 'primary';
-      if (priority.includes('thấp') || priority.includes('low')) return 'success';
-      
+
+      if (
+        priority.includes('khẩn cấp') ||
+        priority.includes('urgent') ||
+        priority.includes('critical')
+      )
+        return 'danger';
+      if (priority.includes('cao') || priority.includes('high'))
+        return 'warning';
+      if (
+        priority.includes('trung bình') ||
+        priority.includes('medium') ||
+        priority.includes('normal')
+      )
+        return 'primary';
+      if (priority.includes('thấp') || priority.includes('low'))
+        return 'success';
+
       return 'secondary';
     },
 
@@ -257,7 +291,7 @@ const hbs = Handlebars.create({
     formatHours: function (hours) {
       if (!hours || isNaN(hours)) return '0 giờ';
       const h = parseFloat(hours);
-      
+
       if (h < 1) {
         return `${Math.round(h * 60)} phút`;
       } else if (h >= 24) {

@@ -16,6 +16,7 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/notifications.css">
     
     <style>
         :root {
@@ -325,6 +326,11 @@
         .breadcrumb-item.active {
             font-weight: 500;
             color: var(--primary-color);
+        }
+
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
         }
 
         .header-right {
@@ -828,13 +834,40 @@
                 <i class="fas fa-search"></i>
             </div>
 
-            <button class="notification-icon">
-                <i class="fas fa-bell"></i>
-                {{#if unreadNotifications}}
-                <span class="notification-badge">{{unreadNotifications}}</span>
-                {{/if}}
-            </button>
+            <!-- Notifications Dropdown -->
+            <div class="dropdown notifications-dropdown">
+                <button class="notification-icon" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-bell"></i>
+                    {{#if unreadNotifications}}
+                    <span class="notification-badge">{{unreadNotifications}}</span>
+                    {{/if}}
+                </button>
+                
+                <div class="dropdown-menu dropdown-menu-end notifications-menu" aria-labelledby="notificationDropdown">
+                    <div class="notifications-header">
+                        <h6 class="mb-0">Thông báo</h6>
+                        <a href="#" class="mark-all-read" onclick="markAllAsRead(event)">Đánh dấu đã đọc</a>
+                    </div>
+                    
+                    <div class="notifications-body" id="notificationsList">
+                        <!-- Notifications will be loaded here -->
+                        <div class="notification-loading text-center py-3">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="text-muted small mb-0 mt-2">Đang tải thông báo...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="notifications-footer">
+                        <a href="/notifications" class="view-all-link">
+                            <i class="fas fa-list me-2"></i>Xem tất cả thông báo
+                        </a>
+                    </div>
+                </div>
+            </div>
 
+            <!-- User Dropdown -->
             <div class="dropdown">
                 <div class="user-dropdown" data-bs-toggle="dropdown">
                     <div class="user-avatar">
@@ -946,5 +979,8 @@
             });
         }, 5000);
     </script>
+    
+    <!-- Notifications Script -->
+    <script src="/js/notifications.js"></script>
 </body>
 </html>

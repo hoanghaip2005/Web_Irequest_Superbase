@@ -165,67 +165,84 @@ router.get('/', authenticateToken, async (req, res) => {
 
 // API endpoints for notification management
 
-// Mark notification as read
-router.put('/:id/read', authenticateToken, async (req, res) => {
-  try {
-    const notificationId = req.params.id;
-
-    await query(
-      'UPDATE "Notifications" SET "IsRead" = true, "ReadAt" = CURRENT_TIMESTAMP WHERE "NotificationID" = $1 AND "UserId" = $2',
-      [notificationId, req.user.Id]
-    );
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Mark as read error:', error);
-    res.status(500).json({ error: 'Không thể cập nhật trạng thái thông báo' });
-  }
-});
-
-// Delete notification
-router.delete('/:id', authenticateToken, async (req, res) => {
-  try {
-    const notificationId = req.params.id;
-
-    await query(
-      'DELETE FROM "Notifications" WHERE "NotificationID" = $1 AND "UserId" = $2',
-      [notificationId, req.user.Id]
-    );
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Delete notification error:', error);
-    res.status(500).json({ error: 'Không thể xóa thông báo' });
-  }
-});
+// IMPORTANT: Specific routes MUST come before parameterized routes
+// Otherwise /:id will match everything including /mark-all-read
 
 // Mark all notifications as read
 router.put('/mark-all-read', authenticateToken, async (req, res) => {
   try {
-    await query(
-      'UPDATE "Notifications" SET "IsRead" = true, "ReadAt" = CURRENT_TIMESTAMP WHERE "UserId" = $1 AND "IsRead" = false',
+    const result = await query(
+      'UPDATE "Notifications" SET "IsRead" = true WHERE "UserId" = $1 AND "IsRead" = false',
       [req.user.Id]
     );
 
-    res.json({ success: true });
+    res.json({
+      success: true,
+      message: `Đã đánh dấu ${result.rowCount} thông báo là đã đọc`,
+      count: result.rowCount,
+    });
   } catch (error) {
     console.error('Mark all as read error:', error);
-    res.status(500).json({ error: 'Không thể cập nhật trạng thái thông báo' });
+    res.status(500).json({
+      success: false,
+      error: 'Không thể cập nhật trạng thái thông báo',
+    });
   }
 });
 
 // Clear read notifications
 router.delete('/clear-read', authenticateToken, async (req, res) => {
   try {
-    await query(
+    const result = await query(
       'DELETE FROM "Notifications" WHERE "UserId" = $1 AND "IsRead" = true',
       [req.user.Id]
     );
 
-    res.json({ success: true });
+    res.json({
+      success: true,
+      message: `Đã xóa ${result.rowCount} thông báo đã đọc`,
+      count: result.rowCount,
+    });
   } catch (error) {
     console.error('Clear read notifications error:', error);
-    res.status(500).json({ error: 'Không thể xóa thông báo' });
+    res.status(500).json({ success: false, error: 'Không thể xóa thông báo' });
+  }
+});
+
+// Mark single notification as read
+router.put('/:id/read', authenticateToken, async (req, res) => {
+  try {
+    const notificationId = req.params.id;
+
+    await query(
+      'UPDATE "Notifications" SET "IsRead" = true WHERE "Id" = $1 AND "UserId" = $2',
+      [notificationId, req.user.Id]
+    );
+
+    res.json({ success: true, message: 'Đã đánh dấu là đã đọc' });
+  } catch (error) {
+    console.error('Mark as read error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể cập nhật trạng thái thông báo',
+    });
+  }
+});
+
+// Delete single notification
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    const notificationId = req.params.id;
+
+    await query(
+      'DELETE FROM "Notifications" WHERE "Id" = $1 AND "UserId" = $2',
+      [notificationId, req.user.Id]
+    );
+
+    res.json({ success: true, message: 'Đã xóa thông báo' });
+  } catch (error) {
+    console.error('Delete notification error:', error);
+    res.status(500).json({ success: false, error: 'Không thể xóa thông báo' });
   }
 });
 
@@ -266,6 +283,112 @@ router.get('/stream', authenticateToken, (req, res) => {
   req.on('close', () => {
     clearInterval(heartbeat);
   });
+});
+
+// ==========================================
+// API ENDPOINTS FOR NOTIFICATIONS
+// ==========================================
+
+/**
+ * API: Get notifications list
+ * When accessed via /api/notifications/ (from app.js mount)
+ */
+router.get('/list', authenticateToken, async (req, res) => {
+  try {
+    console.log('📬 API: Fetching notifications for user:', req.user.Id);
+
+    // Get recent 20 notifications
+    const notificationsResult = await query(
+      `
+      SELECT 
+        "Id",
+        "UserId",
+        "Type",
+        "Title",
+        "Content",
+        "Link",
+        "IsRead",
+        "CreatedAt"
+      FROM "Notifications"
+      WHERE "UserId" = $1
+      ORDER BY "CreatedAt" DESC
+      LIMIT 20
+    `,
+      [req.user.Id]
+    );
+
+    // Count unread notifications
+    const unreadResult = await query(
+      `
+      SELECT COUNT(*)::int as count
+      FROM "Notifications"
+      WHERE "UserId" = $1 AND "IsRead" = false
+    `,
+      [req.user.Id]
+    );
+
+    const unreadCount = unreadResult.rows[0]?.count || 0;
+
+    console.log(
+      `✅ Found ${notificationsResult.rows.length} notifications, ${unreadCount} unread`
+    );
+
+    res.json({
+      success: true,
+      notifications: notificationsResult.rows,
+      unreadCount: unreadCount,
+    });
+  } catch (error) {
+    console.error('❌ Error fetching notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Không thể tải thông báo',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * Mark single notification as read
+ * Route: POST /api/notifications/:id/read
+ */
+router.post('/:id/read', authenticateToken, async (req, res) => {
+  try {
+    const notificationId = req.params.id;
+    console.log(`📝 API: Marking notification ${notificationId} as read`);
+
+    // Update notification
+    const result = await query(
+      `
+      UPDATE "Notifications"
+      SET "IsRead" = true, "UpdatedAt" = NOW()
+      WHERE "Id" = $1 AND "UserId" = $2
+      RETURNING "Id"
+    `,
+      [notificationId, req.user.Id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông báo',
+      });
+    }
+
+    console.log(`✅ Notification ${notificationId} marked as read`);
+
+    res.json({
+      success: true,
+      message: 'Đã đánh dấu là đã đọc',
+    });
+  } catch (error) {
+    console.error('❌ Error marking notification as read:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Có lỗi xảy ra',
+      error: error.message,
+    });
+  }
 });
 
 module.exports = router;

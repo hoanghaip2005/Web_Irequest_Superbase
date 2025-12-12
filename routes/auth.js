@@ -136,11 +136,28 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return res.render('auth/register', {
         title: 'Đăng ký',
         layout: 'auth',
-        error: 'Mật khẩu phải có ít nhất 6 ký tự',
+        error: 'Mật khẩu phải có ít nhất 8 ký tự',
+        username,
+        email,
+        department,
+      });
+    }
+
+    // Kiểm tra độ mạnh mật khẩu
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+      return res.render('auth/register', {
+        title: 'Đăng ký',
+        layout: 'auth',
+        error:
+          'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số',
         username,
         email,
         department,
@@ -291,18 +308,19 @@ router.post('/forgot-password', async (req, res) => {
     const resetToken = uuidv4();
     const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    // Lưu token vào database (cần thêm bảng password_resets)
-    // Tạm thời lưu vào session để demo
-    req.session.resetToken = {
-      token: resetToken,
-      email: email,
-      expiry: resetTokenExpiry,
-    };
+    // Lưu token vào database
+    const { pool } = require('../config/database');
+    await pool.query(
+      `INSERT INTO "PasswordResets" ("Email", "Token", "ExpiresAt") 
+       VALUES ($1, $2, $3)`,
+      [email, resetToken, resetTokenExpiry]
+    );
 
     // TODO: Gửi email với reset token
-    console.log(`Reset password token for ${email}: ${resetToken}`);
+    // For now, just log to console
+    console.log(`📧 Reset password token for ${email}: ${resetToken}`);
     console.log(
-      `Reset link: http://localhost:${process.env.PORT || 3000}/auth/reset-password?token=${resetToken}`
+      `🔗 Reset link: ${req.protocol}://${req.get('host')}/auth/reset-password?token=${resetToken}`
     );
 
     res.render('auth/forgot-password', {
@@ -323,20 +341,22 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 // Trang đặt lại mật khẩu
-router.get('/reset-password', (req, res) => {
+router.get('/reset-password', async (req, res) => {
   const { token } = req.query;
 
   if (!token) {
     return res.redirect('/auth/forgot-password');
   }
 
-  // Kiểm tra token (từ session hoặc database)
-  const resetData = req.session.resetToken;
-  if (
-    !resetData ||
-    resetData.token !== token ||
-    new Date() > new Date(resetData.expiry)
-  ) {
+  // Kiểm tra token từ database
+  const { pool } = require('../config/database');
+  const tokenResult = await pool.query(
+    `SELECT * FROM "PasswordResets" 
+     WHERE "Token" = $1 AND "Used" = FALSE AND "ExpiresAt" > NOW()`,
+    [token]
+  );
+
+  if (tokenResult.rows.length === 0) {
     return res.render('auth/reset-password', {
       title: 'Đặt lại mật khẩu',
       layout: 'auth',
@@ -375,22 +395,40 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return res.render('auth/reset-password', {
         title: 'Đặt lại mật khẩu',
         layout: 'auth',
-        error: 'Mật khẩu phải có ít nhất 6 ký tự',
+        error: 'Mật khẩu phải có ít nhất 8 ký tự',
         token,
       });
     }
 
-    // Kiểm tra token
-    const resetData = req.session.resetToken;
-    if (
-      !resetData ||
-      resetData.token !== token ||
-      new Date() > new Date(resetData.expiry)
-    ) {
+    // Validate password strength
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+      return res.render('auth/reset-password', {
+        title: 'Đặt lại mật khẩu',
+        layout: 'auth',
+        error:
+          'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số',
+        token,
+      });
+    }
+
+    // Kiểm tra token từ database
+    const { pool } = require('../config/database');
+    const tokenResult = await pool.query(
+      `SELECT * FROM "PasswordResets" 
+       WHERE "Token" = $1 AND "Used" = FALSE AND "ExpiresAt" > NOW()`,
+      [token]
+    );
+
+    if (tokenResult.rows.length === 0) {
       return res.render('auth/reset-password', {
         title: 'Đặt lại mật khẩu',
         layout: 'auth',
@@ -399,12 +437,14 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
+    const resetData = tokenResult.rows[0];
+
     // Hash mật khẩu mới
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Cập nhật mật khẩu
-    const updated = await User.updatePassword(resetData.email, hashedPassword);
+    const updated = await User.updatePassword(resetData.Email, hashedPassword);
 
     if (!updated) {
       return res.render('auth/reset-password', {
@@ -415,8 +455,11 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
-    // Xóa token đã sử dụng
-    delete req.session.resetToken;
+    // Đánh dấu token đã sử dụng
+    await pool.query(
+      `UPDATE "PasswordResets" SET "Used" = TRUE WHERE "Token" = $1`,
+      [token]
+    );
 
     res.render('auth/login', {
       title: 'Đăng nhập',

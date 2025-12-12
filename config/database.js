@@ -21,11 +21,20 @@ const pool = new Pool({
   query_timeout: 30000, // 30 giây timeout cho query
   keepAlive: true, // Giữ connection alive
   keepAliveInitialDelayMillis: 0,
+  // Thiết lập timezone Việt Nam (UTC+7)
+  options: '-c timezone=Asia/Ho_Chi_Minh',
 });
 
 // Event handlers cho pool
-pool.on('connect', () => {
+pool.on('connect', async (client) => {
   console.log('Connected to Supabase PostgreSQL database');
+  // Thiết lập timezone Việt Nam cho mỗi connection
+  try {
+    await client.query("SET timezone = 'Asia/Ho_Chi_Minh'");
+    console.log('✅ Timezone set to Asia/Ho_Chi_Minh (UTC+7)');
+  } catch (err) {
+    console.error('⚠️  Failed to set timezone:', err.message);
+  }
 });
 
 pool.on('error', (err) => {
@@ -106,9 +115,15 @@ const testConnection = async () => {
     console.log(`User: ${process.env.DB_USER}`);
 
     const result = await query(
-      'SELECT NOW() as current_time, version() as version'
+      `SELECT 
+        NOW() as current_time, 
+        CURRENT_SETTING('timezone') as timezone,
+        version() as version`
     );
-    console.log('✅ Database connection test successful:', result.rows[0]);
+    console.log('✅ Database connection test successful');
+    console.log('   Current Time:', result.rows[0].current_time);
+    console.log('   Timezone:', result.rows[0].timezone);
+    console.log('   PostgreSQL Version:', result.rows[0].version.split(',')[0]);
     return true;
   } catch (error) {
     console.error('❌ Database connection test failed:', error.message);

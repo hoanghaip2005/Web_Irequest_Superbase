@@ -1,6 +1,21 @@
 <link rel="stylesheet" href="/css/modern-table.css">
 
 <div class="container-fluid">
+    <!-- Success/Error Messages -->
+    {{#if success}}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>{{success}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {{/if}}
+
+    {{#if error}}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>{{error}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {{/if}}
+
     <!-- Header -->
     <div class="row mb-4">
         <div class="col">
@@ -227,15 +242,19 @@
                         <td>
                             <div class="table-actions-cell">
                                 <button class="table-action-btn action-view" title="Xem chi tiết"
-                                        onclick="viewUser({{Id}})">
+                                        onclick="viewUser('{{Id}}')">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <button class="table-action-btn action-edit" title="Chỉnh sửa"
-                                        onclick="editUser({{Id}})">
+                                        onclick="editUser('{{Id}}')">
                                     <i class="fas fa-edit"></i>
                                 </button>
+                                <button class="table-action-btn action-security" title="Phân quyền"
+                                        onclick="managePermissions('{{Id}}', '{{UserName}}')">
+                                    <i class="fas fa-shield-alt"></i>
+                                </button>
                                 <button class="table-action-btn action-delete" title="Xóa"
-                                        onclick="deleteUser({{Id}})">
+                                        onclick="deleteUser('{{Id}}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -293,9 +312,87 @@ function editUser(id) {
 function deleteUser(id) {
     if (confirm('Bạn có chắc muốn xóa người dùng này?')) {
         fetch('/users/' + id, {
-            method: 'DELETE'
-        }).then(function() { location.reload(); });
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', data.message);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('error', data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('error', 'Có lỗi xảy ra khi xóa người dùng');
+        });
     }
+}
+
+function managePermissions(userId, userName) {
+    document.getElementById('permissionsUserId').value = userId;
+    document.getElementById('permissionsUserName').textContent = userName;
+    
+    // Load current permissions
+    fetch(`/users/${userId}`)
+        .then(res => res.text())
+        .then(html => {
+            // Parse and extract roles from user detail page
+            // For simplicity, we'll just open the modal
+            const modal = new bootstrap.Modal(document.getElementById('permissionsModal'));
+            modal.show();
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('error', 'Không thể tải thông tin phân quyền');
+        });
+}
+
+function savePermissions() {
+    const userId = document.getElementById('permissionsUserId').value;
+    const isAdmin = document.getElementById('permissionAdmin').checked;
+    const roleCheckboxes = document.querySelectorAll('input[name="permissionRoles[]"]:checked');
+    const roles = Array.from(roleCheckboxes).map(cb => cb.value);
+    
+    fetch(`/users/${userId}/permissions`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ isAdmin, roles })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', data.message);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('permissionsModal'));
+            modal.hide();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('error', data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('error', 'Có lỗi xảy ra khi cập nhật phân quyền');
+    });
+}
+
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
 }
 
 function exportUsers() {
@@ -310,7 +407,276 @@ document.getElementById('selectAll').addEventListener('change', function(e) {
     const checkboxes = document.querySelectorAll('.modern-table tbody .table-checkbox');
     checkboxes.forEach(function(cb) { cb.checked = e.target.checked; });
 });
+
+// Validate add user form
+function validateAddUserForm() {
+    const password = document.getElementById('addUserPassword').value;
+    const confirmPassword = document.getElementById('addUserConfirmPassword').value;
+    
+    if (password !== confirmPassword) {
+        alert('Mật khẩu xác nhận không khớp!');
+        return false;
+    }
+    
+    if (password.length < 6) {
+        alert('Mật khẩu phải có ít nhất 6 ký tự!');
+        return false;
+    }
+    
+    return true;
+}
 </script>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>Thêm người dùng mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addUserForm" method="POST" action="/users/create" onsubmit="return validateAddUserForm()">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- Username -->
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-user me-2"></i>Tên đăng nhập <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" name="userName" required 
+                                   placeholder="Nhập tên đăng nhập">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" class="form-control" name="email" required 
+                                   placeholder="user@example.com">
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-phone me-2"></i>Số điện thoại
+                            </label>
+                            <input type="tel" class="form-control" name="phoneNumber" 
+                                   placeholder="+84 xxx xxx xxx">
+                        </div>
+
+                        <!-- Department -->
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-building me-2"></i>Phòng ban
+                            </label>
+                            <select class="form-select" name="departmentId">
+                                <option value="">-- Chọn phòng ban --</option>
+                                {{#each departments}}
+                                <option value="{{DepartmentID}}">{{Name}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+
+                        <!-- Position -->
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-id-badge me-2"></i>Chức vụ
+                            </label>
+                            <input type="text" class="form-control" name="position" 
+                                   placeholder="Ví dụ: Nhân viên, Trưởng phòng...">
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-home me-2"></i>Địa chỉ
+                            </label>
+                            <input type="text" class="form-control" name="homeAdress" 
+                                   placeholder="Địa chỉ nhà">
+                        </div>
+
+                        <!-- Password -->
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-lock me-2"></i>Mật khẩu <span class="text-danger">*</span>
+                            </label>
+                            <input type="password" class="form-control" name="password" 
+                                   id="addUserPassword" required minlength="6"
+                                   placeholder="Tối thiểu 6 ký tự">
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-lock me-2"></i>Xác nhận mật khẩu <span class="text-danger">*</span>
+                            </label>
+                            <input type="password" class="form-control" name="confirmPassword" 
+                                   id="addUserConfirmPassword" required
+                                   placeholder="Nhập lại mật khẩu">
+                        </div>
+
+                        <!-- Roles -->
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="fas fa-user-tag me-2"></i>Vai trò
+                            </label>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="roles[]" value="1" id="addRole1">
+                                        <label class="form-check-label" for="addRole1">
+                                            User (Người dùng thông thường)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="roles[]" value="2" id="addRole2">
+                                        <label class="form-check-label" for="addRole2">
+                                            Manager (Quản lý phòng ban)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin & Active -->
+                        <div class="col-12">
+                            <div class="alert alert-light border">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="isAdmin" id="addUserIsAdmin">
+                                    <label class="form-check-label" for="addUserIsAdmin">
+                                        <i class="fas fa-shield-alt me-2 text-danger"></i>
+                                        <strong>Quyền Quản trị viên</strong>
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="isActive" id="addUserIsActive" checked>
+                                    <label class="form-check-label" for="addUserIsActive">
+                                        <i class="fas fa-toggle-on me-2 text-success"></i>
+                                        <strong>Kích hoạt tài khoản ngay</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Thêm người dùng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Permissions Management Modal -->
+<div class="modal fade" id="permissionsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Quản lý phân quyền: <span id="permissionsUserName"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="permissionsUserId">
+                
+                <!-- Admin Permission -->
+                <div class="alert alert-warning mb-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="permissionAdmin">
+                        <label class="form-check-label" for="permissionAdmin">
+                            <i class="fas fa-crown me-2"></i>
+                            <strong>Quản trị viên hệ thống</strong>
+                            <small class="d-block text-muted mt-1">
+                                Admin có toàn quyền quản lý mọi chức năng trong hệ thống
+                            </small>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Roles Selection -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-user-tag me-2"></i>Vai trò
+                    </label>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check p-3 border rounded">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="permissionRoles[]" value="1" id="permRole1">
+                                <label class="form-check-label w-100" for="permRole1">
+                                    <strong>User</strong>
+                                    <small class="d-block text-muted">Người dùng thông thường</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check p-3 border rounded">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="permissionRoles[]" value="2" id="permRole2">
+                                <label class="form-check-label w-100" for="permRole2">
+                                    <strong>Manager</strong>
+                                    <small class="d-block text-muted">Quản lý phòng ban</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check p-3 border rounded">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="permissionRoles[]" value="3" id="permRole3">
+                                <label class="form-check-label w-100" for="permRole3">
+                                    <strong>Approver</strong>
+                                    <small class="d-block text-muted">Phê duyệt yêu cầu</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check p-3 border rounded">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="permissionRoles[]" value="4" id="permRole4">
+                                <label class="form-check-label w-100" for="permRole4">
+                                    <strong>Viewer</strong>
+                                    <small class="d-block text-muted">Chỉ xem thông tin</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>
+                        <strong>Lưu ý:</strong> Các thay đổi sẽ có hiệu lực ngay lập tức. 
+                        Người dùng cần đăng xuất và đăng nhập lại để cập nhật quyền mới.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Hủy
+                </button>
+                <button type="button" class="btn btn-primary" onclick="savePermissions()">
+                    <i class="fas fa-save me-2"></i>Lưu phân quyền
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
 .stat-card {
@@ -334,5 +700,26 @@ document.getElementById('selectAll').addEventListener('change', function(e) {
     justify-content: center;
     color: white;
     font-size: 20px;
+}
+
+.table-action-btn.action-security {
+    color: #ffc107;
+}
+
+.table-action-btn.action-security:hover {
+    background: #fff3cd;
+    color: #ffc107;
+}
+
+.form-check.border {
+    transition: all 0.3s ease;
+}
+
+.form-check.border:hover {
+    background-color: #f8f9fa;
+}
+
+.form-check-input:checked + .form-check-label {
+    font-weight: 500;
 }
 </style>

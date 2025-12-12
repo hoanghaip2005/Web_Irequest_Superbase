@@ -1,0 +1,192 @@
+<div class="content-header">
+    <div>
+        <h1 class="page-title">{{title}}</h1>
+        <p class="page-subtitle">Thông tin người dùng</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Information Card -->
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <!-- Avatar -->
+                    <div class="avatar-xl mb-3">
+                        {{#if userDetail.Avatar}}
+                        <img src="{{userDetail.Avatar}}" alt="{{userDetail.UserName}}" 
+                             class="rounded-circle mx-auto d-block" 
+                             style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #f0f0f0;">
+                        {{else if viewUser.avatar}}
+                        <img src="{{viewUser.avatar}}" alt="{{viewUser.username}}" 
+                             class="rounded-circle mx-auto d-block" 
+                             style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #f0f0f0;">
+                        {{else}}
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" 
+                             style="width: 120px; height: 120px; font-size: 3rem; border: 3px solid #f0f0f0;">
+                            {{#if userDetail.UserName}}
+                                {{substring userDetail.UserName 0 1}}
+                            {{else if viewUser.username}}
+                                {{substring viewUser.username 0 1}}
+                            {{else}}
+                                U
+                            {{/if}}
+                        </div>
+                        {{/if}}
+                    </div>
+
+                    <!-- User Name -->
+                    <h3 class="mb-1">
+                        {{#if userDetail.UserName}}
+                            {{userDetail.UserName}}
+                        {{else if viewUser.username}}
+                            {{viewUser.username}}
+                        {{/if}}
+                    </h3>
+
+                    {{#if isOwnProfile}}
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Đây là hồ sơ của bạn. 
+                        <a href="/users/profile" class="alert-link">Chỉnh sửa hồ sơ</a>
+                    </div>
+                    {{/if}}
+                </div>
+
+                <hr class="my-4">
+
+                <!-- User Details -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small mb-1">
+                            <i class="fas fa-user me-2"></i>Tên người dùng
+                        </label>
+                        <div class="fw-medium">
+                            {{#if userDetail.UserName}}
+                                @{{userDetail.UserName}}
+                            {{else if viewUser.username}}
+                                @{{viewUser.username}}
+                            {{/if}}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small mb-1">
+                            <i class="fas fa-envelope me-2"></i>Email
+                        </label>
+                        <div class="fw-medium">
+                            {{#if userDetail.Email}}
+                                {{userDetail.Email}}
+                            {{else if viewUser.email}}
+                                {{viewUser.email}}
+                            {{/if}}
+                        </div>
+                    </div>
+
+                    {{#if userDetail.DepartmentName}}
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small mb-1">
+                            <i class="fas fa-building me-2"></i>Phòng ban
+                        </label>
+                        <div class="fw-medium">{{userDetail.DepartmentName}}</div>
+                    </div>
+                    {{else if viewUser.departmentname}}
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small mb-1">
+                            <i class="fas fa-building me-2"></i>Phòng ban
+                        </label>
+                        <div class="fw-medium">{{viewUser.departmentname}}</div>
+                    </div>
+                    {{/if}}
+
+                    {{#if viewUser.fullname}}
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small mb-1">
+                            <i class="fas fa-id-card me-2"></i>Họ và tên
+                        </label>
+                        <div class="fw-medium">{{viewUser.fullname}}</div>
+                    </div>
+                    {{/if}}
+
+                    {{#if viewUser.phone}}
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small mb-1">
+                            <i class="fas fa-phone me-2"></i>Số điện thoại
+                        </label>
+                        <div class="fw-medium">{{viewUser.phone}}</div>
+                    </div>
+                    {{/if}}
+
+                    {{#if viewUser.role}}
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small mb-1">
+                            <i class="fas fa-user-tag me-2"></i>Vai trò
+                        </label>
+                        <div class="fw-medium">
+                            {{#if (eq viewUser.role 'admin')}}
+                                <span class="badge bg-danger">Quản trị viên</span>
+                            {{else if (eq viewUser.role 'manager')}}
+                                <span class="badge bg-primary">Quản lý</span>
+                            {{else}}
+                                <span class="badge bg-secondary">Nhân viên</span>
+                            {{/if}}
+                        </div>
+                    </div>
+                    {{/if}}
+
+                    {{#if viewUser.isactive}}
+                    <div class="col-md-6 mb-3">
+                        <label class="text-muted small mb-1">
+                            <i class="fas fa-circle-check me-2"></i>Trạng thái
+                        </label>
+                        <div class="fw-medium">
+                            <span class="badge bg-success">Đang hoạt động</span>
+                        </div>
+                    </div>
+                    {{/if}}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-4 text-center">
+                    <a href="/users" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+                    </a>
+                    {{#if isOwnProfile}}
+                    <a href="/users/profile" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Chỉnh sửa hồ sơ
+                    </a>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-xl {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    
+    .card-body {
+        padding: 2rem;
+    }
+    
+    .text-muted.small {
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .fw-medium {
+        font-size: 1rem;
+        padding: 0.5rem 0;
+    }
+</style>

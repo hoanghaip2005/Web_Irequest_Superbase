@@ -134,7 +134,11 @@
             <div class="kanban-column-body" id="column-{{StatusID}}" data-status-id="{{StatusID}}">
                 {{#if requests.length}}
                     {{#each requests}}
-                    <div class="modern-kanban-card" data-request-id="{{RequestID}}" draggable="true">
+                    <div class="kanban-card" 
+                         data-request-id="{{RequestID}}" 
+                         data-is-assigned="{{#if AssignedTo}}{{#ifEquals AssignedTo ../user.Id}}true{{else}}false{{/ifEquals}}{{else}}false{{/if}}"
+                         data-creator-id="{{CreatedBy}}"
+                         draggable="true">
                         <div class="kanban-card-header">
                             <div class="kanban-card-id">
                                 <span class="table-cell-id">#{{RequestID}}</span>
@@ -222,20 +226,20 @@
 
 <!-- Modal: Confirmation for Status Change -->
 <div class="modal fade" id="statusChangeModal" tabindex="-1" aria-labelledby="statusChangeModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="statusChangeModalLabel">
-                    <i class="fas fa-exchange-alt me-2"></i>Xác nhận thay đổi trạng thái
+                    <i class="fas fa-exchange-alt me-2"></i>Xử lý yêu cầu
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-info mb-3">
                     <i class="fas fa-info-circle me-2"></i>
-                    Bạn đang chuyển yêu cầu <strong id="modalRequestTitle"></strong> 
-                    từ trạng thái <strong id="modalOldStatus"></strong> 
-                    sang <strong id="modalNewStatus"></strong>
+                    Yêu cầu: <strong id="modalRequestTitle"></strong><br>
+                    <small>Từ trạng thái <strong id="modalOldStatus"></strong> 
+                    sang <strong id="modalNewStatus"></strong></small>
                 </div>
                 
                 {{#if user.isAdmin}}
@@ -244,46 +248,149 @@
                     <strong>Quyền Admin:</strong> Bạn có toàn quyền xử lý mọi yêu cầu trong hệ thống.
                 </div>
                 {{/if}}
-                
+
+                <!-- Action Decision -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-tasks me-2"></i>Hành động xử lý <span class="text-danger">*</span>
+                    </label>
+                    <div class="d-grid gap-2">
+                        <div class="form-check form-check-card">
+                            <input class="form-check-input" type="radio" name="actionDecision" id="approveAction" value="approve">
+                            <label class="form-check-label card p-3 mb-0 cursor-pointer" for="approveAction">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-0">Phê duyệt</h6>
+                                        <small class="text-muted">Chấp nhận và chuyển sang bước tiếp theo</small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-card">
+                            <input class="form-check-input" type="radio" name="actionDecision" id="rejectAction" value="reject">
+                            <label class="form-check-label card p-3 mb-0 cursor-pointer" for="rejectAction">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="fas fa-times-circle"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-0">Từ chối</h6>
+                                        <small class="text-muted">Không chấp nhận yêu cầu này</small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-card">
+                            <input class="form-check-input" type="radio" name="actionDecision" id="requestMoreInfoAction" value="request_more_info">
+                            <label class="form-check-label card p-3 mb-0 cursor-pointer" for="requestMoreInfoAction">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="fas fa-info-circle"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-0">Yêu cầu bổ sung thông tin</h6>
+                                        <small class="text-muted">Cần thêm thông tin từ người gửi</small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-card">
+                            <input class="form-check-input" type="radio" name="actionDecision" id="justMoveAction" value="just_move">
+                            <label class="form-check-label card p-3 mb-0 cursor-pointer" for="justMoveAction">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-0">Chuyển trạng thái</h6>
+                                        <small class="text-muted">Chỉ cập nhật trạng thái mà không phê duyệt</small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Note/Reason -->
                 <div class="mb-3">
                     <label for="statusChangeNote" class="form-label">
-                        <i class="fas fa-comment-dots me-2"></i>Ghi chú / Lý do thay đổi <span class="text-danger">*</span>
+                        <i class="fas fa-comment-dots me-2"></i>
+                        <span id="noteLabel">Ghi chú</span>
+                        <span class="text-danger">*</span>
                     </label>
                     <textarea 
                         class="form-control" 
                         id="statusChangeNote" 
                         rows="4" 
-                        placeholder="Nhập lý do thay đổi trạng thái, ghi chú hoặc yêu cầu bổ sung..."
+                        placeholder="Nhập ghi chú, lý do hoặc yêu cầu bổ sung..."
                         required></textarea>
-                    <div class="form-text">Vui lòng mô tả rõ lý do thay đổi trạng thái</div>
+                    <div class="form-text" id="noteHelpText">Vui lòng mô tả rõ lý do thay đổi</div>
                 </div>
 
-                <div id="approvalSection" class="mb-3" style="display: none;">
+                <!-- Additional Info Section (for request more info) -->
+                <div id="additionalInfoSection" class="mb-3" style="display: none;">
                     <label class="form-label">
-                        <i class="fas fa-check-circle me-2"></i>Quyết định phê duyệt
+                        <i class="fas fa-list-check me-2"></i>Thông tin cần bổ sung
                     </label>
-                    <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="approvalDecision" id="approveRadio" value="approve">
-                        <label class="btn btn-outline-success" for="approveRadio">
-                            <i class="fas fa-check me-2"></i>Phê duyệt
-                        </label>
-                        
-                        <input type="radio" class="btn-check" name="approvalDecision" id="rejectRadio" value="reject">
-                        <label class="btn btn-outline-danger" for="rejectRadio">
-                            <i class="fas fa-times me-2"></i>Từ chối
-                        </label>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="needDocuments">
+                                <label class="form-check-label" for="needDocuments">
+                                    Cần bổ sung tài liệu đính kèm
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="needClarification">
+                                <label class="form-check-label" for="needClarification">
+                                    Cần làm rõ mô tả yêu cầu
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="needApproval">
+                                <label class="form-check-label" for="needApproval">
+                                    Cần xác nhận từ cấp trên
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
+                <!-- Rejection Reason Section -->
                 <div id="rejectionReasonSection" class="mb-3" style="display: none;">
                     <label for="rejectionReason" class="form-label text-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Lý do từ chối <span class="text-danger">*</span>
+                        <i class="fas fa-exclamation-triangle me-2"></i>Lý do từ chối cụ thể <span class="text-danger">*</span>
                     </label>
                     <textarea 
-                        class="form-control" 
+                        class="form-control border-danger" 
                         id="rejectionReason" 
                         rows="3" 
-                        placeholder="Vui lòng nhập lý do cụ thể tại sao yêu cầu bị từ chối..."></textarea>
+                        placeholder="Vui lòng nêu rõ lý do tại sao yêu cầu bị từ chối..."></textarea>
+                    <div class="form-text text-danger">Thông tin này sẽ được gửi cho người tạo yêu cầu</div>
+                </div>
+
+                <!-- Permission Warning -->
+                <div id="permissionWarning" class="alert alert-warning" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Lưu ý:</strong> Chỉ người được phân công xử lý hoặc Admin mới có quyền thực hiện hành động này.
                 </div>
             </div>
             <div class="modal-footer">
@@ -291,7 +398,8 @@
                     <i class="fas fa-times me-2"></i>Hủy
                 </button>
                 <button type="button" class="btn btn-primary" id="confirmStatusChange">
-                    <i class="fas fa-check me-2"></i>Xác nhận thay đổi
+                    <i class="fas fa-check me-2"></i>
+                    <span id="confirmButtonText">Xác nhận</span>
                 </button>
             </div>
         </div>
@@ -457,6 +565,42 @@
 .kanban-column-body::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+/* Modal action cards */
+.form-check-card {
+    position: relative;
+}
+
+.form-check-card .form-check-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.form-check-card .form-check-label.card {
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.form-check-card .form-check-label.card:hover {
+    border-color: #dee2e6;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.form-check-card .form-check-input:checked + .form-check-label.card {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+    box-shadow: 0 4px 12px rgba(13,110,253,0.2);
+}
+
+.form-check-card .form-check-input:checked + .form-check-label.card h6 {
+    color: #0d6efd;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
 </style>
 
 <script>
@@ -477,16 +621,48 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Approval decision radio buttons
-    document.querySelectorAll('input[name="approvalDecision"]').forEach(radio => {
+    // Action decision radio buttons
+    document.querySelectorAll('input[name="actionDecision"]').forEach(radio => {
         radio.addEventListener('change', function() {
             const rejectionSection = document.getElementById('rejectionReasonSection');
-            if (this.value === 'reject') {
+            const additionalInfoSection = document.getElementById('additionalInfoSection');
+            const noteLabel = document.getElementById('noteLabel');
+            const noteHelpText = document.getElementById('noteHelpText');
+            const confirmButtonText = document.getElementById('confirmButtonText');
+            const noteField = document.getElementById('statusChangeNote');
+
+            // Reset all sections
+            rejectionSection.style.display = 'none';
+            additionalInfoSection.style.display = 'none';
+            document.getElementById('rejectionReason').required = false;
+
+            // Update based on selected action
+            if (this.value === 'approve') {
+                noteLabel.textContent = 'Ghi chú phê duyệt';
+                noteHelpText.textContent = 'Nhập ghi chú về quyết định phê duyệt';
+                noteField.placeholder = 'Đã kiểm tra và phê duyệt yêu cầu...';
+                confirmButtonText.innerHTML = '<i class="fas fa-check me-2"></i>Phê duyệt';
+                
+            } else if (this.value === 'reject') {
+                noteLabel.textContent = 'Lý do từ chối';
+                noteHelpText.textContent = 'Vui lòng nêu rõ lý do từ chối';
+                noteField.placeholder = 'Nhập lý do tại sao yêu cầu bị từ chối...';
                 rejectionSection.style.display = 'block';
                 document.getElementById('rejectionReason').required = true;
-            } else {
-                rejectionSection.style.display = 'none';
-                document.getElementById('rejectionReason').required = false;
+                confirmButtonText.innerHTML = '<i class="fas fa-times me-2"></i>Từ chối';
+                
+            } else if (this.value === 'request_more_info') {
+                noteLabel.textContent = 'Thông tin cần bổ sung';
+                noteHelpText.textContent = 'Mô tả rõ thông tin cần người gửi bổ sung';
+                noteField.placeholder = 'Vui lòng bổ sung thông tin về...';
+                additionalInfoSection.style.display = 'block';
+                confirmButtonText.innerHTML = '<i class="fas fa-info-circle me-2"></i>Yêu cầu bổ sung';
+                
+            } else if (this.value === 'just_move') {
+                noteLabel.textContent = 'Ghi chú';
+                noteHelpText.textContent = 'Nhập ghi chú về thay đổi trạng thái';
+                noteField.placeholder = 'Ghi chú về việc chuyển trạng thái...';
+                confirmButtonText.innerHTML = '<i class="fas fa-arrow-right me-2"></i>Chuyển trạng thái';
             }
         });
     });
@@ -558,6 +734,7 @@ document.addEventListener('DOMContentLoaded', function() {
         pendingStatusChange = {
             requestId,
             newStatusId,
+            oldStatusId,
             card,
             oldColumn,
             newColumn
@@ -571,13 +748,23 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset form
         document.getElementById('statusChangeNote').value = '';
         document.getElementById('rejectionReason').value = '';
-        document.getElementById('approvalSection').style.display = 'none';
         document.getElementById('rejectionReasonSection').style.display = 'none';
-        document.querySelectorAll('input[name="approvalDecision"]').forEach(r => r.checked = false);
+        document.getElementById('additionalInfoSection').style.display = 'none';
+        document.querySelectorAll('input[name="actionDecision"]').forEach(r => r.checked = false);
+        
+        // Uncheck additional info checkboxes
+        document.getElementById('needDocuments').checked = false;
+        document.getElementById('needClarification').checked = false;
+        document.getElementById('needApproval').checked = false;
 
-        // Show approval section if moving to "Chờ phê duyệt" or similar
-        if (newStatusName.includes('phê duyệt') || newStatusName.toLowerCase().includes('approval')) {
-            document.getElementById('approvalSection').style.display = 'block';
+        // Check if user has permission (get from card data attributes)
+        const isAssigned = card.dataset.isAssigned === 'true';
+        const isAdmin = {{#if user.isAdmin}}true{{else}}false{{/if}};
+        
+        if (!isAssigned && !isAdmin) {
+            document.getElementById('permissionWarning').style.display = 'block';
+        } else {
+            document.getElementById('permissionWarning').style.display = 'none';
         }
 
         statusChangeModal.show();
@@ -586,32 +773,54 @@ document.addEventListener('DOMContentLoaded', function() {
     // Confirm status change
     document.getElementById('confirmStatusChange').addEventListener('click', function() {
         const note = document.getElementById('statusChangeNote').value.trim();
+        const actionDecision = document.querySelector('input[name="actionDecision"]:checked');
         
         if (!note) {
-            showToast('error', 'Vui lòng nhập ghi chú/lý do thay đổi');
+            showToast('error', 'Vui lòng nhập ghi chú/lý do');
             return;
         }
 
-        const approvalDecision = document.querySelector('input[name="approvalDecision"]:checked');
+        if (!actionDecision) {
+            showToast('error', 'Vui lòng chọn hành động xử lý');
+            return;
+        }
+
         const rejectionReason = document.getElementById('rejectionReason').value.trim();
 
         // Validate rejection reason if reject is selected
-        if (approvalDecision && approvalDecision.value === 'reject' && !rejectionReason) {
-            showToast('error', 'Vui lòng nhập lý do từ chối');
+        if (actionDecision.value === 'reject' && !rejectionReason) {
+            showToast('error', 'Vui lòng nhập lý do từ chối cụ thể');
             return;
         }
 
         // Prepare data
         const data = {
             statusId: pendingStatusChange.newStatusId,
+            oldStatusId: pendingStatusChange.oldStatusId,
             note: note,
+            action: actionDecision.value
         };
 
-        if (approvalDecision) {
-            data.isApproved = approvalDecision.value === 'approve';
-            if (approvalDecision.value === 'reject') {
-                data.rejectionReason = rejectionReason;
-            }
+        // Handle different actions
+        if (actionDecision.value === 'approve') {
+            data.isApproved = true;
+            data.actionType = 'approval';
+            
+        } else if (actionDecision.value === 'reject') {
+            data.isApproved = false;
+            data.rejectionReason = rejectionReason;
+            data.actionType = 'rejection';
+            
+        } else if (actionDecision.value === 'request_more_info') {
+            data.actionType = 'request_more_info';
+            data.requestMoreInfo = {
+                needDocuments: document.getElementById('needDocuments').checked,
+                needClarification: document.getElementById('needClarification').checked,
+                needApproval: document.getElementById('needApproval').checked
+            };
+            
+        } else if (actionDecision.value === 'just_move') {
+            data.actionType = 'status_change';
         }
 
         // Call API to update status
@@ -647,12 +856,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update badges count
                 updateColumnCounts(oldColumn, newColumn);
                 
-                // Show success message
-                const message = data.isApproved === false 
-                    ? 'Đã từ chối yêu cầu' 
-                    : data.isApproved === true
-                    ? 'Đã phê duyệt yêu cầu'
-                    : 'Đã cập nhật trạng thái yêu cầu';
+                // Show success message based on action
+                let message = 'Đã cập nhật trạng thái yêu cầu';
+                let icon = 'check-circle';
+                
+                switch(data.actionType) {
+                    case 'approval':
+                        message = '✅ Đã phê duyệt yêu cầu thành công';
+                        icon = 'check-circle';
+                        break;
+                    case 'rejection':
+                        message = '❌ Đã từ chối yêu cầu';
+                        icon = 'times-circle';
+                        break;
+                    case 'request_more_info':
+                        message = '📋 Đã yêu cầu bổ sung thông tin';
+                        icon = 'info-circle';
+                        break;
+                    case 'status_change':
+                        message = '➡️ Đã chuyển trạng thái yêu cầu';
+                        icon = 'arrow-right';
+                        break;
+                }
+                
                 showToast('success', message);
                 
                 // Reset card style
@@ -661,8 +887,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Clear pending change
                 pendingStatusChange = null;
+                
+                // Reload page after 2 seconds to update all data
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
             } else {
-                throw new Error(data.message);
+                throw new Error(result.message || 'Không thể cập nhật trạng thái');
             }
         })
         .catch(error => {

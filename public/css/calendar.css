@@ -118,6 +118,7 @@
   font-weight: 500;
   color: var(--table-text-primary);
   font-size: 14px;
+  text-decoration: none;
 }
 
 /* Today highlight */
@@ -127,7 +128,7 @@
 
 .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
   background: var(--table-primary);
-  color: white;
+  color: rgb(51, 157, 178);
   border-radius: 50%;
   width: 32px;
   height: 32px;

@@ -6,7 +6,16 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+const methodOverride = require('method-override');
 require('dotenv').config();
+
+// Thiết lập múi giờ Việt Nam cho Node.js process
+process.env.TZ = 'Asia/Ho_Chi_Minh';
+console.log('🌏 Timezone set to:', process.env.TZ);
+console.log(
+  '🕐 Current server time:',
+  new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })
+);
 
 // Import database connection
 const { testConnection, gracefulShutdown } = require('./config/database');
@@ -44,6 +53,9 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Method override middleware for PUT/DELETE from forms
+app.use(methodOverride('_method'));
 
 // Cookie parser middleware
 app.use(cookieParser());
@@ -235,6 +247,10 @@ const hbs = exphbs.create({
         return value.length;
       return 0;
     },
+    includes: function (array, value) {
+      if (!array || !Array.isArray(array)) return false;
+      return array.includes(value);
+    },
     lt: function (arg1, arg2) {
       return arg1 < arg2;
     },
@@ -315,33 +331,50 @@ const hbs = exphbs.create({
     statusColor: function (statusName) {
       if (!statusName) return 'secondary';
       const status = statusName.toLowerCase();
-      
-      if (status.includes('hoàn thành') || status.includes('completed')) return 'success';
-      if (status.includes('đang xử lý') || status.includes('progress')) return 'primary';
-      if (status.includes('chờ') || status.includes('pending')) return 'warning';
-      if (status.includes('từ chối') || status.includes('rejected')) return 'danger';
+
+      if (status.includes('hoàn thành') || status.includes('completed'))
+        return 'success';
+      if (status.includes('đang xử lý') || status.includes('progress'))
+        return 'primary';
+      if (status.includes('chờ') || status.includes('pending'))
+        return 'warning';
+      if (status.includes('từ chối') || status.includes('rejected'))
+        return 'danger';
       if (status.includes('mới') || status.includes('new')) return 'info';
-      if (status.includes('nháp') || status.includes('draft')) return 'secondary';
-      
+      if (status.includes('nháp') || status.includes('draft'))
+        return 'secondary';
+
       return 'secondary';
     },
     // Helper to get priority color class
     priorityColor: function (priorityName) {
       if (!priorityName) return 'secondary';
       const priority = priorityName.toLowerCase();
-      
-      if (priority.includes('khẩn cấp') || priority.includes('urgent') || priority.includes('critical')) return 'danger';
-      if (priority.includes('cao') || priority.includes('high')) return 'warning';
-      if (priority.includes('trung bình') || priority.includes('medium') || priority.includes('normal')) return 'primary';
-      if (priority.includes('thấp') || priority.includes('low')) return 'success';
-      
+
+      if (
+        priority.includes('khẩn cấp') ||
+        priority.includes('urgent') ||
+        priority.includes('critical')
+      )
+        return 'danger';
+      if (priority.includes('cao') || priority.includes('high'))
+        return 'warning';
+      if (
+        priority.includes('trung bình') ||
+        priority.includes('medium') ||
+        priority.includes('normal')
+      )
+        return 'primary';
+      if (priority.includes('thấp') || priority.includes('low'))
+        return 'success';
+
       return 'secondary';
     },
     // Helper to format hours to readable time
     formatHours: function (hours) {
       if (!hours || isNaN(hours)) return '0 giờ';
       const h = parseFloat(hours);
-      
+
       if (h < 1) {
         return `${Math.round(h * 60)} phút`;
       } else if (h >= 24) {

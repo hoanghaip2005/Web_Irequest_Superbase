@@ -1,14 +1,19 @@
+<link rel="stylesheet" href="/css/modern-table.css">
+<link rel="stylesheet" href="/css/notifications.css">
+
 <div class="content-header">
     <div>
         <h1 class="page-title">Thông báo</h1>
         <p class="page-subtitle">Theo dõi các thông báo và cập nhật quan trọng</p>
     </div>
     <div class="content-actions">
-        <button type="button" class="btn btn-outline-primary" onclick="markAllAsRead()">
-            <i class="fas fa-check-double me-2"></i>Đánh dấu tất cả đã đọc
+        <button type="button" class="btn-modern btn-modern-primary" onclick="markAllAsRead()">
+            <i class="fas fa-check-double"></i>
+            Đánh dấu tất cả đã đọc
         </button>
-        <button type="button" class="btn btn-outline-secondary" onclick="clearReadNotifications()">
-            <i class="fas fa-trash me-2"></i>Xóa đã đọc
+        <button type="button" class="btn-modern btn-modern-secondary" onclick="clearReadNotifications()">
+            <i class="fas fa-trash"></i>
+            Xóa đã đọc
         </button>
     </div>
 </div>
@@ -68,158 +73,271 @@
     </div>
 </div>
 
-<!-- Filter Tabs -->
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label for="type" class="form-label">Loại thông báo</label>
-                <select class="form-select" id="type" name="type" onchange="filterNotifications()">
-                    <option value="">Tất cả</option>
-                    <option value="request_created" {{#ifEquals filters.type 'request_created'}}selected{{/ifEquals}}>Yêu cầu mới</option>
-                    <option value="request_assigned" {{#ifEquals filters.type 'request_assigned'}}selected{{/ifEquals}}>Được giao việc</option>
-                    <option value="request_updated" {{#ifEquals filters.type 'request_updated'}}selected{{/ifEquals}}>Cập nhật yêu cầu</option>
-                    <option value="request_completed" {{#ifEquals filters.type 'request_completed'}}selected{{/ifEquals}}>Hoàn thành</option>
-                    <option value="comment_added" {{#ifEquals filters.type 'comment_added'}}selected{{/ifEquals}}>Bình luận mới</option>
-                    <option value="system" {{#ifEquals filters.type 'system'}}selected{{/ifEquals}}>Hệ thống</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="status" class="form-label">Trạng thái</label>
-                <select class="form-select" id="status" name="status" onchange="filterNotifications()">
-                    <option value="">Tất cả</option>
-                    <option value="unread" {{#ifEquals filters.status 'unread'}}selected{{/ifEquals}}>Chưa đọc</option>
-                    <option value="read" {{#ifEquals filters.status 'read'}}selected{{/ifEquals}}>Đã đọc</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="dateRange" class="form-label">Thời gian</label>
-                <select class="form-select" id="dateRange" name="dateRange" onchange="filterNotifications()">
-                    <option value="">Tất cả thời gian</option>
-                    <option value="today" {{#ifEquals filters.dateRange 'today'}}selected{{/ifEquals}}>Hôm nay</option>
-                    <option value="yesterday" {{#ifEquals filters.dateRange 'yesterday'}}selected{{/ifEquals}}>Hôm qua</option>
-                    <option value="week" {{#ifEquals filters.dateRange 'week'}}selected{{/ifEquals}}>Tuần này</option>
-                    <option value="month" {{#ifEquals filters.dateRange 'month'}}selected{{/ifEquals}}>Tháng này</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="button" class="btn btn-outline-primary w-100" onclick="resetFilters()">
-                    <i class="fas fa-redo me-2"></i>Đặt lại
-                </button>
-            </div>
+<!-- Modern Table Container -->
+<div class="modern-table-container">
+    <!-- Filter Bar -->
+    <div class="table-filter-bar">
+        <select class="filter-select" id="typeFilter" name="type" onchange="filterNotifications()">
+            <option value="">Tất cả loại</option>
+            <option value="request" {{#ifEquals filters.type 'request'}}selected{{/ifEquals}}>Yêu cầu</option>
+            <option value="comment" {{#ifEquals filters.type 'comment'}}selected{{/ifEquals}}>Bình luận</option>
+            <option value="approval" {{#ifEquals filters.type 'approval'}}selected{{/ifEquals}}>Phê duyệt</option>
+            <option value="rejection" {{#ifEquals filters.type 'rejection'}}selected{{/ifEquals}}>Từ chối</option>
+            <option value="assignment" {{#ifEquals filters.type 'assignment'}}selected{{/ifEquals}}>Giao việc</option>
+            <option value="mention" {{#ifEquals filters.type 'mention'}}selected{{/ifEquals}}>Nhắc đến</option>
+            <option value="system" {{#ifEquals filters.type 'system'}}selected{{/ifEquals}}>Hệ thống</option>
+        </select>
+
+        <select class="filter-select" id="statusFilter" name="status" onchange="filterNotifications()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="unread" {{#ifEquals filters.status 'unread'}}selected{{/ifEquals}}>Chưa đọc</option>
+            <option value="read" {{#ifEquals filters.status 'read'}}selected{{/ifEquals}}>Đã đọc</option>
+        </select>
+
+        <select class="filter-select" id="dateRangeFilter" name="dateRange" onchange="filterNotifications()">
+            <option value="">Tất cả thời gian</option>
+            <option value="today" {{#ifEquals filters.dateRange 'today'}}selected{{/ifEquals}}>Hôm nay</option>
+            <option value="yesterday" {{#ifEquals filters.dateRange 'yesterday'}}selected{{/ifEquals}}>Hôm qua</option>
+            <option value="week" {{#ifEquals filters.dateRange 'week'}}selected{{/ifEquals}}>Tuần này</option>
+            <option value="month" {{#ifEquals filters.dateRange 'month'}}selected{{/ifEquals}}>Tháng này</option>
+        </select>
+
+        <button class="filter-btn" onclick="resetFilters()" 
+                {{#unless filters.type}}{{#unless filters.status}}{{#unless filters.dateRange}}style="display: none;"{{/unless}}{{/unless}}{{/unless}}>
+            <i class="fas fa-times"></i>
+            Xóa bộ lọc
+        </button>
+    </div>
+
+    <!-- Active Filters Display -->
+    <div class="mb-3 mt-3 d-flex align-items-center justify-content-between flex-wrap" style="padding: 0 16px;">
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            {{#if filters.type}}
+            <span class="text-muted small me-2">
+                <i class="fas fa-filter me-1"></i>
+                Đang lọc:
+            </span>
+            {{/if}}
+            {{#if filters.status}}
+            {{#unless filters.type}}
+            <span class="text-muted small me-2">
+                <i class="fas fa-filter me-1"></i>
+                Đang lọc:
+            </span>
+            {{/unless}}
+            {{/if}}
+            {{#if filters.dateRange}}
+            {{#unless filters.type}}{{#unless filters.status}}
+            <span class="text-muted small me-2">
+                <i class="fas fa-filter me-1"></i>
+                Đang lọc:
+            </span>
+            {{/unless}}{{/unless}}
+            {{/if}}
+            
+            {{#if filters.type}}
+            <span class="badge bg-primary">
+                Loại: 
+                {{#ifEquals filters.type 'request'}}Yêu cầu{{/ifEquals}}
+                {{#ifEquals filters.type 'comment'}}Bình luận{{/ifEquals}}
+                {{#ifEquals filters.type 'approval'}}Phê duyệt{{/ifEquals}}
+                {{#ifEquals filters.type 'rejection'}}Từ chối{{/ifEquals}}
+                {{#ifEquals filters.type 'assignment'}}Giao việc{{/ifEquals}}
+                {{#ifEquals filters.type 'mention'}}Nhắc đến{{/ifEquals}}
+                {{#ifEquals filters.type 'system'}}Hệ thống{{/ifEquals}}
+            </span>
+            {{/if}}
+            {{#if filters.status}}
+            <span class="badge bg-warning">
+                Trạng thái: {{#ifEquals filters.status 'unread'}}Chưa đọc{{/ifEquals}}{{#ifEquals filters.status 'read'}}Đã đọc{{/ifEquals}}
+            </span>
+            {{/if}}
+            {{#if filters.dateRange}}
+            <span class="badge bg-info">
+                Thời gian: 
+                {{#ifEquals filters.dateRange 'today'}}Hôm nay{{/ifEquals}}
+                {{#ifEquals filters.dateRange 'yesterday'}}Hôm qua{{/ifEquals}}
+                {{#ifEquals filters.dateRange 'week'}}Tuần này{{/ifEquals}}
+                {{#ifEquals filters.dateRange 'month'}}Tháng này{{/ifEquals}}
+            </span>
+            {{/if}}
         </div>
+        <span class="text-muted small">
+            <i class="fas fa-list me-1"></i>
+            {{pagination.totalRecords}} thông báo
+        </span>
     </div>
-</div>
 
-<!-- Notifications List -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">
-            <i class="fas fa-list me-2"></i>Danh sách thông báo
-        </h5>
-        <small class="text-muted">{{notifications.length}} thông báo</small>
-    </div>
-    <div class="card-body p-0">
-        {{#if notifications.length}}
-        <div class="list-group list-group-flush">
-            {{#each notifications}}
-            <div class="list-group-item list-group-item-action {{#unless IsRead}}list-group-item-warning{{/unless}}" 
-                 onclick="markAsRead('{{Id}}')" style="cursor: pointer;">
-                <div class="d-flex w-100 justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center mb-2">
-                            <!-- Notification Type Icon -->
-                            <div class="me-3">
-                                {{#ifEquals Type 'request_created'}}
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                    <i class="fas fa-plus fa-sm"></i>
-                                </div>
-                                {{else}}{{#ifEquals Type 'request_assigned'}}
-                                <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                    <i class="fas fa-user-tag fa-sm"></i>
-                                </div>
-                                {{else}}{{#ifEquals Type 'request_updated'}}
-                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                    <i class="fas fa-edit fa-sm"></i>
-                                </div>
-                                {{else}}{{#ifEquals Type 'request_completed'}}
-                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                    <i class="fas fa-check fa-sm"></i>
-                                </div>
-                                {{else}}{{#ifEquals Type 'comment_added'}}
-                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                    <i class="fas fa-comment fa-sm"></i>
-                                </div>
-                                {{else}}
-                                <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                    <i class="fas fa-cog fa-sm"></i>
-                                </div>
-                                {{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}
-                            </div>
-                            
-                            <!-- Notification Content -->
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1 {{#unless IsRead}}fw-bold{{/unless}}">{{Title}}</h6>
-                                <p class="mb-2 text-muted">{{Message}}</p>
-                                
-                                <!-- Request Info (if applicable) -->
-                                {{#if RequestID}}
-                                <div class="d-flex align-items-center gap-3 small text-muted">
-                                    <span><i class="fas fa-hashtag me-1"></i>{{RequestID}}</span>
-                                    {{#if RequestTitle}}
-                                    <span><i class="fas fa-file-alt me-1"></i>{{RequestTitle}}</span>
-                                    {{/if}}
-                                </div>
-                                {{/if}}
-                            </div>
+    {{#if notifications.length}}
+    <div class="table-responsive">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">
+                        <input type="checkbox" class="table-checkbox" id="selectAll">
+                    </th>
+                    <th style="width: 60px;"></th>
+                    <th class="sortable" data-sort="title">Thông báo</th>
+                    <th class="text-center" style="width: 130px;">Loại</th>
+                    <th class="text-center" style="width: 120px;">Trạng thái</th>
+                    <th class="sortable text-center" style="width: 140px;" data-sort="created">Thời gian</th>
+                    <th class="text-center" style="width: 160px;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each notifications}}
+                <tr class="{{#unless IsRead}}table-row-unread{{/unless}}" data-notification-id="{{Id}}">
+                    <td>
+                        <input type="checkbox" class="table-checkbox" value="{{Id}}">
+                    </td>
+                    <td>
+                        {{#ifEquals Type 'request'}}
+                        <div class="notification-icon bg-primary">
+                            <i class="fas fa-file-alt"></i>
                         </div>
-                    </div>
-                    
-                    <!-- Notification Meta -->
-                    <div class="text-end">
-                        <small class="text-muted d-block">{{formatDateTime CreatedAt}}</small>
-                        <div class="mt-1">
+                        {{else}}{{#ifEquals Type 'comment'}}
+                        <div class="notification-icon bg-info">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        {{else}}{{#ifEquals Type 'approval'}}
+                        <div class="notification-icon bg-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        {{else}}{{#ifEquals Type 'rejection'}}
+                        <div class="notification-icon bg-danger">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        {{else}}{{#ifEquals Type 'assignment'}}
+                        <div class="notification-icon bg-warning">
+                            <i class="fas fa-user-tag"></i>
+                        </div>
+                        {{else}}{{#ifEquals Type 'mention'}}
+                        <div class="notification-icon bg-info">
+                            <i class="fas fa-at"></i>
+                        </div>
+                        {{else}}{{#ifEquals Type 'system'}}
+                        <div class="notification-icon bg-secondary">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        {{else}}
+                        <div class="notification-icon bg-primary">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        {{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}
+                    </td>
+                    <td>
+                        <div style="max-width: 450px;">
+                            <div class="table-cell-name {{#unless IsRead}}fw-bold{{/unless}}">{{Title}}</div>
+                            <div class="table-cell-secondary" style="margin-top: 4px;">
+                                {{Content}}
+                            </div>
+                            {{#if RequestId}}
+                            <div class="mt-2">
+                                <span class="table-status-badge status-info">
+                                    <i class="fas fa-hashtag"></i>
+                                    Yêu cầu #{{RequestId}}
+                                </span>
+                            </div>
+                            {{/if}}
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        {{#ifEquals Type 'request'}}
+                        <span class="table-status-badge status-primary">
+                            <i class="fas fa-circle"></i>
+                            Yêu cầu
+                        </span>
+                        {{else}}{{#ifEquals Type 'comment'}}
+                        <span class="table-status-badge status-info">
+                            <i class="fas fa-circle"></i>
+                            Bình luận
+                        </span>
+                        {{else}}{{#ifEquals Type 'approval'}}
+                        <span class="table-status-badge status-success">
+                            <i class="fas fa-circle"></i>
+                            Phê duyệt
+                        </span>
+                        {{else}}{{#ifEquals Type 'rejection'}}
+                        <span class="table-status-badge status-danger">
+                            <i class="fas fa-circle"></i>
+                            Từ chối
+                        </span>
+                        {{else}}{{#ifEquals Type 'assignment'}}
+                        <span class="table-status-badge status-warning">
+                            <i class="fas fa-circle"></i>
+                            Giao việc
+                        </span>
+                        {{else}}{{#ifEquals Type 'mention'}}
+                        <span class="table-status-badge status-info">
+                            <i class="fas fa-circle"></i>
+                            Nhắc đến
+                        </span>
+                        {{else}}{{#ifEquals Type 'system'}}
+                        <span class="table-status-badge status-secondary">
+                            <i class="fas fa-circle"></i>
+                            Hệ thống
+                        </span>
+                        {{else}}
+                        <span class="table-status-badge status-primary">
+                            <i class="fas fa-circle"></i>
+                            Khác
+                        </span>
+                        {{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}{{/ifEquals}}
+                    </td>
+                    <td class="text-center">
+                        {{#if IsRead}}
+                        <span class="table-status-badge status-success">
+                            <i class="fas fa-check"></i>
+                            Đã đọc
+                        </span>
+                        {{else}}
+                        <span class="table-status-badge status-warning">
+                            <i class="fas fa-envelope"></i>
+                            Chưa đọc
+                        </span>
+                        {{/if}}
+                    </td>
+                    <td class="text-center">
+                        <span class="table-cell-secondary">{{formatDateTime CreatedAt}}</span>
+                    </td>
+                    <td class="text-center">
+                        <div class="table-action-buttons">
+                            {{#if Link}}
+                            <a href="{{Link}}" class="btn-table-action" title="Xem chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {{/if}}
                             {{#unless IsRead}}
-                            <span class="badge bg-warning">Chưa đọc</span>
+                            <button type="button" class="btn-table-action" 
+                                    onclick="markAsRead('{{Id}}')" 
+                                    title="Đánh dấu đã đọc">
+                                <i class="fas fa-check"></i>
+                            </button>
                             {{/unless}}
-
+                            <button type="button" class="btn-table-action btn-table-action-danger" 
+                                    onclick="deleteNotification('{{Id}}')" 
+                                    title="Xóa">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Action Buttons -->
-                <div class="d-flex justify-content-end gap-2 mt-2">
-                    {{#if RequestId}}
-                    <a href="/requests/{{RequestId}}" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-eye me-1"></i>Xem yêu cầu
-                    </a>
-                    {{/if}}
-                    {{#unless IsRead}}
-                    <button type="button" class="btn btn-sm btn-outline-success" 
-                            onclick="event.stopPropagation(); markAsRead('{{Id}}')">
-                        <i class="fas fa-check me-1"></i>Đánh dấu đã đọc
-                    </button>
-                    {{/unless}}
-                    <button type="button" class="btn btn-sm btn-outline-danger" 
-                            onclick="event.stopPropagation(); deleteNotification('{{Id}}')">
-                        <i class="fas fa-trash me-1"></i>Xóa
-                    </button>
-                </div>
-            </div>
-            {{/each}}
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {{#if pagination.totalPages}}
+    <div class="table-pagination">
+        <div class="pagination-info">
+            Hiển thị {{pagination.startRecord}} - {{pagination.endRecord}} 
+            trong tổng số {{pagination.totalRecords}} thông báo
         </div>
         
-        <!-- Pagination -->
-        {{#if pagination.totalPages}}
-        <div class="d-flex justify-content-between align-items-center p-3 border-top">
-            <small class="text-muted">
-                Hiển thị {{pagination.startRecord}} - {{pagination.endRecord}} 
-                trong tổng số {{pagination.totalRecords}} thông báo
-            </small>
-            
-            {{#if pagination.showPagination}}
-            <nav aria-label="Pagination">
-                <ul class="pagination pagination-sm mb-0">
+        {{#if pagination.showPagination}}
+        <div class="pagination-controls">
+            <ul class="pagination mb-0">
                     {{#if pagination.hasPrevious}}
                     <li class="page-item">
                         <a class="page-link" href="?page={{pagination.previousPage}}{{#if filters.type}}&type={{filters.type}}{{/if}}{{#if filters.status}}&status={{filters.status}}{{/if}}{{#if filters.dateRange}}&dateRange={{filters.dateRange}}{{/if}}">
@@ -244,46 +362,73 @@
                     </li>
                     {{/if}}
                 </ul>
-            </nav>
+            </div>
             {{/if}}
         </div>
         {{/if}}
         
-        {{else}}
-        <div class="text-center py-5">
-            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted">Không có thông báo nào</h5>
-            <p class="text-muted">Bạn đã xem hết tất cả thông báo hoặc chưa có thông báo mới.</p>
-            <button type="button" class="btn btn-outline-primary" onclick="location.reload()">
-                <i class="fas fa-sync-alt me-2"></i>Làm mới
-            </button>
-        </div>
-        {{/if}}
+    {{else}}
+    <div class="table-empty-state">
+        <i class="fas fa-bell-slash"></i>
+        <h6>Không có thông báo</h6>
+        <p>Bạn đã xem hết tất cả thông báo hoặc chưa có thông báo mới</p>
+        <button type="button" class="btn-modern btn-modern-primary" onclick="location.reload()">
+            <i class="fas fa-sync-alt"></i>
+            Làm mới
+        </button>
     </div>
+    {{/if}}
 </div>
 
 <script>
 // Mark notification as read
 async function markAsRead(notificationId) {
     try {
-        const response = await fetch(`/api/notifications/${notificationId}/read`, {
-            method: 'PUT'
+        const response = await fetch(`/notifications/${notificationId}/read`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
-        if (response.ok) {
-            // Update UI without full reload
-            const notificationElement = document.querySelector(`[onclick*="${notificationId}"]`);
-            if (notificationElement) {
-                notificationElement.classList.remove('list-group-item-warning');
-                const badge = notificationElement.querySelector('.badge.bg-warning');
-                if (badge) badge.remove();
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update UI without full reload - find the table row
+            const row = document.querySelector(`tr[data-notification-id="${notificationId}"]`);
+            if (row) {
+                // Remove unread styling
+                row.classList.remove('table-row-unread');
+                
+                // Update status badge
+                const statusCell = row.querySelector('td:nth-child(5)');
+                if (statusCell) {
+                    statusCell.innerHTML = `
+                        <span class="table-status-badge status-success">
+                            <i class="fas fa-check"></i>
+                            Đã đọc
+                        </span>
+                    `;
+                }
+                
+                // Remove the "mark as read" button
+                const markButton = row.querySelector('button[onclick*="markAsRead"]');
+                if (markButton) {
+                    markButton.remove();
+                }
             }
             
             // Update unread count in header
             updateUnreadCount();
+            
+            // Show success message
+            showToast('success', data.message || 'Đã đánh dấu là đã đọc');
+        } else {
+            showToast('error', data.error || 'Không thể cập nhật trạng thái');
         }
     } catch (error) {
         console.error('Error marking notification as read:', error);
+        showToast('error', 'Có lỗi xảy ra khi đánh dấu thông báo');
     }
 }
 
@@ -292,64 +437,113 @@ async function deleteNotification(notificationId) {
     if (!confirm('Bạn có chắc muốn xóa thông báo này?')) return;
     
     try {
-        const response = await fetch(`/api/notifications/${notificationId}`, {
-            method: 'DELETE'
+        const response = await fetch(`/notifications/${notificationId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
-        if (response.ok) {
-            location.reload();
+        const data = await response.json();
+        
+        if (data.success) {
+            // Remove the row from table with animation
+            const row = document.querySelector(`tr[data-notification-id="${notificationId}"]`);
+            if (row) {
+                row.style.transition = 'opacity 0.3s';
+                row.style.opacity = '0';
+                setTimeout(() => {
+                    row.remove();
+                    // Check if table is empty
+                    const tbody = document.querySelector('.modern-table tbody');
+                    if (tbody && tbody.children.length === 0) {
+                        location.reload();
+                    }
+                }, 300);
+            }
+            
+            // Update unread count
+            updateUnreadCount();
+            
+            showToast('success', data.message || 'Đã xóa thông báo');
         } else {
-            showAlert('Không thể xóa thông báo!', 'danger');
+            showToast('error', data.error || 'Không thể xóa thông báo');
         }
     } catch (error) {
         console.error('Error deleting notification:', error);
-        showAlert('Có lỗi xảy ra!', 'danger');
+        showToast('error', 'Có lỗi xảy ra khi xóa thông báo');
     }
 }
 
 // Mark all notifications as read
 async function markAllAsRead() {
+    const unreadRows = document.querySelectorAll('.table-row-unread');
+    if (unreadRows.length === 0) {
+        showToast('info', 'Không có thông báo chưa đọc');
+        return;
+    }
+    
+    if (!confirm(`Đánh dấu tất cả ${unreadRows.length} thông báo là đã đọc?`)) return;
+    
     try {
-        const response = await fetch('/api/notifications/mark-all-read', {
-            method: 'PUT'
+        const response = await fetch('/notifications/mark-all-read', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
-        if (response.ok) {
-            location.reload();
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('success', data.message || 'Đã đánh dấu tất cả thông báo');
+            setTimeout(() => location.reload(), 1000);
         } else {
-            showAlert('Không thể đánh dấu tất cả thông báo!', 'danger');
+            showToast('error', data.error || 'Không thể đánh dấu tất cả thông báo');
         }
     } catch (error) {
         console.error('Error marking all as read:', error);
-        showAlert('Có lỗi xảy ra!', 'danger');
+        showToast('error', 'Có lỗi xảy ra');
     }
 }
 
 // Clear read notifications
 async function clearReadNotifications() {
-    if (!confirm('Bạn có chắc muốn xóa tất cả thông báo đã đọc?')) return;
+    const readRows = document.querySelectorAll('tr:not(.table-row-unread)');
+    if (readRows.length === 0) {
+        showToast('info', 'Không có thông báo đã đọc để xóa');
+        return;
+    }
+    
+    if (!confirm(`Bạn có chắc muốn xóa ${readRows.length} thông báo đã đọc?`)) return;
     
     try {
-        const response = await fetch('/api/notifications/clear-read', {
-            method: 'DELETE'
+        const response = await fetch('/notifications/clear-read', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
-        if (response.ok) {
-            location.reload();
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('success', data.message || 'Đã xóa thông báo đã đọc');
+            setTimeout(() => location.reload(), 1000);
         } else {
-            showAlert('Không thể xóa thông báo!', 'danger');
+            showToast('error', data.error || 'Không thể xóa thông báo');
         }
     } catch (error) {
         console.error('Error clearing notifications:', error);
-        showAlert('Có lỗi xảy ra!', 'danger');
+        showToast('error', 'Có lỗi xảy ra');
     }
 }
 
 // Filter notifications
 function filterNotifications() {
-    const type = document.getElementById('type').value;
-    const status = document.getElementById('status').value;
-    const dateRange = document.getElementById('dateRange').value;
+    const type = document.getElementById('typeFilter')?.value || '';
+    const status = document.getElementById('statusFilter')?.value || '';
+    const dateRange = document.getElementById('dateRangeFilter')?.value || '';
     
     const params = new URLSearchParams();
     if (type) params.set('type', type);
@@ -359,6 +553,29 @@ function filterNotifications() {
     window.location.search = params.toString();
 }
 
+// Toast notification helper
+function showToast(type, message) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 // Reset filters
 function resetFilters() {
     window.location.href = window.location.pathname;
@@ -366,7 +583,7 @@ function resetFilters() {
 
 // Update unread count in navigation
 function updateUnreadCount() {
-    fetch('/api/notifications/unread-count')
+    fetch('/notifications/unread-count')
         .then(response => response.json())
         .then(data => {
             const badge = document.querySelector('.notification-badge');
@@ -389,35 +606,148 @@ setInterval(() => {
 
 // Real-time notifications using Server-Sent Events (if available)
 if (typeof EventSource !== 'undefined') {
-    const eventSource = new EventSource('/api/notifications/stream');
+    const eventSource = new EventSource('/notifications/stream');
     
     eventSource.onmessage = function(event) {
-        const notification = JSON.parse(event.data);
-        
-        // Show desktop notification if permission granted
-        if (Notification.permission === 'granted') {
-            new Notification(notification.title, {
-                body: notification.message,
-                icon: '/favicon.ico'
-            });
-        }
-        
-        // Update unread count
-        updateUnreadCount();
-        
-        // Optionally reload the page to show new notification
-        if (window.location.pathname === '/notifications') {
-            setTimeout(() => location.reload(), 2000);
+        try {
+            const notification = JSON.parse(event.data);
+            
+            // Skip heartbeat messages
+            if (notification.type === 'heartbeat' || notification.type === 'connected') {
+                return;
+            }
+            
+            // Show desktop notification if permission granted
+            if (Notification.permission === 'granted' && notification.title) {
+                new Notification(notification.title, {
+                    body: notification.content || notification.message || '',
+                    icon: '/favicon.ico'
+                });
+            }
+            
+            // Update unread count and reload notifications list without full page reload
+            updateUnreadCount();
+            if (window.location.pathname === '/notifications' && typeof loadNotifications === 'function') {
+                loadNotifications(true); // Silent reload
+            }
+        } catch (error) {
+            console.error('Error processing notification:', error);
         }
     };
     
     eventSource.onerror = function(event) {
         console.error('EventSource failed:', event);
+        // Auto-reconnect is handled by browser
     };
 }
 
 // Request notification permission on page load
 if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
+}
+
+// Initialize table features on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Select All checkbox functionality
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.modern-table tbody .table-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+    }
+    
+    // Individual checkbox change - update select all state
+    const individualCheckboxes = document.querySelectorAll('.modern-table tbody .table-checkbox');
+    individualCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const allChecked = Array.from(individualCheckboxes).every(cb => cb.checked);
+            const someChecked = Array.from(individualCheckboxes).some(cb => cb.checked);
+            
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+            }
+        });
+    });
+    
+    // Table sorting functionality
+    const sortableHeaders = document.querySelectorAll('.modern-table th.sortable');
+    sortableHeaders.forEach(header => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function() {
+            const sortField = this.dataset.sort;
+            const currentUrl = new URL(window.location);
+            const currentSort = currentUrl.searchParams.get('sort');
+            const currentOrder = currentUrl.searchParams.get('order');
+            
+            // Toggle order
+            let newOrder = 'asc';
+            if (currentSort === sortField && currentOrder === 'asc') {
+                newOrder = 'desc';
+            }
+            
+            currentUrl.searchParams.set('sort', sortField);
+            currentUrl.searchParams.set('order', newOrder);
+            window.location.href = currentUrl.toString();
+        });
+    });
+});
+
+// Batch actions for selected notifications
+function deleteSelected() {
+    const selectedCheckboxes = document.querySelectorAll('.modern-table tbody .table-checkbox:checked');
+    if (selectedCheckboxes.length === 0) {
+        showToast('info', 'Vui lòng chọn ít nhất một thông báo');
+        return;
+    }
+    
+    if (!confirm(`Xóa ${selectedCheckboxes.length} thông báo đã chọn?`)) return;
+    
+    const deletePromises = Array.from(selectedCheckboxes).map(checkbox => {
+        const notificationId = checkbox.value;
+        return fetch(`/notifications/${notificationId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+    });
+    
+    Promise.all(deletePromises)
+        .then(() => {
+            showToast('success', `Đã xóa ${selectedCheckboxes.length} thông báo`);
+            setTimeout(() => location.reload(), 1000);
+        })
+        .catch(error => {
+            console.error('Error deleting selected:', error);
+            showToast('error', 'Có lỗi xảy ra khi xóa thông báo');
+        });
+}
+
+function markSelectedAsRead() {
+    const selectedCheckboxes = document.querySelectorAll('.modern-table tbody .table-checkbox:checked');
+    if (selectedCheckboxes.length === 0) {
+        showToast('info', 'Vui lòng chọn ít nhất một thông báo');
+        return;
+    }
+    
+    const markPromises = Array.from(selectedCheckboxes).map(checkbox => {
+        const notificationId = checkbox.value;
+        return fetch(`/notifications/${notificationId}/read`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' }
+        });
+    });
+    
+    Promise.all(markPromises)
+        .then(() => {
+            showToast('success', `Đã đánh dấu ${selectedCheckboxes.length} thông báo`);
+            setTimeout(() => location.reload(), 1000);
+        })
+        .catch(error => {
+            console.error('Error marking selected as read:', error);
+            showToast('error', 'Có lỗi xảy ra');
+        });
 }
 </script>

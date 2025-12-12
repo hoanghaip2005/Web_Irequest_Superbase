@@ -368,6 +368,49 @@ let connections = [];
 let selectedStep = null;
 let connectingFrom = null;
 
+// Load roles and statuses from server
+const roles = [
+    {{#each roles}}
+    { id: '{{Id}}', name: {{{json Name}}} }{{#unless @last}},{{/unless}}
+    {{/each}}
+];
+
+const statuses = [
+    {{#each statuses}}
+    { id: '{{StatusID}}', name: {{{json StatusName}}} }{{#unless @last}},{{/unless}}
+    {{/each}}
+];
+
+// Load edit workflow data if available
+{{#if editWorkflow}}
+const editData = {
+    workflowId: {{editWorkflow.WorkflowID}},
+    workflow: {
+        name: {{{json editWorkflow.WorkflowName}}},
+        description: {{#if editWorkflow.Description}}{{{json editWorkflow.Description}}}{{else}}''{{/if}},
+        priorityId: {{#if editWorkflow.PriorityID}}{{editWorkflow.PriorityID}}{{else}}null{{/if}},
+        isActive: {{editWorkflow.IsActive}}
+    },
+    steps: [
+        {{#each editSteps}}
+        {
+            stepName: {{{json StepName}}},
+            stepOrder: {{StepOrder}},
+            requiredRoleId: {{#if RequiredRoleId}}{{RequiredRoleId}}{{else}}null{{/if}},
+            roleName: {{#if RoleName}}{{{json RoleName}}}{{else}}null{{/if}},
+            timeLimitHours: {{#if TimeLimitHours}}{{TimeLimitHours}}{{else}}null{{/if}},
+            approvalRequired: {{ApprovalRequired}},
+            statusId: {{#if StatusID}}{{StatusID}}{{else}}null{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ]
+};
+const isEditMode = true;
+{{else}}
+const editData = null;
+const isEditMode = false;
+{{/if}}
+
 // Load template data if available
 {{#if templateWorkflow}}
 const templateData = {
@@ -410,9 +453,119 @@ function initSVG() {
 
 initSVG();
 
+// Debug: Check what data we have
+console.log('🔍 Debug - editData:', editData);
+console.log('🔍 Debug - templateData:', templateData);
+console.log('🔍 Debug - isEditMode:', isEditMode);
+
+// Load edit workflow if available
+if (editData) {
+    console.log('✏️ Loading edit workflow...');
+    loadEditWorkflow();
+}
 // Load template if available
-if (templateData) {
+else if (templateData) {
+    console.log('📋 Loading template...');
     loadTemplate();
+} else {
+    console.log('📝 New workflow - no data to load');
+}
+
+function loadEditWorkflow() {
+    console.log('✏️ Loading workflow for edit:', editData);
+    
+    // Fill workflow form with existing data
+    document.querySelector('input[name="workflowName"]').value = editData.workflow.name;
+    document.querySelector('textarea[name="description"]').value = editData.workflow.description || '';
+    if (editData.workflow.priorityId) {
+        document.querySelector('select[name="priorityId"]').value = editData.workflow.priorityId;
+    }
+    document.querySelector('input[name="isActive"]').checked = editData.workflow.isActive;
+    
+    // Remove placeholder
+    const canvas = document.getElementById('workflowCanvas');
+    const placeholder = canvas.querySelector('.canvas-placeholder');
+    if (placeholder) {
+        placeholder.remove();
+    }
+    
+    // Create steps from edit data
+    let yPos = 100;
+    editData.steps.forEach((editStep, index) => {
+        const stepId = `step-${Date.now()}-${index}`;
+        const type = editStep.approvalRequired ? 'approval' : 'step';
+        
+        // Create step element
+        const stepElement = document.createElement('div');
+        stepElement.className = `workflow-step type-${type}`;
+        stepElement.id = stepId;
+        stepElement.style.left = '200px';
+        stepElement.style.top = yPos + 'px';
+        
+        const stepNumber = index + 1;
+        const icon = type === 'approval' ? 'fa-check-circle' : 'fa-tasks';
+        const iconColor = type === 'approval' ? 'text-success' : 'text-primary';
+        const label = type === 'approval' ? 'Phê duyệt' : 'Bước xử lý';
+        
+        stepElement.innerHTML = `
+            <div class="connection-point input" data-step-id="${stepId}" data-point="input"></div>
+            <div class="step-header">
+                <span class="badge bg-secondary me-2">#${stepNumber}</span>
+                <i class="fas ${icon} ${iconColor}"></i>
+                <strong>${label}</strong>
+            </div>
+            <div class="step-info">
+                <div class="step-name" style="font-weight: 600; color: #495057;">${editStep.stepName}</div>
+                <small class="text-muted">${type === 'approval' ? 'Duyệt/từ chối' : 'Xử lý yêu cầu'}</small>
+            </div>
+            <div class="step-role">
+                <i class="fas fa-user-tag"></i>
+                <span class="role-name" style="${editStep.roleName ? 'font-weight: 600; color: #28a745;' : ''}">${editStep.roleName || 'Chưa chỉ định'}</span>
+            </div>
+            <div class="connection-point output" data-step-id="${stepId}" data-point="output"></div>
+        `;
+        
+        canvas.appendChild(stepElement);
+        makeDraggable(stepElement);
+        addConnectionHandlers(stepElement);
+        
+        // Add to steps array
+        const stepData = {
+            id: stepId,
+            type: type,
+            x: 200,
+            y: yPos,
+            order: stepNumber,
+            name: editStep.stepName,
+            description: '',
+            roleId: editStep.requiredRoleId,
+            duration: editStep.timeLimitHours,
+            statusId: editStep.statusId,
+            isApprovalStep: editStep.approvalRequired
+        };
+        steps.push(stepData);
+        
+        // Auto-connect to previous step
+        if (index > 0) {
+            connections.push({
+                from: steps[index - 1].id,
+                to: stepId
+            });
+        }
+        
+        yPos += 150;
+    });
+    
+    // Update counter
+    updateStepCounter();
+    
+    // Draw connections
+    drawConnections();
+    
+    // Show success message
+    setTimeout(() => {
+        alert(`✅ Đã load workflow với ${editData.steps.length} bước!\n\nBạn có thể chỉnh sửa và lưu thay đổi.`);
+    }, 500);
 }
 
 function loadTemplate() {
@@ -510,7 +663,6 @@ function loadTemplate() {
     setTimeout(() => {
         alert(`✅ Đã load ${templateData.steps.length} bước từ mẫu!\n\nBạn có thể chỉnh sửa và lưu làm workflow mới.`);
     }, 500);
-}
 }
 
 initSVG();
@@ -813,6 +965,48 @@ function drawConnections() {
     });
 }
 
+function buildRoleSelect(selectedRoleId) {
+    let options = '<option value="">-- Chọn vai trò --</option>';
+    roles.forEach(r => {
+        const selected = (selectedRoleId == r.id) ? 'selected' : '';
+        options += '<option value="' + r.id + '" ' + selected + '>' + r.name + '</option>';
+    });
+    return `
+    <div class="mb-3">
+        <label class="form-label">Vai trò xử lý *</label>
+        <select class="form-select" id="stepRoleId" required>
+            ${options}
+        </select>
+        <small class="text-muted">Vai trò được giao xử lý bước này</small>
+    </div>`;
+}
+
+function buildApprovalSelects(approveStatusId, rejectStatusId) {
+    let approveOptions = '<option value="">-- Chọn trạng thái --</option>';
+    let rejectOptions = '<option value="">-- Chọn trạng thái --</option>';
+    
+    statuses.forEach(s => {
+        const selectedApprove = (approveStatusId == s.id) ? 'selected' : '';
+        const selectedReject = (rejectStatusId == s.id) ? 'selected' : '';
+        approveOptions += '<option value="' + s.id + '" ' + selectedApprove + '>' + s.name + '</option>';
+        rejectOptions += '<option value="' + s.id + '" ' + selectedReject + '>' + s.name + '</option>';
+    });
+    
+    return `
+    <div class="mb-3">
+        <label class="form-label">Trạng thái khi duyệt</label>
+        <select class="form-select" id="stepApproveStatus">
+            ${approveOptions}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Trạng thái khi từ chối</label>
+        <select class="form-select" id="stepRejectStatus">
+            ${rejectOptions}
+        </select>
+    </div>`;
+}
+
 function showStepProperties(stepId) {
     const step = steps.find(s => s.id === stepId);
     if (!step) return;
@@ -849,43 +1043,13 @@ function showStepProperties(stepId) {
                 <textarea class="form-control" id="stepDescription" rows="3" 
                           placeholder="Mô tả chi tiết về bước này">${step.description || ''}</textarea>
             </div>
-            ${step.type !== 'notification' ? `
-            <div class="mb-3">
-                <label class="form-label">Vai trò xử lý *</label>
-                <select class="form-select" id="stepRoleId" required>
-                    <option value="">-- Chọn vai trò --</option>
-                    {{#each roles}}
-                    <option value="{{Id}}" ${step.roleId == '{{Id}}' ? 'selected' : ''}>{{Name}}</option>
-                    {{/each}}
-                </select>
-                <small class="text-muted">Vai trò được giao xử lý bước này</small>
-            </div>
-            ` : ''}
-            ${step.type === 'approval' ? `
-            <div class="mb-3">
-                <label class="form-label">Trạng thái khi duyệt</label>
-                <select class="form-select" id="stepApproveStatus">
-                    <option value="">-- Chọn trạng thái --</option>
-                    {{#each statuses}}
-                    <option value="{{StatusID}}" ${step.approveStatusId == '{{StatusID}}' ? 'selected' : ''}>{{StatusName}}</option>
-                    {{/each}}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Trạng thái khi từ chối</label>
-                <select class="form-select" id="stepRejectStatus">
-                    <option value="">-- Chọn trạng thái --</option>
-                    {{#each statuses}}
-                    <option value="{{StatusID}}" ${step.rejectStatusId == '{{StatusID}}' ? 'selected' : ''}>{{StatusName}}</option>
-                    {{/each}}
-                </select>
-            </div>
-            ` : ''}
+            ${step.type !== 'notification' ? buildRoleSelect(step.roleId) : ''}
+            ${step.type === 'approval' ? buildApprovalSelects(step.approveStatusId, step.rejectStatusId) : ''}
             ${step.type === 'condition' ? `
             <div class="mb-3">
                 <label class="form-label">Điều kiện</label>
                 <textarea class="form-control" id="stepCondition" rows="2" 
-                          placeholder="VD: priority == 'Cao'">${step.condition || ''}</textarea>
+                          placeholder="VD: priority == &quot;Cao&quot;">${step.condition || ''}</textarea>
                 <small class="text-muted">Biểu thức điều kiện để phân nhánh</small>
             </div>
             ` : ''}
@@ -1088,7 +1252,7 @@ function saveNewWorkflow() {
     console.log('Saving workflow:', workflowData);
     
     // Show loading
-    const saveBtn = event.target;
+    const saveBtn = document.querySelector('button[onclick="saveNewWorkflow()"]');
     const originalText = saveBtn.innerHTML;
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang lưu...';

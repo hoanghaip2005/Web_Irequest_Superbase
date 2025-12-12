@@ -1,0 +1,273 @@
+<link rel="stylesheet" href="/css/modern-table.css">
+
+<div class="content-header">
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-building me-2"></i>
+            {{department.Name}}
+        </h1>
+        <p class="page-subtitle">Chi tiết thông tin phòng ban</p>
+    </div>
+    <div class="content-actions">
+        <a href="/departments" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+        {{#if user.isAdmin}}
+        <a href="/departments/{{department.DepartmentID}}/edit" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>Chỉnh sửa
+        </a>
+        {{/if}}
+    </div>
+</div>
+
+{{#if success}}
+<div class="alert alert-success alert-dismissible fade show">
+    <i class="fas fa-check-circle me-2"></i>{{success}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{{/if}}
+
+<div class="row">
+    <!-- Left Column: Department Info -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                         style="width: 100px; height: 100px; font-size: 3rem;">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3 class="mt-3 mb-1">{{department.Name}}</h3>
+                    {{#if department.Code}}
+                    <p class="text-muted">Mã: {{department.Code}}</p>
+                    {{/if}}
+                </div>
+
+                <!-- Status Badge -->
+                <div class="text-center mb-3">
+                    {{#if department.IsActive}}
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-check-circle me-1"></i>Đang hoạt động
+                    </span>
+                    {{else}}
+                    <span class="badge bg-warning fs-6">
+                        <i class="fas fa-ban me-1"></i>Không hoạt động
+                    </span>
+                    {{/if}}
+                </div>
+
+                <hr>
+
+                <!-- Department Info -->
+                <div class="mb-3">
+                    <label class="text-muted small">Trưởng phòng</label>
+                    <div>
+                        {{#if department.ManagerEmail}}
+                        <i class="fas fa-user-tie me-2 text-primary"></i>
+                        <strong>{{department.ManagerEmail}}</strong>
+                        {{else}}
+                        <span class="text-muted">Chưa có</span>
+                        {{/if}}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small">Mô tả</label>
+                    <div>
+                        {{#if department.Description}}
+                        {{department.Description}}
+                        {{else}}
+                        <span class="text-muted">Không có mô tả</span>
+                        {{/if}}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small">Ngày tạo</label>
+                    <div>
+                        <i class="fas fa-calendar me-2 text-primary"></i>
+                        {{formatDate department.CreatedAt}}
+                    </div>
+                </div>
+
+                {{#if department.UpdatedAt}}
+                <div class="mb-3">
+                    <label class="text-muted small">Cập nhật lần cuối</label>
+                    <div>
+                        <i class="fas fa-clock me-2 text-primary"></i>
+                        {{formatDate department.UpdatedAt}}
+                    </div>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+
+        <!-- Statistics Card -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Thống kê
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                    <div>
+                        <i class="fas fa-users fa-2x text-primary"></i>
+                    </div>
+                    <div class="text-end">
+                        <h3 class="mb-0">{{employees.length}}</h3>
+                        <small class="text-muted">Nhân viên</small>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                    <div>
+                        <i class="fas fa-tasks fa-2x text-info"></i>
+                    </div>
+                    <div class="text-end">
+                        <h3 class="mb-0">{{requests.length}}</h3>
+                        <small class="text-muted">Yêu cầu</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Employees & Requests -->
+    <div class="col-lg-8">
+        <!-- Employees List -->
+        <div class="card mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>Danh sách nhân viên
+                </h5>
+                <span class="badge bg-primary">{{employees.length}} người</span>
+            </div>
+            <div class="card-body">
+                {{#if employees.length}}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Số điện thoại</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each employees}}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                             style="width: 32px; height: 32px; font-size: 12px;">
+                                            {{#if UserName}}
+                                            {{substring UserName 0 1}}
+                                            {{else}}
+                                            {{substring Email 0 1}}
+                                            {{/if}}
+                                        </div>
+                                        {{#if UserName}}{{UserName}}{{else}}{{Email}}{{/if}}
+                                    </div>
+                                </td>
+                                <td>{{Email}}</td>
+                                <td>{{#if PhoneNumber}}{{PhoneNumber}}{{else}}<span class="text-muted">-</span>{{/if}}</td>
+                                <td>
+                                    <a href="/employees/{{Id}}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                {{else}}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-users fa-3x mb-3 d-block"></i>
+                    <p>Chưa có nhân viên nào trong phòng ban này</p>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+
+        <!-- Recent Requests -->
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-clipboard-list me-2"></i>Yêu cầu gần đây
+                </h5>
+                <a href="/requests?department={{department.DepartmentID}}" class="btn btn-sm btn-outline-primary">
+                    Xem tất cả
+                </a>
+            </div>
+            <div class="card-body">
+                {{#if requests.length}}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tiêu đề</th>
+                                <th>Trạng thái</th>
+                                <th>Ưu tiên</th>
+                                <th>Ngày tạo</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each requests}}
+                            <tr>
+                                <td><span class="badge bg-secondary">#{{RequestID}}</span></td>
+                                <td style="max-width: 300px;">{{Title}}</td>
+                                <td>
+                                    <span class="badge bg-info">{{StatusName}}</span>
+                                </td>
+                                <td>
+                                    {{#ifEquals PriorityName 'Cao'}}
+                                    <span class="badge bg-danger">{{PriorityName}}</span>
+                                    {{else}}{{#ifEquals PriorityName 'Trung bình'}}
+                                    <span class="badge bg-warning">{{PriorityName}}</span>
+                                    {{else}}
+                                    <span class="badge bg-secondary">{{PriorityName}}</span>
+                                    {{/ifEquals}}{{/ifEquals}}
+                                </td>
+                                <td>{{formatDate CreatedAt}}</td>
+                                <td>
+                                    <a href="/requests/{{RequestID}}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                {{else}}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-clipboard fa-3x mb-3 d-block"></i>
+                    <p>Chưa có yêu cầu nào từ phòng ban này</p>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 12px;
+}
+
+.card-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 1.5rem;
+}
+
+.table > :not(caption) > * > * {
+    padding: 0.75rem;
+}
+</style>
